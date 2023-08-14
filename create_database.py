@@ -2,8 +2,22 @@ import sqlite3
 import os
 import subprocess
 
-def get_dvd_name():
-    output = subprocess.check_output(['wmic', 'logicaldisk', 'where', 'drivetype=5', 'get', 'volumename'], text=True)
+def delete_existing_database(database_name):
+    if os.path.exists(database_name):
+        choice = input(f"Database '{database_name}' already exists. Do you want to delete it? (y/n): ").lower()
+        if choice == 'y':
+            os.remove(database_name)
+            print(f"Database '{database_name}' deleted.")
+        else:
+            print("Existing database was not deleted.")
+
+def enter_disk_path():
+    default_path = "D:\\"
+    dvd_device_path = input(f"Enter the path of the DVD device (default: {default_path}): ")
+    return dvd_device_path if dvd_device_path else default_path
+
+def get_dvd_name(disk_path):
+    output = subprocess.check_output(f'wmic logicaldisk where DeviceID="{disk_path[:2]}" get volumename', text=True)
     lines = output.strip().split('\n')
     dvd_name = lines[2] if len(lines) > 1 else ''
     return dvd_name.strip() if dvd_name else None
@@ -42,24 +56,36 @@ def get_txt_files(folder_path):
     return txt_files
 
 def main():
-    dvd_name = get_dvd_name()
-    dvd_device_path = "D:\\"
+    database_name = 'chs_dvd.db'
+
+    # Prompt to delete existing database
+    delete_existing_database(database_name)
+
+    # Get the disk path from the user
+    disk_path = enter_disk_path()
 
     # Connect to the SQLite database
-    conn = sqlite3.connect('chs_dvd.db')
+    conn = sqlite3.connect(database_name)
     cursor = conn.cursor()
 
-    if dvd_name:
+    dvd_name = get_dvd_name(disk_path)
 
-        folders = list_folders(dvd_device_path)
+    num_disks = int(input("How many disks do you want to process?: "))
 
-        if folders:
-            print(f"Folders on DVD '{dvd_name}':")
-            for folder in folders:
-                if folder.startswith(('R', 'V')):
+    for _ in range(num_disks):
+
+        dvd_name = get_dvd_name(disk_path)
+
+        if dvd_name:
+            folders = list_folders(disk_path)
+
+            if folders:
+                print(f"Folders on DVD '{dvd_name}':")
+                for folder in folders:
                     table_name = folder.replace("-", "_")  # Replace hyphens with underscores
-                    folder_path = os.path.join(dvd_device_path, folder)
+                    folder_path = os.path.join(disk_path, folder)
                     txt_files = get_txt_files(folder_path)
+
                     if txt_files:
                         print(f"Folder: {folder}")
                         for txt_file in txt_files:
@@ -69,15 +95,14 @@ def main():
                         print("Table and data added.")
                     else:
                         print("No .txt files in this folder.")
+            else:
+                print(f"No folders found on DVD '{dvd_name}'.")
         else:
-            print(f"No folders found on DVD '{dvd_name}'.")
-    else:
-        print("No DVD found.")
-    
-    # Commit the changes and close the connection
-    conn.commit()
-    conn.close()
+            print(f"DVD not found at path '{disk_path}'.")
 
+        # Commit the changes and close the connection
+        conn.commit()
+        conn.close()
    
 if __name__ == "__main__":
     main()
