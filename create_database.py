@@ -72,8 +72,9 @@ def main():
 
     num_disks = int(input("How many disks do you want to process?: "))
 
-    for _ in range(num_disks):
-
+    for disk_num in range(1, num_disks + 1):
+        input(f"Insert DVD {disk_num} and press Enter when ready...")
+        
         dvd_name = get_dvd_name(disk_path)
 
         if dvd_name:
@@ -102,7 +103,9 @@ def main():
 
         # Commit the changes and close the connection
         conn.commit()
-        conn.close()
+    
+    # Close the connection after processing all disks
+    conn.close()
    
 if __name__ == "__main__":
     main()
