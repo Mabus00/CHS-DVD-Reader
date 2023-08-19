@@ -2,6 +2,13 @@
 pip install pyqt5
 pip install pyqt5-tools
 
+## to open pyqt5 designer:
+in anaconda command prompt type "designer"
+
+## Qt Designer
+once initial design saved, go to the directory and:
+pyuic5 - filename.ui -o newfilename.py
+
 ## Useful terminal window commands to view SQLite database:
 >sqlite3 chs_dvd.db<br>
 sqlite>.help<br>
