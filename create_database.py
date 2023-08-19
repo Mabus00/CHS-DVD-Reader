@@ -1,5 +1,5 @@
 '''
-Code that creates the sqlite database reading from CHS DVDs inserted in DVD reader.
+Creates the sqlite database and populates tables by reading from CHS DVDs inserted in DVD reader.
 Intent is that user will only load one CHS East and one CHS West DVD.
 This forms the database. Later code will read current CHS DVDs and compare data to what is in database
 to check for errors, new charts, new editions, charts withdrawn and potential errors.

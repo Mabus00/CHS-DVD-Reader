@@ -1,5 +1,6 @@
 # CHS-DVD-Reader
 pip install pyqt5
+pip install pyqt5-tools
 
 ## Useful terminal window commands to view SQLite database:
 >sqlite3 chs_dvd.db<br>
