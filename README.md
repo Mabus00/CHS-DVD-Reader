@@ -7,7 +7,7 @@ in anaconda command prompt type "designer"
 or find the .exe and create a shortcut (C:\Users\wayne\anaconda3\Library\bin\designer.exe)
 
 ## Qt Designer
-once initial design saved, go to the directory and:
+once initial design saved, go to the directory and execute to build .py code:
 pyuic5 - filename.ui -o newfilename.py
 
 ## Useful terminal window commands to view SQLite database:
