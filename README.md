@@ -4,6 +4,7 @@ pip install pyqt5-tools
 
 ## to open pyqt5 designer:
 in anaconda command prompt type "designer"
+or find the .exe and create a shortcut (C:\Users\wayne\anaconda3\Library\bin\designer.exe)
 
 ## Qt Designer
 once initial design saved, go to the directory and:
