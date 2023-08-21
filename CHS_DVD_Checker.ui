@@ -37,6 +37,152 @@
      <set>Qt::AlignCenter</set>
     </property>
    </widget>
+   <widget class="QTabWidget" name="tabWidget">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>90</y>
+      <width>741</width>
+      <height>401</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+      <weight>50</weight>
+      <bold>false</bold>
+     </font>
+    </property>
+    <property name="currentIndex">
+     <number>5</number>
+    </property>
+    <property name="documentMode">
+     <bool>false</bool>
+    </property>
+    <widget class="QWidget" name="checker">
+     <attribute name="title">
+      <string>Run Checker</string>
+     </attribute>
+     <widget class="QWidget" name="formLayoutWidget">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>20</y>
+        <width>381</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <layout class="QFormLayout" name="input_path">
+       <item row="0" column="0">
+        <widget class="QLabel" name="selectUpdateFolderLabel">
+         <property name="text">
+          <string>Select Update Folder:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QLineEdit" name="selectUpdateFolderLineEdit"/>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="new_charts">
+     <attribute name="title">
+      <string>New Charts</string>
+     </attribute>
+    </widget>
+    <widget class="QWidget" name="new_editions">
+     <attribute name="title">
+      <string>New Editions</string>
+     </attribute>
+    </widget>
+    <widget class="QWidget" name="withdrawals">
+     <attribute name="title">
+      <string>Withdrawals</string>
+     </attribute>
+    </widget>
+    <widget class="QWidget" name="errors">
+     <attribute name="title">
+      <string>Errors</string>
+     </attribute>
+    </widget>
+    <widget class="QWidget" name="rebuild_database">
+     <attribute name="title">
+      <string>Create / Rebuild Database</string>
+     </attribute>
+     <widget class="QCheckBox" name="checkBox">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>20</y>
+        <width>261</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Delete Current Database</string>
+      </property>
+     </widget>
+     <widget class="QWidget" name="formLayoutWidget_2">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>60</y>
+        <width>491</width>
+        <height>61</height>
+       </rect>
+      </property>
+      <layout class="QFormLayout" name="formLayout">
+       <item row="0" column="0">
+        <widget class="QLabel" name="selectInputPathLabel">
+         <property name="text">
+          <string>Select Input Path:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QLineEdit" name="selectInputPathLineEdit"/>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QProgressBar" name="progressBar">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>330</y>
+        <width>241</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="value">
+       <number>24</number>
+      </property>
+     </widget>
+     <widget class="QTextBrowser" name="textBrowser">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>160</y>
+        <width>491</width>
+        <height>151</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>130</y>
+        <width>171</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Progress Reports:</string>
+      </property>
+     </widget>
+    </widget>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
@@ -55,7 +201,7 @@
    </widget>
    <addaction name="menuFile"/>
   </widget>
-  <widget class="QStatusBar" name="statusbar"/>
+  <widget class="QStatusBar" name="statusBar"/>
   <action name="actionSave">
    <property name="text">
     <string>Save</string>
