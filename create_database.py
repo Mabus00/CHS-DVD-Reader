@@ -12,116 +12,126 @@ import sqlite3
 import os
 import subprocess
 
-# Function to delete the existing database if user chooses
-def delete_existing_database(database_name):
-    if os.path.exists(database_name):
-        choice = input(f"Database '{database_name}' already exists. Do you want to delete it? (y/n): ").lower()
-        if choice == 'y':
-            os.remove(database_name)
-            print(f"Database '{database_name}' deleted.")
+class CreateDatabase():
+
+    def __init__(self, database_name):
+        self.database_name = database_name
+
+    def __del__(self):
+        # Close the connection after processing all disks
+        self.conn.close()
+
+    def delete_existing_database(self):
+        if os.path.exists(self.database_name):
+            choice = input(f"Database '{self.database_name}' already exists. Do you want to delete it? (y/n): ").lower()
+            if choice == 'y':
+                os.remove(self.database_name)
+                print(f"Database '{self.database_name}' deleted.")
+            else:
+                print("Existing database was not deleted.")
+
+    def open_database(self, database_name):
+        self.conn = sqlite3.connect(database_name)
+        self.cursor = self.conn.cursor()
+
+    # Function to prompt the user for the DVD device path
+    def enter_disk_path(self):
+        default_path = "D:\\"
+        dvd_device_path = input(f"Enter the path of the DVD device (default: {default_path}): ")
+        return dvd_device_path if dvd_device_path else default_path
+
+    # Function to get the DVD name using the disk path
+    def get_dvd_name(self, disk_path):
+        output = subprocess.check_output(f'wmic logicaldisk where DeviceID="{disk_path[:2]}" get volumename', text=True)
+        lines = output.strip().split('\n')
+        dvd_name = lines[2] if len(lines) > 1 else ''
+        return dvd_name.strip() if dvd_name else None
+
+    # Function to list folders in the DVD path
+    def list_folders(self, dvd_path):
+        if os.path.exists(dvd_path):
+            folders = [item for item in os.listdir(dvd_path) if os.path.isdir(os.path.join(dvd_path, item))]
+            return folders
         else:
-            print("Existing database was not deleted.")
+            return []
 
-# Function to prompt the user for the DVD device path
-def enter_disk_path():
-    default_path = "D:\\"
-    dvd_device_path = input(f"Enter the path of the DVD device (default: {default_path}): ")
-    return dvd_device_path if dvd_device_path else default_path
+    # Function to create a table with column names from a text file
+    def create_table(self, table_name, txt_file_path):
+        with open(txt_file_path, 'r') as txt_file:
+            column_names = txt_file.readline().strip().split('\t')
+            sanitized_column_names = [name.replace(".", "").strip() for name in column_names]
+            quoted_column_names = [f'"{name}"' for name in sanitized_column_names]
+            column_names_sql = ', '.join(quoted_column_names)
+            create_table_sql = f"CREATE TABLE IF NOT EXISTS {table_name} ({column_names_sql})"
+            self.cursor.execute(create_table_sql)
 
-# Function to get the DVD name using the disk path
-def get_dvd_name(disk_path):
-    output = subprocess.check_output(f'wmic logicaldisk where DeviceID="{disk_path[:2]}" get volumename', text=True)
-    lines = output.strip().split('\n')
-    dvd_name = lines[2] if len(lines) > 1 else ''
-    return dvd_name.strip() if dvd_name else None
+    # Function to insert data into a table from a text file
+    def insert_data(self, table_name, txt_file_path):
+        with open(txt_file_path, 'r') as txt_file:
+            next(txt_file)  # Skip the first line (column names)
+            next(txt_file)  # Skip the second line
+            for line in txt_file:
+                line = line.strip()
+                if not line:  # Stop processing if the line is blank
+                    break
+                data = line.split('\t')
+                placeholders = ', '.join(['?'] * len(data))
+                insert_sql = f"INSERT INTO {table_name} VALUES ({placeholders})"
+                self.cursor.execute(insert_sql, data)
 
-# Function to list folders in the DVD path
-def list_folders(dvd_path):
-    if os.path.exists(dvd_path):
-        folders = [item for item in os.listdir(dvd_path) if os.path.isdir(os.path.join(dvd_path, item))]
-        return folders
-    else:
-        return []
+    # Function to get a list of .txt files in a folder
+    def get_txt_files(self, folder_path):
+        txt_files = [file for file in os.listdir(folder_path) if file.endswith('.txt')]
+        return txt_files
+    
+    def process_disks(self, num_disks):
+        for disk_num in range(1, num_disks + 1):
+            input(f"Insert DVD {disk_num} and press Enter when ready...")
+            
+            dvd_name = self.get_dvd_name(self.disk_path)
 
-# Function to create a table with column names from a text file
-def create_table(cursor, table_name, txt_file_path):
-    with open(txt_file_path, 'r') as txt_file:
-        column_names = txt_file.readline().strip().split('\t')
-        sanitized_column_names = [name.replace(".", "").strip() for name in column_names]
-        quoted_column_names = [f'"{name}"' for name in sanitized_column_names]
-        column_names_sql = ', '.join(quoted_column_names)
-        create_table_sql = f"CREATE TABLE IF NOT EXISTS {table_name} ({column_names_sql})"
-        cursor.execute(create_table_sql)
+            if dvd_name:
+                folders = self.list_folders(self.disk_path)
 
-# Function to insert data into a table from a text file
-def insert_data(cursor, table_name, txt_file_path):
-    with open(txt_file_path, 'r') as txt_file:
-        next(txt_file)  # Skip the first line (column names)
-        next(txt_file)  # Skip the second line
-        for line in txt_file:
-            line = line.strip()
-            if not line:  # Stop processing if the line is blank
-                break
-            data = line.split('\t')
-            placeholders = ', '.join(['?'] * len(data))
-            insert_sql = f"INSERT INTO {table_name} VALUES ({placeholders})"
-            cursor.execute(insert_sql, data)
+                if folders:
+                    print(f"Folders on DVD '{dvd_name}':")
+                    for folder in folders:
+                        table_name = folder.replace("-", "_")
+                        folder_path = os.path.join(self.disk_path, folder)
+                        txt_files = self.get_txt_files(folder_path)
 
-# Function to get a list of .txt files in a folder
-def get_txt_files(folder_path):
-    txt_files = [file for file in os.listdir(folder_path) if file.endswith('.txt')]
-    return txt_files
+                        if txt_files:
+                            print(f"Folder: {folder}")
+                            for txt_file in txt_files:
+                                txt_file_path = os.path.join(folder_path, txt_file)
+                                self.create_table(table_name, txt_file_path)
+                                self.insert_data(table_name, txt_file_path)
+                            print("Table and data added.")
+                        else:
+                            print("No .txt files in this folder.")
+                else:
+                    print(f"No folders found on DVD '{dvd_name}'.")
+            else:
+                print(f"DVD not found at path '{self.disk_path}'.")
+
+        # Commit the changes at the end
+        self.conn.commit()
 
 def main():
+
     database_name = 'chs_dvd.db'
 
+    create_db = CreateDatabase(database_name)
+
     # Prompt to delete existing database
-    delete_existing_database(database_name)
+    create_db.delete_existing_database()
 
-    # Get the disk path from the user
-    disk_path = enter_disk_path()
-
-    # Connect to the SQLite database
-    conn = sqlite3.connect(database_name)
-    cursor = conn.cursor()
-
-    num_disks = int(input("How many disks do you want to process?: "))
-
-    # Loop through disks and copy data to sqlite database
-    for disk_num in range(1, num_disks + 1):
-        input(f"Insert DVD {disk_num} and press Enter when ready...")
-        
-        dvd_name = get_dvd_name(disk_path)
-
-        if dvd_name:
-            folders = list_folders(disk_path)
-
-            if folders:
-                print(f"Folders on DVD '{dvd_name}':")
-                for folder in folders:
-                    table_name = folder.replace("-", "_")  # Replace hyphens with underscores; sqlite doesn't work with hyphens
-                    folder_path = os.path.join(disk_path, folder)
-                    txt_files = get_txt_files(folder_path)
-
-                    if txt_files:
-                        print(f"Folder: {folder}")
-                        for txt_file in txt_files:
-                            txt_file_path = os.path.join(folder_path, txt_file)
-                            create_table(cursor, table_name, txt_file_path)
-                            insert_data(cursor, table_name, txt_file_path)
-                        print("Table and data added.")
-                    else:
-                        print("No .txt files in this folder.")
-            else:
-                print(f"No folders found on DVD '{dvd_name}'.")
-        else:
-            print(f"DVD not found at path '{disk_path}'.")
-
-        # Commit the changes and close the connection
-        conn.commit()
+    create_db.open_database(database_name)
     
-    # Close the connection after processing all disks
-    conn.close()
+    num_disks = int(input("How many disks do you want to process?: "))
+    create_db.disk_path = create_db.enter_disk_path()  # Set the disk path attribute
+
+    create_db.process_disks(num_disks)  # Call the process_disks method
    
 if __name__ == "__main__":
     main()

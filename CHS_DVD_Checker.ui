@@ -110,17 +110,17 @@
      <attribute name="title">
       <string>Create / Rebuild Database</string>
      </attribute>
-     <widget class="QCheckBox" name="checkBox">
+     <widget class="QCheckBox" name="rebuild_checkbox">
       <property name="geometry">
        <rect>
         <x>20</x>
-        <y>20</y>
-        <width>261</width>
+        <y>10</y>
+        <width>341</width>
         <height>31</height>
        </rect>
       </property>
       <property name="text">
-       <string>Delete Current Database</string>
+       <string>Check if rebuilding the current database</string>
       </property>
      </widget>
      <widget class="QWidget" name="formLayoutWidget_2">
@@ -136,7 +136,7 @@
        <item row="0" column="0">
         <widget class="QLabel" name="selectInputPathLabel">
          <property name="text">
-          <string>Select Input Path:</string>
+          <string>Select data input path:</string>
          </property>
         </widget>
        </item>
@@ -178,20 +178,20 @@
        </rect>
       </property>
       <property name="text">
-       <string>Progress Reports:</string>
+       <string>Progress Report:</string>
       </property>
      </widget>
      <widget class="QPushButton" name="buildDatabaseButton">
       <property name="geometry">
        <rect>
         <x>20</x>
-        <y>120</y>
+        <y>110</y>
         <width>301</width>
         <height>41</height>
        </rect>
       </property>
       <property name="text">
-       <string>Create/Rebuild Database</string>
+       <string>Execute Create/Rebuild Database</string>
       </property>
      </widget>
      <widget class="QLabel" name="label_2">
