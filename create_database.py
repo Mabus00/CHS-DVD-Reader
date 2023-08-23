@@ -14,25 +14,27 @@ import subprocess
 
 class CreateDatabase():
 
-    def __init__(self, database_name):
-        self.database_name = database_name
+    def __init__(self):
+        self.database_name = 'chs_dvd.db'
 
     def __del__(self):
         # Close the connection after processing all disks
-        self.conn.close()
+        self.conn.close()  
 
     def delete_existing_database(self):
         if os.path.exists(self.database_name):
-            choice = input(f"Database '{self.database_name}' already exists. Do you want to delete it? (y/n): ").lower()
-            if choice == 'y':
-                os.remove(self.database_name)
-                print(f"Database '{self.database_name}' deleted.")
-            else:
-                print("Existing database was not deleted.")
+            os.remove(self.database_name)
+            print(f"Database '{self.database_name}' deleted.")
 
-    def open_database(self, database_name):
-        self.conn = sqlite3.connect(database_name)
+    def open_database(self):
+        print('open database')
+        self.conn = sqlite3.connect(self.database_name)
         self.cursor = self.conn.cursor()
+
+    def close_database(self):
+        print('close database')
+        if self.conn:
+            self.conn.close()
 
     # Function to prompt the user for the DVD device path
     def enter_disk_path(self):
@@ -85,6 +87,8 @@ class CreateDatabase():
         return txt_files
     
     def process_disks(self, num_disks):
+        # Open the database connection before processing disks
+        #self.open_database()
         for disk_num in range(1, num_disks + 1):
             input(f"Insert DVD {disk_num} and press Enter when ready...")
             
@@ -117,9 +121,7 @@ class CreateDatabase():
         # Commit the changes at the end
         self.conn.commit()
 
-def main():
-
-    database_name = 'chs_dvd.db'
+""" def main():
 
     create_db = CreateDatabase(database_name)
 
@@ -131,7 +133,7 @@ def main():
     num_disks = int(input("How many disks do you want to process?: "))
     create_db.disk_path = create_db.enter_disk_path()  # Set the disk path attribute
 
-    create_db.process_disks(num_disks)  # Call the process_disks method
+    create_db.process_disks(num_disks)  # Call the process_disks method """
    
 if __name__ == "__main__":
-    main()
+    pass
