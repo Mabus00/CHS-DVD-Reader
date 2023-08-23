@@ -1,3 +1,6 @@
+''' add comments '''
+
+
 import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow
 from chs_dvd_gui import Ui_MainWindow
