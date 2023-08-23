@@ -4,7 +4,7 @@ Custom signals and slots (callbacks) module to handle all comms between componen
 Custom signals are connected to event handlers.
 
 Organized by tabs in gui.
-
+   
 '''
 
 from PyQt5.QtCore import QObject, pyqtSignal
