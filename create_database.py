@@ -6,7 +6,7 @@ to check for errors, new charts, new editions, charts withdrawn and potential er
 
 Intent later is to modify this code to also read from a .zip file (this is how the monthly data is received).
 
-modified for gui interface
+WOr
 '''
 
 import sqlite3
