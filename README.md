@@ -9,6 +9,7 @@ or find the .exe and create a shortcut (C:\Users\wayne\anaconda3\Library\bin\des
 ## Qt Designer
 once initial design saved, go to the directory and execute to build .py code:
 pyuic5 - filename.ui -o newfilename.py
+create a shortcut for designer.exe; >***\anaconda3\envs\chs\Lib\site-packages\qt5_applications\Qt\bin
 
 ## Useful terminal window commands to view SQLite database:
 >sqlite3 chs_dvd.db<br>
