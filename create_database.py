@@ -19,6 +19,7 @@ class CreateDatabase():
         self.database_name = 'chs_dvd.db'
 
     def __del__(self):
+        print('close database')
         # Close the connection after processing all disks
         self.conn.close()  
 

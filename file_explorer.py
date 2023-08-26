@@ -1,5 +1,8 @@
-import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QFileDialog
+''' 
+
+'''
+
+from PyQt5.QtWidgets import QMainWindow, QPushButton, QLabel, QFileDialog
 
 class FileExplorerApp(QMainWindow):
     def __init__(self):
@@ -21,7 +24,4 @@ class FileExplorerApp(QMainWindow):
             self.file_path_label.setText("Selected File: " + file_path)
 
 if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    window = FileExplorerApp()
-    window.show()
-    sys.exit(app.exec_())
+    pass
