@@ -1,8 +1,8 @@
-''' add comments '''
+''' '''
 
 
 import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow
+from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog
 from chs_dvd_gui import Ui_MainWindow
 from custom_signals import CreateDatabaseSignals
 from create_database import CreateDatabase
@@ -25,6 +25,9 @@ class CHSDVDReaderApp(QMainWindow):
 
         self.ui.buildDatabaseButton.clicked.connect(self.delete_database_if_checked)
 
+        # Connect the custom signal to a slot to open the file explorer
+        self.ui.selectDataPathButton.clicked.connect(self.open_file_explorer)
+
     def emit_rebuild_checkbox_status(self, state):
         # Emit the custom signal with the checkbox status (True or False)
         self.create_database_signals.rebuild_checkbox_changed.emit(state)
@@ -37,7 +40,15 @@ class CHSDVDReaderApp(QMainWindow):
             # Create an instance of CreateDatabase and call delete_existing_database
             self.create_db.delete_existing_database()
 
+            #self.create_db.open_database()
+
         print(f"Build Database Button pressed")
+
+    def open_file_explorer(self):
+        self.data_input_path = QFileDialog.getExistingDirectory(self, "Select Folder")
+        if self.data_input_path:
+            self.ui.data_input_path.setText(self.data_input_path)
+            print(f"Selected Folder Path: {self.data_input_path}")
 
 
 def main():
