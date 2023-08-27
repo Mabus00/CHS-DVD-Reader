@@ -11,8 +11,8 @@ from PyQt5.QtCore import QObject, pyqtSignal
 
 class CreateDatabaseSignals(QObject):
     # Define custom signals specific to the "Create / Rebuild Database" tab
-    rebuild_checkbox_changed = pyqtSignal(bool)
-    build_database_button_pressed = pyqtSignal()
-    data_input_path_pressed = pyqtSignal()
+    rebuild_checkbox = pyqtSignal(bool)
+    build_database_button = pyqtSignal()
+    data_input_path_button = pyqtSignal()
 
 # Define more custom signals for other tabs if needed

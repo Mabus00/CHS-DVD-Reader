@@ -38,12 +38,6 @@ class CreateDatabase():
         if self.conn:
             self.conn.close()
 
-    # Function to prompt the user for the DVD device path
-    def enter_disk_path(self):
-        default_path = "D:\\"
-        dvd_device_path = input(f"Enter the path of the DVD device (default: {default_path}): ")
-        return dvd_device_path if dvd_device_path else default_path
-
     # Function to get the DVD name using the disk path
     def get_dvd_name(self, disk_path):
         output = subprocess.check_output(f'wmic logicaldisk where DeviceID="{disk_path[:2]}" get volumename', text=True)
@@ -88,9 +82,11 @@ class CreateDatabase():
         txt_files = [file for file in os.listdir(folder_path) if file.endswith('.txt')]
         return txt_files
     
-    def process_disks(self, num_disks):
-        # Open the database connection before processing disks
-        #self.open_database()
+    def process_disks(self, disk_path):
+
+        self.disk_path = disk_path  # Set the disk path attribute
+        num_disks = 2
+
         for disk_num in range(1, num_disks + 1):
             input(f"Insert DVD {disk_num} and press Enter when ready...")
             
@@ -132,8 +128,7 @@ class CreateDatabase():
 
     create_db.open_database(database_name)
     
-    num_disks = int(input("How many disks do you want to process?: "))
-    create_db.disk_path = create_db.enter_disk_path()  # Set the disk path attribute
+    
 
     create_db.process_disks(num_disks)  # Call the process_disks method """
    
