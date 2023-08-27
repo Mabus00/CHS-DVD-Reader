@@ -1,5 +1,10 @@
-''' '''
+'''
+Main controller for app.
 
+Note I chose to use custom signals and slots to provide greater seperation of concerns and looser coupli.g
+I could have gone directly from the UI signal to the slot but chose this instead.
+
+'''
 
 import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog
@@ -12,44 +17,39 @@ class CHSDVDReaderApp(QMainWindow):
         super().__init__()
         
         self.ui = Ui_MainWindow()
-        self.ui.setupUi(self)  # Set up UI components
-        self.setWindowTitle("CHS DVD Reader")  # Set the window title
+        self.ui.setupUi(self)
+        self.setWindowTitle("CHS DVD Reader")
 
+        self.data_input_path = ""
         self.create_db = CreateDatabase()
 
         # Create an instance of CreateDatabaseSignals
-        self.create_database_signals = CreateDatabaseSignals()
+        self.database_signals = CreateDatabaseSignals()
 
-        # Connect the custom signal to a slot to delete the database
-        self.ui.rebuild_checkbox.stateChanged.connect(self.emit_rebuild_checkbox_status)
+        # Connect UI signals to custom signals using object names
+        self.ui.buildDatabaseButton.clicked.connect(self.database_signals.build_database_button.emit)
+        self.ui.selectDataPathButton.clicked.connect(self.database_signals.data_input_path_button.emit)
 
-        self.ui.buildDatabaseButton.clicked.connect(self.delete_database_if_checked)
+        # Connect custom signals to slots
+        self.database_signals.build_database_button.connect(self.build_database)
+        self.database_signals.data_input_path_button.connect(self.open_file_explorer)
 
-        # Connect the custom signal to a slot to open the file explorer
-        self.ui.selectDataPathButton.clicked.connect(self.open_file_explorer)
-
-    def emit_rebuild_checkbox_status(self, state):
-        # Emit the custom signal with the checkbox status (True or False)
-        self.create_database_signals.rebuild_checkbox_changed.emit(state)
-        print(f"Rebuild checkbox state changed: {state}")
-
-    def delete_database_if_checked(self):
-        print('here')
+    def build_database(self):
         if self.ui.rebuild_checkbox.isChecked():
             print('checked')
-            # Create an instance of CreateDatabase and call delete_existing_database
-            self.create_db.delete_existing_database()
-
-            #self.create_db.open_database()
+            #self.create_db.delete_existing_database()
 
         print(f"Build Database Button pressed")
+        if self.data_input_path:
+            #self.create_db.process_disks(self.data_input_path)
+            print(f"Selected Folder Path: {self.data_input_path}")
+        else:
+            print("Please select a data input path")
 
     def open_file_explorer(self):
         self.data_input_path = QFileDialog.getExistingDirectory(self, "Select Folder")
         if self.data_input_path:
             self.ui.data_input_path.setText(self.data_input_path)
-            print(f"Selected Folder Path: {self.data_input_path}")
-
 
 def main():
     app = QApplication(sys.argv)
