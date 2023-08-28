@@ -6,9 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>868</width>
-    <height>593</height>
+    <width>900</width>
+    <height>700</height>
    </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
@@ -129,16 +135,6 @@
        <string>Check to confirm: delete and rebuild database?</string>
       </property>
      </widget>
-     <widget class="QTextBrowser" name="rebuild_database_textBrowser">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>240</y>
-        <width>491</width>
-        <height>151</height>
-       </rect>
-      </property>
-     </widget>
      <widget class="QLabel" name="label">
       <property name="geometry">
        <rect>
@@ -170,12 +166,12 @@
        <rect>
         <x>20</x>
         <y>80</y>
-        <width>201</width>
+        <width>231</width>
         <height>41</height>
        </rect>
       </property>
       <property name="text">
-       <string>Press to select data path</string>
+       <string>Press to select input data path</string>
       </property>
      </widget>
      <widget class="QLabel" name="data_input_path">
@@ -197,7 +193,17 @@
        <enum>QFrame::StyledPanel</enum>
       </property>
       <property name="text">
-       <string/>
+       <string>default D:\</string>
+      </property>
+     </widget>
+     <widget class="QTextBrowser" name="rebuildDatabaseTextBrowser">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>250</y>
+        <width>491</width>
+        <height>141</height>
+       </rect>
       </property>
      </widget>
     </widget>
@@ -208,7 +214,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>868</width>
+     <width>900</width>
      <height>21</height>
     </rect>
    </property>

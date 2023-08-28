@@ -8,10 +8,12 @@ I could have gone directly from the UI signal to the slot but chose this instead
 
 import sys
 import os
-from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox, QInputDialog
+from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog
+from PyQt5.QtGui import QTextCursor
 from chs_dvd_gui import Ui_MainWindow
 from custom_signals import CreateDatabaseSignals
 from create_database import CreateDatabase
+from common_utils import show_warning_popup
 
 class CHSDVDReaderApp(QMainWindow):
     def __init__(self):
@@ -23,10 +25,12 @@ class CHSDVDReaderApp(QMainWindow):
 
         self.data_input_path = "D:\\"
         self.database_path = "chs_dvd.db"
-        self.create_db = CreateDatabase()
 
         # Create an instance of CreateDatabaseSignals
         self.database_signals = CreateDatabaseSignals()
+
+        # create and pass instance of database_signals to CreateDatabase so it can use the progress_reports_textbox
+        self.create_db = CreateDatabase(self.database_signals)
 
         # Connect UI signals to custom signals using object names
         self.ui.buildDatabaseButton.clicked.connect(self.database_signals.build_database_button.emit)
@@ -35,19 +39,18 @@ class CHSDVDReaderApp(QMainWindow):
         # Connect custom signals to slots
         self.database_signals.build_database_button.connect(self.build_database)
         self.database_signals.data_input_path_button.connect(self.open_file_explorer)
+        self.database_signals.progress_reports_textbox.connect(self.update_text_browser)
 
     def build_database(self):
 
         if os.path.exists(self.database_path):
             # chs_dvd.db exists
             if not self.ui.rebuild_checkbox.isChecked():
-                message = "Database exists. Check the 'Confirm deletion of database' box to proceed"
-                self.show_popup(message)
+                show_warning_popup("Database exists. Check the 'Confirm deletion of database' box to proceed")
                 return
             self.create_db.delete_existing_database()
         
         self.create_db.open_database()
-        print("database open")
         self.create_db.process_disks(self.data_input_path)
 
     def open_file_explorer(self):
@@ -55,12 +58,9 @@ class CHSDVDReaderApp(QMainWindow):
         if self.data_input_path:
             self.ui.data_input_path.setText(self.data_input_path)
 
-    def show_popup(self, message):
-        popup = QMessageBox(self)
-        popup.setWindowTitle("Alert")
-        popup.setText(message)
-        popup.setIcon(QMessageBox.Warning)
-        popup.exec_()
+    def update_text_browser(self, message):
+        self.ui.rebuildDatabaseTextBrowser.insertPlainText(message + "\n")  # Append the message and a newline
+        self.ui.rebuildDatabaseTextBrowser.ensureCursorVisible()
 
 def main():
     app = QApplication(sys.argv)

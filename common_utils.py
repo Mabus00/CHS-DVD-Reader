@@ -1,0 +1,14 @@
+''' 
+
+module of common functions
+
+'''
+
+from PyQt5.QtWidgets import QMessageBox
+
+def show_warning_popup(message):
+    popup = QMessageBox()
+    popup.setWindowTitle("Alert")
+    popup.setText(message)
+    popup.setIcon(QMessageBox.Warning)
+    popup.exec_()

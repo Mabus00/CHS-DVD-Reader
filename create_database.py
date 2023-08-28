@@ -12,29 +12,32 @@ Intent later is to modify this code to also read from a .zip file (this is how t
 import sqlite3
 import os
 import subprocess
+from common_utils import show_warning_popup
 
 class CreateDatabase():
 
-    def __init__(self):
+    def __init__(self, database_signals):
         self.database_name = 'chs_dvd.db'
+        # Create an instance of CreateDatabaseSignals
+        self.database_signals = database_signals
 
     def __del__(self):
-        print('close database')
+        self.database_signals.progress_reports_textbox.emit('close database')
         # Close the connection after processing all disks
         self.conn.close()  
 
     def delete_existing_database(self):
         if os.path.exists(self.database_name):
             os.remove(self.database_name)
-            print(f"Database '{self.database_name}' deleted.")
+            self.database_signals.progress_reports_textbox.emit(f"Database '{self.database_name}' deleted.")
 
     def open_database(self):
-        print('open database')
+        self.database_signals.progress_reports_textbox.emit("new chs_dvd.db opened")
         self.conn = sqlite3.connect(self.database_name)
         self.cursor = self.conn.cursor()
 
     def close_database(self):
-        print('close database')
+        self.database_signals.progress_reports_textbox.emit('close database')
         if self.conn:
             self.conn.close()
 
@@ -83,12 +86,11 @@ class CreateDatabase():
         return txt_files
     
     def process_disks(self, disk_path):
-
-        self.disk_path = disk_path  # Set the disk path attribute
+        self.disk_path = disk_path
         num_disks = 2
 
         for disk_num in range(1, num_disks + 1):
-            input(f"Insert DVD {disk_num} and press Enter when ready...")
+            show_warning_popup(f"Insert DVD {disk_num} and press Enter when ready...")
             
             dvd_name = self.get_dvd_name(self.disk_path)
 
@@ -96,41 +98,35 @@ class CreateDatabase():
                 folders = self.list_folders(self.disk_path)
 
                 if folders:
-                    print(f"Folders on DVD '{dvd_name}':")
-                    for folder in folders:
-                        table_name = folder.replace("-", "_")
-                        folder_path = os.path.join(self.disk_path, folder)
-                        txt_files = self.get_txt_files(folder_path)
-
-                        if txt_files:
-                            print(f"Folder: {folder}")
-                            for txt_file in txt_files:
-                                txt_file_path = os.path.join(folder_path, txt_file)
-                                self.create_table(table_name, txt_file_path)
-                                self.insert_data(table_name, txt_file_path)
-                            print("Table and data added.")
-                        else:
-                            print("No .txt files in this folder.")
+                    self.database_signals.progress_reports_textbox.emit(f"Folders on DVD '{dvd_name}':")
+                    self.process_folders(folders)
                 else:
-                    print(f"No folders found on DVD '{dvd_name}'.")
+                    self.database_signals.progress_reports_textbox.emit(f"No folders found on DVD '{dvd_name}'.")
             else:
-                print(f"DVD not found at path '{self.disk_path}'.")
+                self.database_signals.progress_reports_textbox.emit(f"DVD not found at path '{self.disk_path}'.")
 
         # Commit the changes at the end
         self.conn.commit()
 
-""" def main():
+    def process_folders(self, folders):
+        for folder in folders:
+            if folder.startswith("RM") or folder.startswith("V"):
+                self.process_folder(folder)
 
-    create_db = CreateDatabase(database_name)
+    def process_folder(self, folder):
+        table_name = folder.replace("-", "_")
+        folder_path = os.path.join(self.disk_path, folder)
+        txt_files = self.get_txt_files(folder_path)
 
-    # Prompt to delete existing database
-    create_db.delete_existing_database()
-
-    create_db.open_database(database_name)
-    
-    
-
-    create_db.process_disks(num_disks)  # Call the process_disks method """
+        if txt_files:
+            self.database_signals.progress_reports_textbox.emit(f"Folder: {folder}")
+            for txt_file in txt_files:
+                txt_file_path = os.path.join(folder_path, txt_file)
+                self.create_table(table_name, txt_file_path)
+                self.insert_data(table_name, txt_file_path)
+            self.database_signals.progress_reports_textbox.emit("Table and data added.")
+        else:
+            self.database_signals.progress_reports_textbox.emit("No .txt files in this folder.")
    
 if __name__ == "__main__":
     pass
