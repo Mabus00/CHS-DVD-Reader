@@ -49,7 +49,7 @@
       <x>30</x>
       <y>70</y>
       <width>781</width>
-      <height>451</height>
+      <height>471</height>
      </rect>
     </property>
     <property name="sizePolicy">
@@ -121,6 +121,29 @@
       </property>
       <property name="text">
        <string>Run CHS DVD Checker Program</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="runCheckerProgressReportLabel">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>210</y>
+        <width>171</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Progress Report:</string>
+      </property>
+     </widget>
+     <widget class="QTextBrowser" name="runCheckerTextBrowser">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>250</y>
+        <width>601</width>
+        <height>151</height>
+       </rect>
       </property>
      </widget>
     </widget>
@@ -253,7 +276,7 @@
        <string>Check to confirm: delete and rebuild database?</string>
       </property>
      </widget>
-     <widget class="QLabel" name="label">
+     <widget class="QLabel" name="createDatabaseProgressReportLabel">
       <property name="geometry">
        <rect>
         <x>20</x>
@@ -319,8 +342,8 @@
        <rect>
         <x>20</x>
         <y>250</y>
-        <width>491</width>
-        <height>141</height>
+        <width>601</width>
+        <height>151</height>
        </rect>
       </property>
      </widget>

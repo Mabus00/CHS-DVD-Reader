@@ -6,7 +6,6 @@ to check for errors, new charts, new editions, charts withdrawn and potential er
 
 Intent later is to modify this code to also read from a .zip file (this is how the monthly data is received).
 
-
 '''
 
 import sqlite3
@@ -22,22 +21,22 @@ class CreateDatabase():
         self.database_signals = database_signals
 
     def __del__(self):
-        self.database_signals.progress_reports_textbox.emit('close database')
+        self.database_signals.create_rebuild_database_textbox.emit('close database')
         # Close the connection after processing all disks
         self.conn.close()  
 
     def delete_existing_database(self):
         if os.path.exists(self.database_name):
             os.remove(self.database_name)
-            self.database_signals.progress_reports_textbox.emit(f"Database '{self.database_name}' deleted.")
+            self.database_signals.create_rebuild_database_textbox.emit(f"Database '{self.database_name}' deleted.")
 
     def open_database(self):
-        self.database_signals.progress_reports_textbox.emit(f"New '{self.database_name}' created and opened")
+        self.database_signals.create_rebuild_database_textbox.emit(f"New '{self.database_name}' created and opened")
         self.conn = sqlite3.connect(self.database_name)
         self.cursor = self.conn.cursor()
 
     def close_database(self):
-        self.database_signals.progress_reports_textbox.emit('close database')
+        self.database_signals.create_rebuild_database_textbox.emit('close database')
         if self.conn:
             self.conn.close()
 
@@ -98,12 +97,12 @@ class CreateDatabase():
                 folders = self.list_folders(self.disk_path)
 
                 if folders:
-                    self.database_signals.progress_reports_textbox.emit(f"Folders on DVD '{dvd_name}':")
+                    self.database_signals.create_rebuild_database_textbox.emit(f"Folders on DVD '{dvd_name}':")
                     self.process_folders(folders)
                 else:
-                    self.database_signals.progress_reports_textbox.emit(f"No folders found on DVD '{dvd_name}'.")
+                    self.database_signals.create_rebuild_database_textbox.emit(f"No folders found on DVD '{dvd_name}'.")
             else:
-                self.database_signals.progress_reports_textbox.emit(f"DVD not found at path '{self.disk_path}'.")
+                self.database_signals.create_rebuild_database_textbox.emit(f"DVD not found at path '{self.disk_path}'.")
 
         # Commit the changes at the end
         self.conn.commit()
@@ -119,14 +118,14 @@ class CreateDatabase():
         txt_files = self.get_txt_files(folder_path)
 
         if txt_files:
-            self.database_signals.progress_reports_textbox.emit(f"Folder: {folder}")
+            self.database_signals.create_rebuild_database_textbox.emit(f"Folder: {folder}")
             for txt_file in txt_files:
                 txt_file_path = os.path.join(folder_path, txt_file)
                 self.create_table(table_name, txt_file_path)
                 self.insert_data(table_name, txt_file_path)
-            self.database_signals.progress_reports_textbox.emit("Table and data added.")
+            self.database_signals.create_rebuild_database_textbox.emit("Table and data added.")
         else:
-            self.database_signals.progress_reports_textbox.emit("No .txt files in this folder.")
+            self.database_signals.create_rebuild_database_textbox.emit("No .txt files in this folder.")
    
 if __name__ == "__main__":
     pass

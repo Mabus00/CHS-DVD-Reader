@@ -29,7 +29,7 @@ class CHSDVDReaderApp(QMainWindow):
         # Create an instance of CreateDatabaseSignals
         self.database_signals = CreateDatabaseSignals()
 
-        # create and pass instance of database_signals to CreateDatabase so it can use the progress_reports_textbox
+        # create and pass instance of database_signals to CreateDatabase so it can use the create_rebuild_database_textbox
         self.create_db = CreateDatabase(self.database_signals)
 
         # Connect UI signals to custom signals using object names
@@ -39,7 +39,7 @@ class CHSDVDReaderApp(QMainWindow):
         # Connect custom signals to slots
         self.database_signals.build_database_button.connect(self.build_database)
         self.database_signals.data_input_path_button.connect(self.open_file_explorer)
-        self.database_signals.progress_reports_textbox.connect(self.update_text_browser)
+        self.database_signals.create_rebuild_database_textbox.connect(self.update_text_browser)
 
     def build_database(self):
 
