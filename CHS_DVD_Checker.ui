@@ -47,7 +47,7 @@
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>80</y>
+      <y>70</y>
       <width>781</width>
       <height>451</height>
      </rect>
@@ -66,7 +66,7 @@
      </font>
     </property>
     <property name="currentIndex">
-     <number>5</number>
+     <number>0</number>
     </property>
     <property name="documentMode">
      <bool>false</bool>
@@ -75,48 +75,166 @@
      <attribute name="title">
       <string>Run Checker</string>
      </attribute>
-     <widget class="QWidget" name="formLayoutWidget">
+     <widget class="QPushButton" name="selectCheckerDataPathButton">
       <property name="geometry">
        <rect>
-        <x>0</x>
-        <y>20</y>
-        <width>381</width>
+        <x>20</x>
+        <y>40</y>
+        <width>231</width>
         <height>41</height>
        </rect>
       </property>
-      <layout class="QFormLayout" name="input_path">
-       <item row="0" column="0">
-        <widget class="QLabel" name="selectUpdateFolderLabel">
-         <property name="text">
-          <string>Select Update Folder:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QLineEdit" name="selectUpdateFolderLineEdit"/>
-       </item>
-      </layout>
+      <property name="text">
+       <string>Press to select input data path</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="checker_data_input_path">
+      <property name="geometry">
+       <rect>
+        <x>260</x>
+        <y>40</y>
+        <width>431</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::StyledPanel</enum>
+      </property>
+      <property name="text">
+       <string>default D:\</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="runCheckerButton">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>130</y>
+        <width>301</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Run CHS DVD Checker Program</string>
+      </property>
      </widget>
     </widget>
     <widget class="QWidget" name="new_charts">
      <attribute name="title">
       <string>New Charts</string>
      </attribute>
+     <widget class="QLabel" name="newChartsLabel">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>40</y>
+        <width>391</width>
+        <height>61</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>The following New Charts are announced:</string>
+      </property>
+     </widget>
+     <widget class="QTextBrowser" name="newChartsTextBrowser">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>100</y>
+        <width>601</width>
+        <height>221</height>
+       </rect>
+      </property>
+     </widget>
     </widget>
     <widget class="QWidget" name="new_editions">
      <attribute name="title">
       <string>New Editions</string>
      </attribute>
+     <widget class="QTextBrowser" name="newEditionsTextBrowser">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>100</y>
+        <width>601</width>
+        <height>221</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QLabel" name="newChartsLabel_2">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>40</y>
+        <width>391</width>
+        <height>61</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>The following New Editions are announced:</string>
+      </property>
+     </widget>
     </widget>
     <widget class="QWidget" name="withdrawals">
      <attribute name="title">
-      <string>Withdrawals</string>
+      <string>Charts Withdrawn</string>
      </attribute>
+     <widget class="QTextBrowser" name="chartsWithdrawnTextBrowser">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>100</y>
+        <width>601</width>
+        <height>221</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QLabel" name="newChartsLabel_3">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>40</y>
+        <width>391</width>
+        <height>61</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>The following charts are announced as withdrawn:</string>
+      </property>
+     </widget>
     </widget>
     <widget class="QWidget" name="errors">
      <attribute name="title">
       <string>Errors</string>
      </attribute>
+     <widget class="QTextBrowser" name="errorsTextBrowser">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>100</y>
+        <width>601</width>
+        <height>221</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QLabel" name="newChartsLabel_4">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>40</y>
+        <width>391</width>
+        <height>61</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>The following errors were detected:</string>
+      </property>
+     </widget>
     </widget>
     <widget class="QWidget" name="rebuild_database">
      <attribute name="title">

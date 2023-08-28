@@ -32,7 +32,7 @@ class CreateDatabase():
             self.database_signals.progress_reports_textbox.emit(f"Database '{self.database_name}' deleted.")
 
     def open_database(self):
-        self.database_signals.progress_reports_textbox.emit("new chs_dvd.db opened")
+        self.database_signals.progress_reports_textbox.emit(f"New '{self.database_name}' created and opened")
         self.conn = sqlite3.connect(self.database_name)
         self.cursor = self.conn.cursor()
 
