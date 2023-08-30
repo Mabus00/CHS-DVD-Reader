@@ -11,7 +11,7 @@ Intent later is to modify this code to also read from a .zip file (this is how t
 import sqlite3
 import os
 import subprocess
-from common_utils import show_warning_popup
+from common_utils import show_warning_popup, update_text_browser
 
 class CreateDatabase():
 
@@ -20,23 +20,18 @@ class CreateDatabase():
         # Create an instance of CreateDatabaseSignals
         self.database_signals = database_signals
 
-    def __del__(self):
-        self.database_signals.create_rebuild_database_textbox.emit('close database')
-        # Close the connection after processing all disks
-        self.conn.close()  
-
-    def delete_existing_database(self):
+    def delete_existing_database(self, text_browser_widget):
         if os.path.exists(self.database_name):
             os.remove(self.database_name)
-            self.database_signals.create_rebuild_database_textbox.emit(f"Database '{self.database_name}' deleted.")
+            update_text_browser(text_browser_widget, f"Database '{self.database_name}' deleted.")
 
-    def open_database(self):
-        self.database_signals.create_rebuild_database_textbox.emit(f"New '{self.database_name}' created and opened")
+    def open_database(self, text_browser_widget):
+        update_text_browser(text_browser_widget, f"New '{self.database_name}' created and opened")
         self.conn = sqlite3.connect(self.database_name)
         self.cursor = self.conn.cursor()
 
-    def close_database(self):
-        self.database_signals.create_rebuild_database_textbox.emit('close database')
+    def close_database(self, text_browser_widget):
+        update_text_browser(text_browser_widget, 'close database')
         if self.conn:
             self.conn.close()
 
@@ -84,7 +79,7 @@ class CreateDatabase():
         txt_files = [file for file in os.listdir(folder_path) if file.endswith('.txt')]
         return txt_files
     
-    def process_disks(self, disk_path):
+    def process_disks(self, disk_path, text_browser_widget):
         self.disk_path = disk_path
         num_disks = 2
 
@@ -97,35 +92,36 @@ class CreateDatabase():
                 folders = self.list_folders(self.disk_path)
 
                 if folders:
-                    self.database_signals.create_rebuild_database_textbox.emit(f"Folders on DVD '{dvd_name}':")
-                    self.process_folders(folders)
+                    update_text_browser(text_browser_widget, f"Folders on DVD '{dvd_name}':")
+                    self.process_folders(folders, text_browser_widget)
                 else:
-                    self.database_signals.create_rebuild_database_textbox.emit(f"No folders found on DVD '{dvd_name}'.")
+                    update_text_browser(text_browser_widget, f"No folders found on DVD '{dvd_name}'.")
             else:
-                self.database_signals.create_rebuild_database_textbox.emit(f"DVD not found at path '{self.disk_path}'.")
+                update_text_browser(text_browser_widget, f"DVD not found at path '{self.disk_path}'.")
 
         # Commit the changes at the end
         self.conn.commit()
+        update_text_browser(text_browser_widget, "\nCHS Database Successfully Created!")
 
-    def process_folders(self, folders):
+    def process_folders(self, folders, text_browser_widget):
         for folder in folders:
             if folder.startswith("RM") or folder.startswith("V"):
-                self.process_folder(folder)
+                self.process_folder(folder, text_browser_widget)
 
-    def process_folder(self, folder):
+    def process_folder(self, folder, text_browser_widget):
         table_name = folder.replace("-", "_")
         folder_path = os.path.join(self.disk_path, folder)
         txt_files = self.get_txt_files(folder_path)
 
         if txt_files:
-            self.database_signals.create_rebuild_database_textbox.emit(f"Folder: {folder}")
+            update_text_browser(text_browser_widget, f"Folder: {folder}")
             for txt_file in txt_files:
                 txt_file_path = os.path.join(folder_path, txt_file)
                 self.create_table(table_name, txt_file_path)
                 self.insert_data(table_name, txt_file_path)
-            self.database_signals.create_rebuild_database_textbox.emit("Table and data added.")
+            update_text_browser(text_browser_widget, "Table and data added.")
         else:
-            self.database_signals.create_rebuild_database_textbox.emit("No .txt files in this folder.")
+            update_text_browser(text_browser_widget, "No .txt files in this folder.")
    
 if __name__ == "__main__":
     pass

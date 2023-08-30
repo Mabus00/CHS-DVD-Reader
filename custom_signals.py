@@ -44,6 +44,6 @@ class CreateDatabaseSignals(QObject):
     rebuild_checkbox = pyqtSignal(bool)
     build_database_button = pyqtSignal()
     data_input_path_button = pyqtSignal()
-    create_rebuild_database_textbox = pyqtSignal(str)
+    create_database_textbox = pyqtSignal(str)
 
 # Define more custom signals for other tabs if needed
