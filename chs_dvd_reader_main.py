@@ -12,7 +12,7 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog
 from chs_dvd_gui import Ui_MainWindow
 from custom_signals import CreateDatabaseSignals
 from create_database import CreateDatabase
-from common_utils import show_warning_popup, update_text_browser
+from common_utils import show_warning_popup
 
 class CHSDVDReaderApp(QMainWindow):
     def __init__(self):
@@ -38,6 +38,8 @@ class CHSDVDReaderApp(QMainWindow):
         # Connect custom signals to slots
         self.database_signals.build_database_button.connect(self.build_database)
         self.database_signals.data_input_path_button.connect(self.open_file_explorer)
+        # Using a lambda function to create an anonymous function that takes a single argument 'message'.
+        # The lambda function is being used as an argument to the emit method of the custom signal.
         self.database_signals.create_database_textbox.connect(lambda message: self.update_text_browser(self.ui.rebuildDatabaseTextBrowser, message))
 
     def update_text_browser(self, text_browser, message):
@@ -53,6 +55,7 @@ class CHSDVDReaderApp(QMainWindow):
                 return
             self.create_db.delete_existing_database(self.ui.rebuildDatabaseTextBrowser)
         
+        # passing self.ui.rebuildDatabaseTextBrowser as the text_browser_widget I want the message sent to
         self.create_db.open_database(self.ui.rebuildDatabaseTextBrowser)
         self.create_db.process_disks(self.data_input_path, self.ui.rebuildDatabaseTextBrowser)
 

@@ -26,14 +26,14 @@ class CreateDatabase():
             update_text_browser(text_browser_widget, f"Database '{self.database_name}' deleted.")
 
     def open_database(self, text_browser_widget):
-        update_text_browser(text_browser_widget, f"New '{self.database_name}' created and opened")
         self.conn = sqlite3.connect(self.database_name)
         self.cursor = self.conn.cursor()
+        update_text_browser(text_browser_widget, f"New '{self.database_name}' created and opened")
 
     def close_database(self, text_browser_widget):
-        update_text_browser(text_browser_widget, 'close database')
         if self.conn:
             self.conn.close()
+        update_text_browser(text_browser_widget, 'close database')
 
     # Function to get the DVD name using the disk path
     def get_dvd_name(self, disk_path):
