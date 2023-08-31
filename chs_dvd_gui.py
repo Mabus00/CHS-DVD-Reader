@@ -127,6 +127,7 @@ class Ui_MainWindow(object):
         sizePolicy.setHeightForWidth(self.data_input_path.sizePolicy().hasHeightForWidth())
         self.data_input_path.setSizePolicy(sizePolicy)
         self.data_input_path.setFrameShape(QtWidgets.QFrame.StyledPanel)
+        self.data_input_path.setText("")
         self.data_input_path.setObjectName("data_input_path")
         self.rebuildDatabaseTextBrowser = QtWidgets.QTextBrowser(self.rebuild_database)
         self.rebuildDatabaseTextBrowser.setGeometry(QtCore.QRect(20, 250, 601, 151))
@@ -148,7 +149,7 @@ class Ui_MainWindow(object):
         self.menubar.addAction(self.menuFile.menuAction())
 
         self.retranslateUi(MainWindow)
-        self.tabWidget.setCurrentIndex(0)
+        self.tabWidget.setCurrentIndex(5)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -172,19 +173,8 @@ class Ui_MainWindow(object):
         self.createDatabaseProgressReportLabel.setText(_translate("MainWindow", "Progress Report:"))
         self.buildDatabaseButton.setText(_translate("MainWindow", "Execute Create/Rebuild Database"))
         self.selectDataPathButton.setText(_translate("MainWindow", "Press to select input data path"))
-        self.data_input_path.setText(_translate("MainWindow", "default D:\\"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.rebuild_database), _translate("MainWindow", "Create / Rebuild Database"))
         self.menuFile.setTitle(_translate("MainWindow", "File"))
         self.actionSave.setText(_translate("MainWindow", "Save"))
         self.actionSave.setStatusTip(_translate("MainWindow", "Save as new database"))
         self.actionSave.setShortcut(_translate("MainWindow", "Ctrl+S"))
-
-
-if __name__ == "__main__":
-    import sys
-    app = QtWidgets.QApplication(sys.argv)
-    MainWindow = QtWidgets.QMainWindow()
-    ui = Ui_MainWindow()
-    ui.setupUi(MainWindow)
-    MainWindow.show()
-    sys.exit(app.exec_())

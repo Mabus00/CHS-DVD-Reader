@@ -12,6 +12,7 @@ import sqlite3
 import os
 import subprocess
 from common_utils import show_warning_popup, update_text_browser
+from datetime import datetime
 
 class CreateDatabase():
 
@@ -36,8 +37,8 @@ class CreateDatabase():
         update_text_browser(text_browser_widget, 'close database')
 
     # Function to get the DVD name using the disk path
-    def get_dvd_name(self, disk_path):
-        output = subprocess.check_output(f'wmic logicaldisk where DeviceID="{disk_path[:2]}" get volumename', text=True)
+    def get_dvd_name(self, input_data_path):
+        output = subprocess.check_output(f'wmic logicaldisk where DeviceID="{input_data_path[:2]}" get volumename', text=True)
         lines = output.strip().split('\n')
         dvd_name = lines[2] if len(lines) > 1 else ''
         return dvd_name.strip() if dvd_name else None
@@ -79,29 +80,46 @@ class CreateDatabase():
         txt_files = [file for file in os.listdir(folder_path) if file.endswith('.txt')]
         return txt_files
     
-    def process_disks(self, disk_path, text_browser_widget):
-        self.disk_path = disk_path
-        num_disks = 2
+    def build_database(self, input_data_path, text_browser_widget):
+        self.input_data_path = input_data_path
+        # num_sources can be either number of disks or number of files
+        self.num_sources = 2
 
-        for disk_num in range(1, num_disks + 1):
-            show_warning_popup(f"Insert DVD {disk_num} and press Enter when ready...")
-            
-            dvd_name = self.get_dvd_name(self.disk_path)
+        for source_num in range(1, self.num_sources + 1):
+            drive = self.input_data_path[:1]
+            if drive == "C":
+                # Case 1: If it's a desktop folder (assuming specific filenames)
+                dvd_folder_path = os.path.join(self.input_data_path, f"East_West DVD")
+                east_filename = f"EastDVD_{datetime.now().strftime('%Y%m')}"
+                west_filename = f"WestDVD_{datetime.now().strftime('%Y%m')}"
 
-            if dvd_name:
-                folders = self.list_folders(self.disk_path)
-
-                if folders:
-                    update_text_browser(text_browser_widget, f"Folders on DVD '{dvd_name}':")
-                    self.process_folders(folders, text_browser_widget)
+                if os.path.exists(os.path.join(dvd_folder_path, east_filename)) and os.path.exists(os.path.join(dvd_folder_path, west_filename)):
+                    self.process_desktop_folder(dvd_folder_path, text_browser_widget)
                 else:
-                    update_text_browser(text_browser_widget, f"No folders found on DVD '{dvd_name}'.")
-            else:
-                update_text_browser(text_browser_widget, f"DVD not found at path '{self.disk_path}'.")
+                    update_text_browser(text_browser_widget, f"Required files not found in folder '{dvd_folder_path}'.")
+            else:# Case 2: If it's a directory (assuming DVD drive)
+                self.process_dvd(text_browser_widget, source_num)
 
         # Commit the changes at the end
         self.conn.commit()
         update_text_browser(text_browser_widget, "\nCHS Database Successfully Created!")
+
+    def process_dvd(self, source_num, text_browser_widget):
+
+        show_warning_popup(f"Insert DVD {source_num} and press Enter when ready...")
+            
+        dvd_name = self.get_dvd_name(self.input_data_path)
+
+        if dvd_name:
+            folders = self.list_folders(self.input_data_path)
+
+            if folders:
+                update_text_browser(text_browser_widget, f"Folders on DVD '{dvd_name}':")
+                self.process_folders(folders, text_browser_widget)
+            else:
+                update_text_browser(text_browser_widget, f"No folders found on DVD '{dvd_name}'.")
+        else:
+            update_text_browser(text_browser_widget, f"DVD not found at path '{self.input_data_path}'.")
 
     def process_folders(self, folders, text_browser_widget):
         for folder in folders:
@@ -110,7 +128,7 @@ class CreateDatabase():
 
     def process_folder(self, folder, text_browser_widget):
         table_name = folder.replace("-", "_")
-        folder_path = os.path.join(self.disk_path, folder)
+        folder_path = os.path.join(self.input_data_path, folder)
         txt_files = self.get_txt_files(folder_path)
 
         if txt_files:
@@ -122,6 +140,19 @@ class CreateDatabase():
             update_text_browser(text_browser_widget, "Table and data added.")
         else:
             update_text_browser(text_browser_widget, "No .txt files in this folder.")
+
+    def process_desktop_folder(self, folder_path, text_browser_widget):
+        east_filename = f"EastDVD_{datetime.now().strftime('%Y%m%d')}"
+        west_filename = f"WestDVD_{datetime.now().strftime('%Y%m%d')}"
+
+        east_txt_file = os.path.join(folder_path, east_filename + ".txt")
+        west_txt_file = os.path.join(folder_path, west_filename + ".txt")
+
+        if os.path.exists(east_txt_file) and os.path.exists(west_txt_file):
+            update_text_browser(text_browser_widget, f"Files found: {east_filename}.txt and {west_filename}.txt")
+            # Continue with database construction using the two files...
+        else:
+            update_text_browser(text_browser_widget, f"Required files not found in folder '{folder_path}'.")
    
 if __name__ == "__main__":
     pass

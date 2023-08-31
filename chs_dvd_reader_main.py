@@ -22,8 +22,9 @@ class CHSDVDReaderApp(QMainWindow):
         self.ui.setupUi(self)
         self.setWindowTitle("CHS DVD Reader")
 
-        self.data_input_path = "D:\\"
-        self.database_path = "chs_dvd.db"
+        # set default database input path to nothing; user must select path manually 
+        self.default_database_input_path = ""
+        self.database_name = "chs_dvd.db"
 
         # Create an instance of CreateDatabaseSignals
         self.database_signals = CreateDatabaseSignals()
@@ -48,21 +49,27 @@ class CHSDVDReaderApp(QMainWindow):
 
     def build_database(self):
         # builds database
-        if os.path.exists(self.database_path):
+        if os.path.exists(self.database_name):
             # chs_dvd.db exists
             if not self.ui.rebuild_checkbox.isChecked():
                 show_warning_popup("Database exists. Check the 'Confirm deletion of database' box to proceed")
                 return
             self.create_db.delete_existing_database(self.ui.rebuildDatabaseTextBrowser)
-        
+
+        # ensure user has selected a data input path
+        if not os.path.exists(self.default_database_input_path):
+            show_warning_popup("Select data input path")
+            return
+                
         # passing self.ui.rebuildDatabaseTextBrowser as the text_browser_widget I want the message sent to
         self.create_db.open_database(self.ui.rebuildDatabaseTextBrowser)
-        self.create_db.process_disks(self.data_input_path, self.ui.rebuildDatabaseTextBrowser)
+        self.create_db.build_database(self.default_database_input_path, self.ui.rebuildDatabaseTextBrowser)
 
     def open_file_explorer(self):
-        self.data_input_path = QFileDialog.getExistingDirectory(self, "Select Folder")
-        if self.data_input_path:
-            self.ui.data_input_path.setText(self.data_input_path)
+        self.default_database_input_path = QFileDialog.getExistingDirectory(self, "Select Folder")
+        self.default_database_input_path = self.default_database_input_path.replace("/", "\\")
+        self.ui.data_input_path.setText(self.default_database_input_path)
+
 
 def main():
     app = QApplication(sys.argv)
