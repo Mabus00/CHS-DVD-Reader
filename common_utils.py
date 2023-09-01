@@ -16,5 +16,3 @@ def show_warning_popup(message):
 def update_text_browser(text_browser, message):
     text_browser.insertPlainText(message + "\n")  # Append the message and a newline
     text_browser.ensureCursorVisible()
-
-

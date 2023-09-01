@@ -54,7 +54,7 @@ class CHSDVDReaderApp(QMainWindow):
             if not self.ui.rebuild_checkbox.isChecked():
                 show_warning_popup("Database exists. Check the 'Confirm deletion of database' box to proceed")
                 return
-            self.create_db.delete_existing_database(self.ui.rebuildDatabaseTextBrowser)
+            self.create_db.delete_existing_database(self.database_name, self.ui.rebuildDatabaseTextBrowser)
 
         # ensure user has selected a data input path
         if not os.path.exists(self.default_database_input_path):
@@ -62,7 +62,7 @@ class CHSDVDReaderApp(QMainWindow):
             return
                 
         # passing self.ui.rebuildDatabaseTextBrowser as the text_browser_widget I want the message sent to
-        self.create_db.open_database(self.ui.rebuildDatabaseTextBrowser)
+        self.create_db.open_database(self.database_name, self.ui.rebuildDatabaseTextBrowser)
         self.create_db.build_database(self.default_database_input_path, self.ui.rebuildDatabaseTextBrowser)
 
     def open_file_explorer(self):
