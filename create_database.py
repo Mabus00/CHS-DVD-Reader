@@ -20,11 +20,6 @@ class CreateDatabase():
         # Create an instance of CreateDatabaseSignals
         self.database_signals = database_signals
 
-    def delete_existing_database(self, database_name, text_browser_widget):
-        if os.path.exists(database_name):
-            os.remove(database_name)
-            utils.update_text_browser(text_browser_widget, f"Database '{database_name}' deleted.")
-
     def open_database(self, database_name, text_browser_widget):
         self.conn = sqlite3.connect(database_name)
         self.cursor = self.conn.cursor()

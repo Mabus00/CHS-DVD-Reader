@@ -12,7 +12,7 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog
 from chs_dvd_gui import Ui_MainWindow
 from custom_signals import CreateDatabaseSignals
 from create_database import CreateDatabase
-from common_utils import show_warning_popup
+import common_utils as utils
 
 class CHSDVDReaderApp(QMainWindow):
     def __init__(self):
@@ -25,6 +25,9 @@ class CHSDVDReaderApp(QMainWindow):
         # set default database input path to nothing; user must select path manually 
         self.default_database_input_path = ""
         self.database_name = "chs_dvd.db"
+
+        # establish database connections for various tabs
+        create_database_conn, create_database_cursor = utils.get_database_connection(self.database_name)
 
         # Create an instance of CreateDatabaseSignals
         self.database_signals = CreateDatabaseSignals()
@@ -52,13 +55,13 @@ class CHSDVDReaderApp(QMainWindow):
         if os.path.exists(self.database_name):
             # chs_dvd.db exists
             if not self.ui.rebuild_checkbox.isChecked():
-                show_warning_popup("Database exists. Check the 'Confirm deletion of database' box to proceed")
+                utils.show_warning_popup("Database exists. Check the 'Confirm deletion of database' box to proceed")
                 return
-            self.create_db.delete_existing_database(self.database_name, self.ui.rebuildDatabaseTextBrowser)
+            utils.delete_existing_database(self.database_name, self.ui.rebuildDatabaseTextBrowser)
 
         # ensure user has selected a data input path
         if not os.path.exists(self.default_database_input_path):
-            show_warning_popup("Select data input path")
+            utils.show_warning_popup("Select data input path")
             return
                 
         # passing self.ui.rebuildDatabaseTextBrowser as the text_browser_widget I want the message sent to
