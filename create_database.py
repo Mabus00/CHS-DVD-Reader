@@ -42,7 +42,7 @@ class CreateDatabase():
                 lines = output.strip().split('\n')
                 dvd_name = lines[2] if len(lines) > 1 else ''
                 if dvd_name:
-                    print(f'Number of retries = {retry_count}')
+                    print(f'Number of retries = {retry_count}') #number of retries
                     return dvd_name.strip()
             except subprocess.CalledProcessError as e:
                 # Handle the error if the subprocess call fails
