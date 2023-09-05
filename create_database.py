@@ -131,19 +131,19 @@ class CreateDatabase():
 
             if folders:
                 utils.update_text_browser(text_browser_widget, f"Folders on DVD '{dvd_name}':")
-                self.process_folders(folders, text_browser_widget)
+                self.process_folders(folders, text_browser_widget, dvd_name)
             else:
                 utils.update_text_browser(text_browser_widget, f"No folders found on DVD '{dvd_name}'.")
         else:
             utils.update_text_browser(text_browser_widget, f"DVD not found at path '{self.input_data_path}'.")
 
-    def process_folders(self, folders, text_browser_widget):
+    def process_folders(self, folders, text_browser_widget, dvd_name):
         for folder in folders:
             if folder.startswith("RM") or folder.startswith("V"):
-                self.process_folder(folder, text_browser_widget)
+                self.process_folder(folder, text_browser_widget, dvd_name)
 
-    def process_folder(self, folder, text_browser_widget):
-        table_name = folder.replace("-", "_")
+    def process_folder(self, folder, text_browser_widget, dvd_name):
+        table_name = f"{dvd_name}_{folder.replace('-', '_')}"
         folder_path = os.path.join(self.input_data_path, folder)
         txt_files = self.get_txt_files(folder_path)
 
@@ -151,11 +151,12 @@ class CreateDatabase():
             utils.update_text_browser(text_browser_widget, f"Folder: {folder}")
             for txt_file in txt_files:
                 txt_file_path = os.path.join(folder_path, txt_file)
-                self.create_table(table_name, txt_file_path)
-                self.insert_data(table_name, txt_file_path)
+                self.create_table(table_name, txt_file_path)  # Create the table
+                self.insert_data(table_name, txt_file_path)    # Insert data into the table
             utils.update_text_browser(text_browser_widget, "Table and data added.")
         else:
             utils.update_text_browser(text_browser_widget, "No .txt files in this folder.")
+
 
     def process_desktop_folder(self, folder_path, text_browser_widget):
         east_filename = f"EastDVD_{datetime.now().strftime('%Y%m%d')}"
