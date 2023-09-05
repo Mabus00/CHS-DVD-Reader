@@ -13,6 +13,7 @@ import os
 import subprocess
 import common_utils as utils
 from datetime import datetime
+import time
 
 class CreateDatabase():
 
@@ -30,12 +31,33 @@ class CreateDatabase():
             self.conn.close()
         utils.update_text_browser(text_browser_widget, 'close database')
 
-    # Function to get the DVD name using the disk path
-    def get_dvd_name(self, input_data_path):
-        output = subprocess.check_output(f'wmic logicaldisk where DeviceID="{input_data_path[:2]}" get volumename', text=True)
-        lines = output.strip().split('\n')
-        dvd_name = lines[2] if len(lines) > 1 else ''
-        return dvd_name.strip() if dvd_name else None
+    # Function to get the DVD name using the disk path; retries introduced because USB connected DVD readers can lag
+    def get_dvd_name(self, input_data_path, max_retries=5, retry_interval=1):
+        retry_count = 0
+        
+        while retry_count < max_retries:
+            try:
+                # Attempt to retrieve DVD name
+                output = subprocess.check_output(f'wmic logicaldisk where DeviceID="{input_data_path[:2]}" get volumename', text=True)
+                lines = output.strip().split('\n')
+                dvd_name = lines[2] if len(lines) > 1 else ''
+                if dvd_name:
+                    print(f'Number of retries = {retry_count}')
+                    return dvd_name.strip()
+            except subprocess.CalledProcessError as e:
+                # Handle the error if the subprocess call fails
+                print(f"Error while getting DVD name (Attempt {retry_count + 1}): {e}")
+            except Exception as e:
+                # Handle other exceptions, if any
+                print(f"An unexpected error occurred (Attempt {retry_count + 1}): {e}")
+            
+            # Wait for a specified interval before retrying
+            time.sleep(retry_interval)
+            retry_count += 1
+        
+        # Return None if the maximum number of retries is reached
+        print("Maximum number of retries reached. DVD name not found.")
+        return None
 
     # Function to list folders in the DVD path
     def list_folders(self, dvd_path):
