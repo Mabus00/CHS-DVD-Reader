@@ -8,95 +8,19 @@ Intent later is to modify this code to also read from a .zip file (this is how t
 
 '''
 
-import sqlite3
 import os
-import subprocess
 import common_utils as utils
 from datetime import datetime
-import time
 
 class CreateDatabase():
 
-    def __init__(self, database_signals):
+    def __init__(self, database_signals, create_database_conn, create_database_cursor):
         # Create an instance of CreateDatabaseSignals
         self.database_signals = database_signals
-
-    def open_database(self, database_name, text_browser_widget):
-        self.conn = sqlite3.connect(database_name)
-        self.cursor = self.conn.cursor()
-        utils.update_text_browser(text_browser_widget, f"New '{database_name}' created and opened")
-
-    def close_database(self, text_browser_widget):
-        if self.conn:
-            self.conn.close()
-        utils.update_text_browser(text_browser_widget, 'close database')
-
-    # Function to get the DVD name using the disk path; retries introduced because USB connected DVD readers can lag
-    def get_dvd_name(self, input_data_path, max_retries=5, retry_interval=1):
-        retry_count = 0
-        
-        while retry_count < max_retries:
-            try:
-                # Attempt to retrieve DVD name
-                output = subprocess.check_output(f'wmic logicaldisk where DeviceID="{input_data_path[:2]}" get volumename', text=True)
-                lines = output.strip().split('\n')
-                dvd_name = lines[2] if len(lines) > 1 else ''
-                if dvd_name:
-                    print(f'Number of retries = {retry_count}') #number of retries
-                    return dvd_name.strip()
-            except subprocess.CalledProcessError as e:
-                # Handle the error if the subprocess call fails
-                print(f"Error while getting DVD name (Attempt {retry_count + 1}): {e}")
-            except Exception as e:
-                # Handle other exceptions, if any
-                print(f"An unexpected error occurred (Attempt {retry_count + 1}): {e}")
-            
-            # Wait for a specified interval before retrying
-            time.sleep(retry_interval)
-            retry_count += 1
-        
-        # Return None if the maximum number of retries is reached
-        print("Maximum number of retries reached. DVD name not found.")
-        return None
-
-    # Function to list folders in the DVD path
-    def list_folders(self, dvd_path):
-        if os.path.exists(dvd_path):
-            folders = [item for item in os.listdir(dvd_path) if os.path.isdir(os.path.join(dvd_path, item))]
-            return folders
-        else:
-            return []
-
-    # Function to create a table with column names from a text file
-    def create_table(self, table_name, txt_file_path):
-        with open(txt_file_path, 'r') as txt_file:
-            column_names = txt_file.readline().strip().split('\t')
-            sanitized_column_names = [name.replace(".", "").strip() for name in column_names]
-            quoted_column_names = [f'"{name}"' for name in sanitized_column_names]
-            column_names_sql = ', '.join(quoted_column_names)
-            create_table_sql = f"CREATE TABLE IF NOT EXISTS {table_name} ({column_names_sql})"
-            self.cursor.execute(create_table_sql)
-
-    # Function to insert data into a table from a text file
-    def insert_data(self, table_name, txt_file_path):
-        with open(txt_file_path, 'r') as txt_file:
-            next(txt_file)  # Skip the first line (column names)
-            next(txt_file)  # Skip the second line
-            for line in txt_file:
-                line = line.strip()
-                if not line:  # Stop processing if the line is blank
-                    break
-                data = line.split('\t')
-                placeholders = ', '.join(['?'] * len(data))
-                insert_sql = f"INSERT INTO {table_name} VALUES ({placeholders})"
-                self.cursor.execute(insert_sql, data)
-
-    # Function to get a list of .txt files in a folder
-    def get_txt_files(self, folder_path):
-        txt_files = [file for file in os.listdir(folder_path) if file.endswith('.txt')]
-        return txt_files
+        self.create_database_conn = create_database_conn
+        self.create_database_cursor = create_database_cursor
     
-    def build_database(self, input_data_path, text_browser_widget):
+    def generate_database(self, input_data_path, text_browser_widget):
         self.input_data_path = input_data_path
         # num_sources can be either number of disks or number of files
         self.num_sources = 2
@@ -117,17 +41,17 @@ class CreateDatabase():
                 self.process_dvd(source_num, text_browser_widget)
 
         # Commit the changes at the end
-        self.conn.commit()
+        self.create_database_conn.commit()
         utils.update_text_browser(text_browser_widget, "\nCHS Database Successfully Created!")
 
     def process_dvd(self, source_num, text_browser_widget):
 
         utils.show_warning_popup(f"Insert DVD {source_num} and press Enter when ready...")
             
-        dvd_name = self.get_dvd_name(self.input_data_path)
+        dvd_name = utils.get_dvd_name(self.input_data_path)
 
         if dvd_name:
-            folders = self.list_folders(self.input_data_path)
+            folders = utils.list_folders(self.input_data_path)
 
             if folders:
                 utils.update_text_browser(text_browser_widget, f"Folders on DVD '{dvd_name}':")
@@ -145,18 +69,17 @@ class CreateDatabase():
     def process_folder(self, folder, text_browser_widget, dvd_name):
         table_name = f"{dvd_name}_{folder.replace('-', '_')}"
         folder_path = os.path.join(self.input_data_path, folder)
-        txt_files = self.get_txt_files(folder_path)
+        txt_files = utils.get_txt_files(folder_path)
 
         if txt_files:
             utils.update_text_browser(text_browser_widget, f"Folder: {folder}")
             for txt_file in txt_files:
                 txt_file_path = os.path.join(folder_path, txt_file)
-                self.create_table(table_name, txt_file_path)  # Create the table
-                self.insert_data(table_name, txt_file_path)    # Insert data into the table
+                utils.create_table(table_name, txt_file_path, self.create_database_cursor)  # Create the table
+                utils.insert_data(table_name, txt_file_path, self.create_database_cursor)    # Insert data into the table
             utils.update_text_browser(text_browser_widget, "Table and data added.")
         else:
             utils.update_text_browser(text_browser_widget, "No .txt files in this folder.")
-
 
     def process_desktop_folder(self, folder_path, text_browser_widget):
         east_filename = f"EastDVD_{datetime.now().strftime('%Y%m%d')}"

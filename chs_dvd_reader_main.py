@@ -26,14 +26,8 @@ class CHSDVDReaderApp(QMainWindow):
         self.default_database_input_path = ""
         self.database_name = "chs_dvd.db"
 
-        # establish database connections for various tabs
-        create_database_conn, create_database_cursor = utils.get_database_connection(self.database_name)
-
         # Create an instance of CreateDatabaseSignals
         self.database_signals = CreateDatabaseSignals()
-
-        # create and pass instance of database_signals to CreateDatabase so it can use the create_rebuild_database_textbox
-        self.create_db = CreateDatabase(self.database_signals)
 
         # Connect UI signals to custom signals using object names
         self.ui.buildDatabaseButton.clicked.connect(self.database_signals.build_database_button.emit)
@@ -42,6 +36,7 @@ class CHSDVDReaderApp(QMainWindow):
         # Connect custom signals to slots
         self.database_signals.build_database_button.connect(self.build_database)
         self.database_signals.data_input_path_button.connect(self.open_file_explorer)
+
         # Using a lambda function to create an anonymous function that takes a single argument 'message'.
         # The lambda function is being used as an argument to the emit method of the custom signal.
         self.database_signals.create_database_textbox.connect(lambda message: self.update_text_browser(self.ui.rebuildDatabaseTextBrowser, message))
@@ -63,10 +58,13 @@ class CHSDVDReaderApp(QMainWindow):
         if not os.path.exists(self.default_database_input_path):
             utils.show_warning_popup("Select data input path")
             return
-                
-        # passing self.ui.rebuildDatabaseTextBrowser as the text_browser_widget I want the message sent to
-        self.create_db.open_database(self.database_name, self.ui.rebuildDatabaseTextBrowser)
-        self.create_db.build_database(self.default_database_input_path, self.ui.rebuildDatabaseTextBrowser)
+        
+        # establish database connections for the create/rebuild database tab
+        self.create_database_conn, self.create_database_cursor = utils.get_database_connection(self.database_name, self.ui.rebuildDatabaseTextBrowser)
+
+        # instantiate create_database and pass instance of database_signals to CreateDatabase so it can use the create_rebuild_database_textbox
+        self.create_db = CreateDatabase(self.database_signals, self.create_database_conn, self.create_database_cursor)
+        self.create_db.generate_database(self.default_database_input_path, self.ui.rebuildDatabaseTextBrowser)
 
     def open_file_explorer(self):
         self.default_database_input_path = QFileDialog.getExistingDirectory(self, "Select Folder")
