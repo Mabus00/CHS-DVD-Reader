@@ -43,9 +43,9 @@ def close_database(text_browser_widget, create_database_conn):
     update_text_browser(text_browser_widget, 'close database')
 
 # Function to list folders in the DVD path
-def list_folders(dvd_path):
-    if os.path.exists(dvd_path):
-        folders = [item for item in os.listdir(dvd_path) if os.path.isdir(os.path.join(dvd_path, item))]
+def list_folders(folder_path):
+    if os.path.exists(folder_path):
+        folders = [item for item in os.listdir(folder_path) if os.path.isdir(os.path.join(folder_path, item))]
         return folders
     else:
         return []
