@@ -22,8 +22,6 @@ class CreateDatabase():
         self.create_database_cursor = create_database_cursor
         # database data input path
         self.input_data_path = database_input_path
-        # default to two sources (DVD or folders); one East and one West
-        self.num_sources = 2
 
     def generate_database(self, text_browser_widget):      
         if self.input_data_path[:1] == "C": #  Case 1: the files are in a folder on the desktop
@@ -35,68 +33,66 @@ class CreateDatabase():
         utils.update_text_browser(text_browser_widget, "\nCHS Database Successfully Created!")
 
     def process_dvd(self, text_browser_widget):
-        for source_num in range(1, self.num_sources + 1): 
+        # default to two DVDs; one East and one West
+        num_sources = 2
+        for source_num in range(1, num_sources + 1): 
             utils.show_warning_popup(f"Insert DVD {source_num} and press Enter when ready...")
-            source_name = utils.get_dvd_name(self.input_data_path)
-            if source_name:
+            dvd_name = utils.get_dvd_name(self.input_data_path)
+            if dvd_name:
                 folders = utils.list_folders(self.input_data_path)
                 if folders:
-                    utils.update_text_browser(text_browser_widget, f"\nFolders in '{source_name}':")
-                    self.process_folders(folders, text_browser_widget, source_name)
+                    utils.update_text_browser(text_browser_widget, f"\nFolders in '{dvd_name}':")
+                    # database data input path is self.input_data_path
+                    self.process_folders(folders, text_browser_widget, self.input_data_path, dvd_name)
                 else:
-                    utils.update_text_browser(text_browser_widget, f"\nNo folders found in '{source_name}'.")
+                    utils.update_text_browser(text_browser_widget, f"\nNo folders found in '{dvd_name}'.")
             else:
                 utils.update_text_browser(text_browser_widget, f"\nDVD not found at path '{self.input_data_path}'.")
 
     def process_desktop_folder(self, text_browser_widget):
-         # Get the current year and month in the format "YYYYMM"
-        current_year_month = datetime.now().strftime('%Y%m')
-
+        # Get the current year and month in the format "YYYYMM"
+        # current_year_month = datetime.now().strftime('%Y%m')
         # Get the list of foldernames in the subject folder
         foldernames = os.listdir(self.input_data_path)
-
         # Initialize a list to store matching foldernames
-        matching_foldernames = []
-
+        #matching_foldernames = []
         # Loop through the foldernames and check for matching current year and data
-        for foldername in foldernames:
-            if current_year_month in foldername:
-                matching_foldernames.append(foldername)
+        #for foldername in foldernames:
+            #if current_year_month in foldername:
+            #matching_foldernames.append(foldername)
 
-        # Check if matching foldernames were found
-        if len(matching_foldernames) == 2:
-            for folder_name in matching_foldernames:
-                # build folder path
-                folder_path = os.path.join(self.input_data_path, folder_name)
-                folders = utils.list_folders(folder_path)
+        # Check if two folders were found
+        if len(foldernames) == 2:
+            for folder_name in foldernames:
+                # build desktop folder path
+                desktop_folder_path = os.path.join(self.input_data_path, folder_name)
+                folders = utils.list_folders(desktop_folder_path)
                 if folders:
-                    utils.update_text_browser(text_browser_widget, f"\nFolders in '{folder_path}':")
-
-                    self.process_folders(folders, text_browser_widget, folder_name)
+                    utils.update_text_browser(text_browser_widget, f"\nFolders in '{desktop_folder_path}':")
+                    self.process_folders(folders, text_browser_widget, desktop_folder_path, folder_name)
                 else:
-                    utils.update_text_browser(text_browser_widget, f"\no folders found in '{self.input_data_path}'.")
-        elif len(matching_foldernames) < 2:
+                    utils.update_text_browser(text_browser_widget, f"\no folders found in '{desktop_folder_path}'.")
+        elif len(foldernames) < 2:
             # Inform the user that not enough matching files were found
             print("\nNot enough matching files were found in the folder. Need at least two.")
         else:
             # Inform the user that there are more than two matching files
             print("\nThere are more than two matching files in the folder. Please remove any extras.")
 
-
-    def process_folders(self, folders, text_browser_widget, source_name):
+    def process_folders(self, folders, text_browser_widget, folder_path, source_name):
         for folder in folders:
             if folder.startswith("RM") or folder.startswith("V"):
-                self.process_folder(folder, text_browser_widget, source_name)
+                self.process_folder(folder, text_browser_widget, folder_path, source_name)
 
-    def process_folder(self, folder, text_browser_widget, source_name):
+    def process_folder(self, folder, text_browser_widget, folder_path, source_name):
         table_name = f"{source_name}_{folder.replace('-', '_')}"
-        folder_path = os.path.join(self.input_data_path, source_name, folder)
-        txt_files = utils.get_txt_files(folder_path)
+        sub_folder_path = os.path.join(folder_path, folder)
+        txt_files = utils.get_txt_files(sub_folder_path)
 
         if txt_files:
             utils.update_text_browser(text_browser_widget, f"Folder: {folder}")
             for txt_file in txt_files:
-                txt_file_path = os.path.join(folder_path, txt_file)
+                txt_file_path = os.path.join(sub_folder_path, txt_file)
                 utils.create_table(table_name, txt_file_path, self.create_database_cursor)  # Create the table
                 utils.insert_data(table_name, txt_file_path, self.create_database_cursor)    # Insert data into the table
             utils.update_text_browser(text_browser_widget, "Table and data added.")
