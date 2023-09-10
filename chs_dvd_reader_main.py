@@ -23,7 +23,7 @@ class CHSDVDReaderApp(QMainWindow):
         self.setWindowTitle("CHS DVD Reader")
 
         # set default database input path to nothing; user must select path manually 
-        self.default_database_input_path = ""
+        self.database_input_path = ""
         self.database_name = "chs_dvd.db"
 
         # Create an instance of CreateDatabaseSignals
@@ -55,7 +55,7 @@ class CHSDVDReaderApp(QMainWindow):
             utils.delete_existing_database(self.database_name, self.ui.rebuildDatabaseTextBrowser)
 
         # ensure user has selected a data input path
-        if not os.path.exists(self.default_database_input_path):
+        if not os.path.exists(self.database_input_path):
             utils.show_warning_popup("Select data input path")
             return
         
@@ -63,13 +63,13 @@ class CHSDVDReaderApp(QMainWindow):
         self.create_database_conn, self.create_database_cursor = utils.get_database_connection(self.database_name, self.ui.rebuildDatabaseTextBrowser)
 
         # instantiate create_database and pass instance of database_signals to CreateDatabase so it can use the create_rebuild_database_textbox
-        self.create_db = CreateDatabase(self.database_signals, self.create_database_conn, self.create_database_cursor)
-        self.create_db.generate_database(self.default_database_input_path, self.ui.rebuildDatabaseTextBrowser)
+        self.create_db = CreateDatabase(self.database_signals, self.database_input_path, self.create_database_conn, self.create_database_cursor)
+        self.create_db.generate_database(self.ui.rebuildDatabaseTextBrowser)
 
     def open_file_explorer(self):
-        self.default_database_input_path = QFileDialog.getExistingDirectory(self, "Select Folder")
-        self.default_database_input_path = self.default_database_input_path.replace("/", "\\")
-        self.ui.data_input_path.setText(self.default_database_input_path)
+        self.database_input_path = QFileDialog.getExistingDirectory(self, "Select Folder")
+        self.database_input_path = self.database_input_path.replace("/", "\\")
+        self.ui.data_input_path.setText(self.database_input_path)
 
 
 def main():
