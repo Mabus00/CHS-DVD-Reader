@@ -92,7 +92,7 @@ class CHSDVDReaderApp(QMainWindow):
         # establish database connections for the run checker database tab
         self.run_checker_conn, self.run_checker_cursor = utils.get_database_connection(self.checker_database_name, self.ui.runCheckerTextBrowser)
 
-        # instantiate generate_database and pass instance of database_signals to CreateDatabase
+        # instantiate generate_database and pass instance of database_signals to create the current month's database
         self.create_db = CreateDatabase(self.run_checker_signals, self.ui.checker_data_input_path.text(), self.run_checker_conn, self.run_checker_cursor)
         self.create_db.generate_database(self.ui.runCheckerTextBrowser)
 
