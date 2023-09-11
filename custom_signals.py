@@ -12,7 +12,7 @@ from PyQt5.QtCore import QObject, pyqtSignal
 class RunCheckerSignals(QObject):
     # Custom signals specific to the "Run Checker" tab
     data_input_path_button = pyqtSignal()
-    run_checker = pyqtSignal()
+    run_checker_button = pyqtSignal()
     run_checker_textbox = pyqtSignal(str)
 
 class NewChartsSignals(QObject):

@@ -337,7 +337,7 @@
        <string/>
       </property>
      </widget>
-     <widget class="QTextBrowser" name="rebuildDatabaseTextBrowser">
+     <widget class="QTextBrowser" name="createDatabaseTextBrowser">
       <property name="geometry">
        <rect>
         <x>20</x>

@@ -12,6 +12,7 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog
 from chs_dvd_gui import Ui_MainWindow
 from custom_signals import CreateDatabaseSignals, RunCheckerSignals
 from create_database import CreateDatabase
+from run_checker import RunChecker
 import common_utils as utils
 
 class CHSDVDReaderApp(QMainWindow):
@@ -28,7 +29,7 @@ class CHSDVDReaderApp(QMainWindow):
 
         # set default run chekcer input path to nothing; user must select path manually 
         self.checker_data_input_path = ""
-        self.checker_database_name = "temp.db"
+        self.checker_database_name = "current_month.db"
 
         # Create an instance of RunCheckerSignals
         self.run_checker_signals = RunCheckerSignals()
@@ -39,38 +40,33 @@ class CHSDVDReaderApp(QMainWindow):
         # Connect UI signals to custom signals using object names
         # run checker tab
         self.ui.selectCheckerDataPathButton.clicked.connect(self.run_checker_signals.data_input_path_button.emit)
-        self.ui.runCheckerButton.clicked.connect(self.run_checker_signals.run_checker.emit)
+        self.ui.runCheckerButton.clicked.connect(self.run_checker_signals.run_checker_button.emit)
         # create database tab
         self.ui.selectDataPathButton.clicked.connect(self.database_signals.database_input_path_button.emit)
         self.ui.buildDatabaseButton.clicked.connect(self.database_signals.build_database_button.emit)
 
-
         # Connect custom signals to slots
         # run checker tab
         self.run_checker_signals.data_input_path_button.connect(lambda: utils.open_file_explorer(self.ui.checker_data_input_path, self.checker_data_input_path))
-        self.run_checker_signals.run_checker.connect(self.run_checker)
+        self.run_checker_signals.run_checker_button.connect(self.run_checker)
 
         # create database tab
         self.database_signals.database_input_path_button.connect(lambda: utils.open_file_explorer(self.ui.database_input_path, self.database_input_path))
         self.database_signals.build_database_button.connect(self.build_database)
 
-
         # Using a lambda function to create an anonymous function that takes a single argument 'message'.
         # The lambda function is being used as an argument to the emit method of the custom signal.
-        self.database_signals.create_database_textbox.connect(lambda message: self.update_text_browser(self.ui.rebuildDatabaseTextBrowser, message))
-
-    def update_text_browser(self, text_browser, message):
-        text_browser.insertPlainText(message + "\n")  # Append the message and a newline
-        text_browser.ensureCursorVisible()
+        self.database_signals.create_database_textbox.connect(lambda message: utils.update_text_browser(self.ui.createDatabaseTextBrowser, message))
+        self.run_checker_signals.run_checker_textbox.connect(lambda message: utils.update_text_browser(self.ui.runCheckerTextBrowser, message))
 
     def build_database(self):
-        # builds database
+        # delete if necessary then build new database
         if os.path.exists(self.database_name):
             # chs_dvd.db exists
             if not self.ui.rebuild_checkbox.isChecked():
                 utils.show_warning_popup("Database exists. Check the 'Confirm deletion of database' box to proceed")
                 return
-            utils.delete_existing_database(self.database_name, self.ui.rebuildDatabaseTextBrowser)
+            utils.delete_existing_database(self.database_name, self.ui.createDatabaseTextBrowser)
 
         # ensure user has selected a data input path
         if not self.ui.database_input_path.text():
@@ -78,16 +74,27 @@ class CHSDVDReaderApp(QMainWindow):
             return
         
         # establish database connections for the create/rebuild database tab
-        self.create_database_conn, self.create_database_cursor = utils.get_database_connection(self.database_name, self.ui.rebuildDatabaseTextBrowser)
+        self.create_database_conn, self.create_database_cursor = utils.get_database_connection(self.database_name, self.ui.createDatabaseTextBrowser)
 
-        # instantiate create_database and pass instance of database_signals to CreateDatabase so it can use the create_rebuild_database_textbox
+        # instantiate create_database and pass instance of database_signals to CreateDatabase
         self.create_db = CreateDatabase(self.database_signals, self.ui.database_input_path.text(), self.create_database_conn, self.create_database_cursor)
-        self.create_db.generate_database(self.ui.rebuildDatabaseTextBrowser)
+        self.create_db.generate_database(self.ui.createDatabaseTextBrowser)
 
-        utils.close_database(self.ui.rebuildDatabaseTextBrowser, self.create_database_conn)
+        utils.close_database(self.ui.createDatabaseTextBrowser, self.create_database_conn)
 
     def run_checker(self):
-        print('run checker')
+
+        # ensure user has selected a data input path
+        if not self.ui.checker_data_input_path.text():
+            utils.show_warning_popup("Select data input path")
+            return
+        
+        # establish database connections for the run checker database tab
+        self.run_checker_conn, self.run_checker_cursor = utils.get_database_connection(self.checker_database_name, self.ui.runCheckerTextBrowser)
+
+        # instantiate run_checker and pass instance of database_signals to RunChecker
+        self.run_checker = RunChecker(self.run_checker_signals, self.ui.checker_data_input_path.text(), self.run_checker_conn, self.run_checker_cursor)
+        self.run_checker.create_database(self.ui.runCheckerTextBrowser)
 
 
 def main():

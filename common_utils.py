@@ -9,6 +9,7 @@ from PyQt5.QtWidgets import QMessageBox, QFileDialog
 import subprocess
 import time
 
+''' common functions used by more than one model / module'''
 def open_file_explorer(parent, input_path):
     input_path = QFileDialog.getExistingDirectory(parent, "Select Folder")
     input_path = input_path.replace("/", "\\")
