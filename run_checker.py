@@ -25,6 +25,7 @@ class RunChecker():
 
     def create_database(self, text_browser_widget):
         utils.update_text_browser(text_browser_widget, "\nMade it!")
+        print(f'path = {self.input_data_path}')
 
 
 if __name__ == "__main__":
