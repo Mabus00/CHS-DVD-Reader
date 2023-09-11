@@ -107,7 +107,7 @@
        <enum>QFrame::StyledPanel</enum>
       </property>
       <property name="text">
-       <string>default D:\</string>
+       <string/>
       </property>
      </widget>
      <widget class="QPushButton" name="runCheckerButton">
@@ -261,7 +261,7 @@
     </widget>
     <widget class="QWidget" name="rebuild_database">
      <attribute name="title">
-      <string>Create / Rebuild Database</string>
+      <string>Create Database</string>
      </attribute>
      <widget class="QCheckBox" name="rebuild_checkbox">
       <property name="geometry">
@@ -299,7 +299,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>Execute Create/Rebuild Database</string>
+       <string>Execute Create Database</string>
       </property>
      </widget>
      <widget class="QPushButton" name="selectDataPathButton">
@@ -315,7 +315,7 @@
        <string>Press to select input data path</string>
       </property>
      </widget>
-     <widget class="QLabel" name="data_input_path">
+     <widget class="QLabel" name="database_input_path">
       <property name="geometry">
        <rect>
         <x>260</x>

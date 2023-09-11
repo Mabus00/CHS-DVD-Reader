@@ -5,9 +5,14 @@ module of common functions that are called more than once by different modules
 '''
 import os
 import sqlite3
-from PyQt5.QtWidgets import QMessageBox
+from PyQt5.QtWidgets import QMessageBox, QFileDialog
 import subprocess
 import time
+
+def open_file_explorer(parent, input_path):
+    input_path = QFileDialog.getExistingDirectory(parent, "Select Folder")
+    input_path = input_path.replace("/", "\\")
+    parent.setText(input_path)
 
 def show_warning_popup(message):
     popup = QMessageBox()
@@ -40,7 +45,7 @@ def delete_existing_database(database_name, text_browser_widget):
 def close_database(text_browser_widget, create_database_conn):
     if create_database_conn:
         create_database_conn.close()
-    update_text_browser(text_browser_widget, 'close database')
+    update_text_browser(text_browser_widget, 'Database closed.')
 
 # Function to list folders in the DVD path
 def list_folders(folder_path):

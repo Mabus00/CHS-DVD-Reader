@@ -11,8 +11,8 @@ from PyQt5.QtCore import QObject, pyqtSignal
 
 class RunCheckerSignals(QObject):
     # Custom signals specific to the "Run Checker" tab
-    run_checker_completed = pyqtSignal()
-    run_checker_started = pyqtSignal()
+    data_input_path_button = pyqtSignal()
+    run_checker = pyqtSignal()
     run_checker_textbox = pyqtSignal(str)
 
 class NewChartsSignals(QObject):
@@ -43,7 +43,7 @@ class CreateDatabaseSignals(QObject):
     # Custom signals specific to the "Create / Rebuild Database" tab
     rebuild_checkbox = pyqtSignal(bool)
     build_database_button = pyqtSignal()
-    data_input_path_button = pyqtSignal()
+    database_input_path_button = pyqtSignal()
     create_database_textbox = pyqtSignal(str)
 
 # Define more custom signals for other tabs if needed
