@@ -23,7 +23,27 @@ class RunChecker():
         # database data input path
         self.input_data_path = checker_data_input_path
 
-    def create_database(self, text_browser_widget):
+    def compare_databases(self, text_browser_widget):
+        # Get the current year and month in the format "YYYYMM"
+        # current_year_month = datetime.now().strftime('%Y%m')
+
+        # Initialize a list to store matching foldernames
+        #matching_foldernames = []
+        # Loop through the foldernames and check for matching current year and data
+        #for foldername in foldernames:
+            #if current_year_month in foldername:
+            #matching_foldernames.append(foldername)
+
+        ''' STEPS '''
+        # 1. ensure both databases are open
+        # 2. compare the DTG of the master database to current database; ensure the current is at least one month newer than the master; if more confirm with user
+        # 3. start with master and find the same table (with the newer date) in current
+        # 4. for each row compare: chart number, Edn Date, Last NM, Ed number and Title and report any discrepancies/ store them in a local table. Chart numbers matching will be a challenge if not the same.
+        # 5. report all discrepancies (for now) as errors so you can see what the differences are.
+        # 6. as you move forward and you can differentiate between new charts, new editions and withdrawn charts, add these details to each specific local table, with the remainder staying in errors.
+        # 7. add the ability to print the result as a pdf.
+        # 8. once all has been verified and the user is happy, overwrite the master with the current.
+
         utils.update_text_browser(text_browser_widget, "\nMade it!")
         print(f'path = {self.input_data_path}')
 

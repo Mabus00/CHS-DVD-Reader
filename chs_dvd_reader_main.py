@@ -76,7 +76,7 @@ class CHSDVDReaderApp(QMainWindow):
         # establish database connections for the create/rebuild database tab
         self.create_database_conn, self.create_database_cursor = utils.get_database_connection(self.database_name, self.ui.createDatabaseTextBrowser)
 
-        # instantiate create_database and pass instance of database_signals to CreateDatabase
+        # instantiate create_database and pass instance of database_signals, database path, database connection and cursor to CreateDatabase
         self.create_db = CreateDatabase(self.database_signals, self.ui.database_input_path.text(), self.create_database_conn, self.create_database_cursor)
         self.create_db.generate_database(self.ui.createDatabaseTextBrowser)
 
@@ -89,16 +89,16 @@ class CHSDVDReaderApp(QMainWindow):
             utils.show_warning_popup("Select data input path")
             return
         
-        # establish database connections for the run checker database tab
+        # establish new current database connections for the run checker database tab
         self.run_checker_conn, self.run_checker_cursor = utils.get_database_connection(self.checker_database_name, self.ui.runCheckerTextBrowser)
 
         # instantiate generate_database and pass instance of database_signals to create the current month's database
         self.create_db = CreateDatabase(self.run_checker_signals, self.ui.checker_data_input_path.text(), self.run_checker_conn, self.run_checker_cursor)
         self.create_db.generate_database(self.ui.runCheckerTextBrowser)
 
-        # instantiate run_checker and pass instance of database_signals to RunChecker
+        # instantiate run_checker and pass instance of database_signals, database path, database connection and cursor to RunChecker
         self.run_checker = RunChecker(self.run_checker_signals, self.ui.checker_data_input_path.text(), self.run_checker_conn, self.run_checker_cursor)
-        self.run_checker.create_database(self.ui.runCheckerTextBrowser)
+        self.run_checker.compare_databases(self.ui.runCheckerTextBrowser)
 
 
 def main():

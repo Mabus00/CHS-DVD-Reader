@@ -50,17 +50,10 @@ class CreateDatabase():
                 utils.update_text_browser(text_browser_widget, f"\nDVD not found at path '{self.input_data_path}'.")
 
     def process_desktop_folder(self, text_browser_widget):
-        # Get the current year and month in the format "YYYYMM"
-        # current_year_month = datetime.now().strftime('%Y%m')
+        
         # Get the list of foldernames in the subject folder
         foldernames = os.listdir(self.input_data_path)
-        # Initialize a list to store matching foldernames
-        #matching_foldernames = []
-        # Loop through the foldernames and check for matching current year and data
-        #for foldername in foldernames:
-            #if current_year_month in foldername:
-            #matching_foldernames.append(foldername)
-
+        
         # Check if two folders were found
         if len(foldernames) == 2:
             for folder_name in foldernames:
