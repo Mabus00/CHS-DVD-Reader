@@ -38,10 +38,24 @@ def get_database_connection(database_name, text_browser_widget):
     conn, cursor = initialize_database(database_name, text_browser_widget)
     return conn, cursor
 
+def confirm_database_deletion(parent, database_name, text_browser_widget):
+    # chs_dvd.db exists
+    while not parent.isChecked():
+        show_warning_popup("Database exists. Check the 'Confirm deletion of database' box to proceed")
+        return False
+    else:
+        delete_existing_database(database_name, text_browser_widget)
+        return True
+
+def confirm_data_path(text):
+    if not text:
+        show_warning_popup("Select data input path")
+        return False
+    return True
+        
 def delete_existing_database(database_name, text_browser_widget):
-    if os.path.exists(database_name):
-        os.remove(database_name)
-        update_text_browser(text_browser_widget, f"Database '{database_name}' deleted.")
+    os.remove(database_name)
+    update_text_browser(text_browser_widget, f"Database '{database_name}' deleted.")
 
 def close_database(text_browser_widget, create_database_conn):
     if create_database_conn:

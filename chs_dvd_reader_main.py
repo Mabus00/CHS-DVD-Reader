@@ -62,20 +62,17 @@ class CHSDVDReaderApp(QMainWindow):
     def build_database(self):
         # delete if necessary then build new database
         if os.path.exists(self.database_name):
-            # chs_dvd.db exists
-            if not self.ui.rebuild_checkbox.isChecked():
-                utils.show_warning_popup("Database exists. Check the 'Confirm deletion of database' box to proceed")
+            if not utils.confirm_database_deletion(self.ui.rebuild_checkbox, self.database_name, self.ui.createDatabaseTextBrowser):
                 return
-            utils.delete_existing_database(self.database_name, self.ui.createDatabaseTextBrowser)
-
+        
         # ensure user has selected a data input path
-        if not self.ui.database_input_path.text():
-            utils.show_warning_popup("Select data input path")
+        if not utils.confirm_data_path(self.ui.database_input_path.text()):
             return
         
-        # establish database connections for the create/rebuild database tab
+        # establish master database connections for the create database tab
         self.create_database_conn, self.create_database_cursor = utils.get_database_connection(self.database_name, self.ui.createDatabaseTextBrowser)
 
+        # create master database
         # instantiate create_database and pass instance of database_signals, database path, database connection and cursor to CreateDatabase
         self.create_db = CreateDatabase(self.database_signals, self.ui.database_input_path.text(), self.create_database_conn, self.create_database_cursor)
         self.create_db.generate_database(self.ui.createDatabaseTextBrowser)
@@ -85,13 +82,13 @@ class CHSDVDReaderApp(QMainWindow):
     def run_checker(self):
 
         # ensure user has selected a data input path
-        if not self.ui.checker_data_input_path.text():
-            utils.show_warning_popup("Select data input path")
+        if not utils.confirm_data_path(self.ui.database_input_path.text()):
             return
         
         # establish new current database connections for the run checker database tab
         self.run_checker_conn, self.run_checker_cursor = utils.get_database_connection(self.checker_database_name, self.ui.runCheckerTextBrowser)
 
+        # create current database
         # instantiate generate_database and pass instance of database_signals to create the current month's database
         self.create_db = CreateDatabase(self.run_checker_signals, self.ui.checker_data_input_path.text(), self.run_checker_conn, self.run_checker_cursor)
         self.create_db.generate_database(self.ui.runCheckerTextBrowser)

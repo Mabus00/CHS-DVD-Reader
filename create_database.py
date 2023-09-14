@@ -10,7 +10,6 @@ Intent later is to modify this code to also read from a .zip file (this is how t
 
 import os
 import common_utils as utils
-from datetime import datetime
 
 class CreateDatabase():
 
@@ -50,10 +49,8 @@ class CreateDatabase():
                 utils.update_text_browser(text_browser_widget, f"\nDVD not found at path '{self.input_data_path}'.")
 
     def process_desktop_folder(self, text_browser_widget):
-        
         # Get the list of foldernames in the subject folder
         foldernames = os.listdir(self.input_data_path)
-        
         # Check if two folders were found
         if len(foldernames) == 2:
             for folder_name in foldernames:
@@ -81,7 +78,6 @@ class CreateDatabase():
         table_name = f"{source_name}_{folder.replace('-', '_')}"
         sub_folder_path = os.path.join(folder_path, folder)
         txt_files = utils.get_txt_files(sub_folder_path)
-
         if txt_files:
             utils.update_text_browser(text_browser_widget, f"Folder: {folder}")
             for txt_file in txt_files:
