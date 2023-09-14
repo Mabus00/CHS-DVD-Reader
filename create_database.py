@@ -13,12 +13,12 @@ import common_utils as utils
 
 class CreateDatabase():
 
-    def __init__(self, database_signals, database_input_path, create_database_conn, create_database_cursor):
+    def __init__(self, database_signals, database_input_path, database_conn, database_cursor):
         # Create an instance of CreateDatabaseSignals
         self.database_signals = database_signals
         # establish where the cursors are in the database
-        self.create_database_conn = create_database_conn
-        self.create_database_cursor = create_database_cursor
+        self.database_conn = database_conn
+        self.database_cursor = database_cursor
         # database data input path
         self.input_data_path = database_input_path
 
@@ -28,7 +28,7 @@ class CreateDatabase():
         else:# Case 2: files are on a DVD reader
             self.process_dvd(text_browser_widget)
         # Commit the changes at the end
-        self.create_database_conn.commit()
+        self.database_conn.commit()
         utils.update_text_browser(text_browser_widget, "\nCHS Database Successfully Created!")
 
     def process_dvd(self, text_browser_widget):
@@ -82,8 +82,8 @@ class CreateDatabase():
             utils.update_text_browser(text_browser_widget, f"Folder: {folder}")
             for txt_file in txt_files:
                 txt_file_path = os.path.join(sub_folder_path, txt_file)
-                utils.create_table(table_name, txt_file_path, self.create_database_cursor)  # Create the table
-                utils.insert_data(table_name, txt_file_path, self.create_database_cursor)    # Insert data into the table
+                utils.create_table(table_name, txt_file_path, self.database_cursor)  # Create the table
+                utils.insert_data(table_name, txt_file_path, self.database_cursor)    # Insert data into the table
             utils.update_text_browser(text_browser_widget, "Table and data added.")
         else:
             utils.update_text_browser(text_browser_widget, "\nNo .txt files in this folder.")

@@ -35,7 +35,8 @@ class RunChecker():
             #matching_foldernames.append(foldername)
 
         ''' STEPS '''
-        # 1. ensure both databases are open
+        # 1. ensure both databases are open. given I just loaded the current_database 
+
         # 2. compare the DTG of the master database to current database; ensure the current is at least one month newer than the master; if more confirm with user
         # 3. start with master and find the same table (with the newer date) in current
         # 4. for each row compare: chart number, Edn Date, Last NM, Ed number and Title and report any discrepancies/ store them in a local table. Chart numbers matching will be a challenge if not the same.
