@@ -68,35 +68,35 @@ class CHSDVDReaderApp(QMainWindow):
         # ensure user has selected a data input path
         if not utils.confirm_data_path(self.ui.database_input_path.text()):
             return
-        
-        # establish master database connections for the create database tab
-        self.master_database_conn, self.master_database_cursor = utils.get_database_connection(self.master_database_name, self.ui.createDatabaseTextBrowser)
 
         # create master database
-        # instantiate create_database and pass instance of database_signals, database path, database connection and cursor to CreateDatabase
-        self.create_db = CreateDatabase(self.database_signals, self.ui.database_input_path.text(), self.master_database_conn, self.master_database_cursor)
-        self.create_db.generate_database(self.ui.createDatabaseTextBrowser)
+        # establish database connections; operate under assumption that master_database won't be created each time widget is used
+        self.master_database_conn, self.master_database_cursor = utils.get_database_connection(self.master_database_name, self.ui.createDatabaseTextBrowser)
 
-        # not sure if I want to close the master database at this point; leave commented out for now
-        # utils.close_database(self.ui.createDatabaseTextBrowser, self.master_database_conn)
+        # instantiate create_database and pass instance of database_signals, database path, database connection and cursor to CreateDatabase
+        self.create_db = CreateDatabase(self.database_signals, self.ui.database_input_path.text(), self.master_database_conn, self.master_database_cursor, self.ui.createDatabaseTextBrowser)
+        self.create_db.generate_database()
+
+        # close the master database so it can be opened in run_checker (assumption is that create_database isn't always used)
+        utils.close_database(self.ui.createDatabaseTextBrowser, self.master_database_conn)
 
     def run_checker(self):
+        # establish database connections; operate under assumption that master_database won't be created each time widget is used
+        self.master_database_conn, self.master_database_cursor = utils.get_database_connection(self.master_database_name, self.ui.createDatabaseTextBrowser)
+        self.current_database_conn, self.current_database_cursor = utils.get_database_connection(self.current_database_name, self.ui.runCheckerTextBrowser)
 
         # ensure user has selected a current data input path
         if not utils.confirm_data_path(self.ui.checker_data_input_path.text()):
             return
-        
-        # establish new current database connections for the run checker database tab
-        self.current_database_conn, self.current_database_cursor = utils.get_database_connection(self.current_database_name, self.ui.runCheckerTextBrowser)
 
         # create current database
         # instantiate generate_database and pass instance of database_signals to create the current month's database
-        self.create_db = CreateDatabase(self.run_checker_signals, self.ui.checker_data_input_path.text(), self.current_database_conn, self.current_database_cursor)
-        self.create_db.generate_database(self.ui.runCheckerTextBrowser)
+        #self.create_db = CreateDatabase(self.run_checker_signals, self.ui.checker_data_input_path.text(), self.current_database_conn, self.current_database_cursor)
+        #self.create_db.generate_database(self.ui.runCheckerTextBrowser)
 
         # instantiate run_checker and pass instance of database_signals, database path, database connection and cursor to RunChecker
-        self.run_checker = RunChecker(self.run_checker_signals, self.ui.checker_data_input_path.text(), self.current_database_conn, self.current_database_cursor)
-        self.run_checker.compare_databases(self.ui.runCheckerTextBrowser)
+        self.run_checker = RunChecker(self.run_checker_signals, self.ui.checker_data_input_path.text(), self.master_database_name, self.master_database_conn, self.master_database_cursor, self.current_database_name, self.current_database_conn, self.current_database_cursor, self.ui.runCheckerTextBrowser)
+        self.run_checker.compare_databases()
 
 
 def main():

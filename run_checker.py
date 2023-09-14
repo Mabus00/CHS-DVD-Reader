@@ -14,16 +14,19 @@ from datetime import datetime
 
 class RunChecker():
 
-    def __init__(self, database_signals, checker_data_input_path, run_checker_conn, run_checker_cursor):
+    def __init__(self, database_signals, master_database_name, master_database_conn, master_database_cursor, current_database_name, current_database_conn, current_database_cursor, runCheckerTextBrowser):
         # Create an instance of CreateDatabaseSignals
         self.database_signals = database_signals
-        # establish where the cursors are in the database
-        self.create_database_conn = run_checker_conn
-        self.create_database_cursor = run_checker_cursor
-        # database data input path
-        self.input_data_path = checker_data_input_path
+        # establish database names, connections and cursors
+        self.master_database_name = master_database_name
+        self.master_database_conn = master_database_conn
+        self.master_database_cursor = master_database_cursor
+        self.current_database_name = current_database_name
+        self.current_database_conn = current_database_conn
+        self.current_database_cursor = current_database_cursor
+        self.text_browser_widget = runCheckerTextBrowser
 
-    def compare_databases(self, text_browser_widget):
+    def compare_databases(self):
         # Get the current year and month in the format "YYYYMM"
         # current_year_month = datetime.now().strftime('%Y%m')
 
@@ -35,7 +38,10 @@ class RunChecker():
             #matching_foldernames.append(foldername)
 
         ''' STEPS '''
-        # 1. ensure both databases are open. given I just loaded the current_database 
+        # from chs_dvd_reader_main both databases were opened
+
+
+
 
         # 2. compare the DTG of the master database to current database; ensure the current is at least one month newer than the master; if more confirm with user
         # 3. start with master and find the same table (with the newer date) in current
@@ -45,8 +51,7 @@ class RunChecker():
         # 7. add the ability to print the result as a pdf.
         # 8. once all has been verified and the user is happy, overwrite the master with the current.
 
-        utils.update_text_browser(text_browser_widget, "\nMade it!")
-        print(f'path = {self.input_data_path}')
+        print('run_checker')
 
 
 if __name__ == "__main__":

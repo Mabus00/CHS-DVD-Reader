@@ -57,10 +57,10 @@ def delete_existing_database(database_name, text_browser_widget):
     os.remove(database_name)
     update_text_browser(text_browser_widget, f"Database '{database_name}' deleted.")
 
-def close_database(text_browser_widget, create_database_conn):
-    if create_database_conn:
-        create_database_conn.close()
-    update_text_browser(text_browser_widget, 'Database closed.')
+def close_database(text_browser_widget, database_conn):
+    if database_conn:
+        database_conn.close()
+    update_text_browser(text_browser_widget, f'{database_conn} closed.')
 
 # Function to list folders in the DVD path
 def list_folders(folder_path):
