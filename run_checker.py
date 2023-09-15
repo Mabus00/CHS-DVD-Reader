@@ -1,7 +1,6 @@
 # Import necessary modules
-import os
 import common_utils as utils
-from datetime import datetime, timedelta
+from datetime import datetime
 
 # Define the RunChecker class
 class RunChecker():
@@ -31,16 +30,16 @@ class RunChecker():
         ''' STEPS '''
 
         # Call the compare_tables method to perform table comparison
-        self.compare_tables()
-
+        result = self.compare_tables()
+        print(result)
         # Compare the DTG of the master database and the current database; ensure the current is at least one month newer than the master; if more, confirm with the user
         # Get the table names from the master database
 
-    # Method to compare table yyyymmdd in the master and current databases to make sure they're the same within the db
     def compare_tables(self):
-        # Define table prefixes to be compared
         table_prefixes = ['EastDVD', 'WestDVD']
         
+        match_result, month_result = False, False
+
         # Initialize dictionaries to store dates found in each database
         master_dates = {}
         current_dates = {}
@@ -51,43 +50,23 @@ class RunChecker():
             master_yyyymmdd = utils.get_first_table_yyyymmdd(prefix, self.master_database_conn)
             if master_yyyymmdd is not None:
                 master_dates[prefix] = master_yyyymmdd
-                print(f'Master {prefix} yyyymmdd: {master_yyyymmdd}')
 
             # Get the yyyymmdd from the first table in the current database
             current_yyyymmdd = utils.get_first_table_yyyymmdd(prefix, self.current_database_conn)
             if current_yyyymmdd is not None:
                 current_dates[prefix] = current_yyyymmdd
-                print(f'Current {prefix} yyyymmdd: {current_yyyymmdd}')
 
-        # Print the database connection status
-        print('Database connection status:')
-        if self.current_database_conn:
-            print(f'current_database_conn is open for {self.current_database_name}')
-        if self.master_database_conn:
-            print(f'master_database_conn is open for {self.master_database_name}')
-
-        # Print the comparison results
-        print('\nComparison results:')
         # Compare the EastDVD and WestDVD tables separately for both master and current databases
         if (
             master_dates.get('EastDVD') == master_dates.get('WestDVD') and
-            current_dates.get('EastDVD') == current_dates.get('WestDVD')
-        ):
-            print("The yyyymmdd parts of the first EastDVD and WestDVD tables in both databases match.")
-        else:
-            print("The yyyymmdd parts of the first EastDVD and WestDVD tables in both databases are different.")
+            current_dates.get('EastDVD') == current_dates.get('WestDVD') and
+            datetime.strptime(current_dates.get('EastDVD'), '%Y%m%d').month > datetime.strptime(master_dates.get('EastDVD'), '%Y%m%d').month
+            ):
+                match_result, month_result = True, True
 
+        return match_result, month_result
 
-        # Compare the EastDVD tables separately for both master and current databases
-        master_date = datetime.strptime(master_dates.get('EastDVD'), '%Y%m%d')
-        current_date = datetime.strptime(current_dates.get('EastDVD'), '%Y%m%d')
-
-        if current_date.month > master_date.month:
-            print("The current EastDVD date is at least one month later than the master EastDVD date.")
-        else:
-            print("The current EastDVD date is not at least one month later than the master EastDVD date.")
-
-    
+        
         # Additional steps for the comparison process (commented out)
         # 3. start with master and find the same table (with the newer date) in current
         # 4. for each row compare: chart number, Edn Date, Last NM, Ed number and Title and report any discrepancies/ store them in a local table. Chart numbers matching will be a challenge if not the same.
