@@ -126,3 +126,20 @@ def insert_data(table_name, txt_file_path, cursor):
             placeholders = ', '.join(['?'] * len(data))
             insert_sql = f"INSERT INTO {table_name} VALUES ({placeholders})"
             cursor.execute(insert_sql, data)
+
+''' Run Checker common functions '''
+
+def extract_yyyymmdd(table_name):
+    return table_name.split('_')[1]
+
+# Method to get the yyyymmdd from the first table with a given prefix in a database connection
+def get_first_table_yyyymmdd(prefix, database_conn):
+    cursor = database_conn.cursor()
+    cursor.execute(f"SELECT name FROM sqlite_master WHERE type='table' AND name LIKE '{prefix}%'")
+    tables = cursor.fetchall()
+
+    if tables:
+        first_table = tables[0][0]
+        return extract_yyyymmdd(first_table)
+
+    return None
