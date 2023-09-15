@@ -81,6 +81,10 @@ class CHSDVDReaderApp(QMainWindow):
         utils.close_database(self.ui.createDatabaseTextBrowser, self.master_database_conn)
 
     def run_checker(self):
+         # delete if necessary then build new database
+        if os.path.exists(self.master_database_name):
+            utils.delete_existing_database(self.current_database_name, self.ui.runCheckerTextBrowser)
+
         # establish database connections; operate under assumption that master_database won't be created each time widget is used
         self.master_database_conn, self.master_database_cursor = utils.get_database_connection(self.master_database_name, self.ui.createDatabaseTextBrowser)
         self.current_database_conn, self.current_database_cursor = utils.get_database_connection(self.current_database_name, self.ui.runCheckerTextBrowser)
@@ -91,8 +95,8 @@ class CHSDVDReaderApp(QMainWindow):
 
         # create current database
         # instantiate generate_database and pass instance of database_signals to create the current month's database
-        #self.create_db = CreateDatabase(self.run_checker_signals, self.ui.checker_data_input_path.text(), self.current_database_conn, self.current_database_cursor, self.ui.runCheckerTextBrowser)
-        #self.create_db.generate_database()
+        self.create_db = CreateDatabase(self.run_checker_signals, self.ui.checker_data_input_path.text(), self.current_database_conn, self.current_database_cursor, self.ui.runCheckerTextBrowser)
+        self.create_db.generate_database()
 
         # instantiate run_checker and pass instance of database_signals, etc...
         self.run_checker = RunChecker(self.run_checker_signals, self.master_database_name, self.master_database_conn, self.master_database_cursor, self.current_database_name, self.current_database_conn, self.current_database_cursor, self.ui.runCheckerTextBrowser)
