@@ -22,9 +22,17 @@ class RunChecker():
     # Method to compare databases
     def compare_databases(self):
         # Call the compare_tables method to perform table comparison
-        result = self.compare_tables()
-        print(result)
-    
+        while True:
+            match_result, month_result = self.compare_tables()
+            utils.update_text_browser(self.text_browser_widget, f"\nMatch Result: {match_result}, Month Result: {month_result}")
+
+            if match_result and month_result:
+                break  # Exit the loop if both conditions are True
+            else:
+                utils.update_text_browser(self.text_browser_widget, "\nFix the noted problems and try again.")
+                return
+
+        
         # Additional steps for the comparison process (commented out)
         # 3. start with master and find the same table (with the newer date) in current
         # 4. for each row compare: chart number, Edn Date, Last NM, Ed number and Title and report any discrepancies/ store them in a local table. Chart numbers matching will be a challenge if not the same.
@@ -34,7 +42,7 @@ class RunChecker():
         # 8. once all has been verified and the user is happy, overwrite the master with the current.
 
         # Print a message to indicate that the checker has run
-        print('run_checker')
+        print('The Checker ran succesfully!')
 
         # Compare the DTG of the master database and the current database; ensure the current is at least one month newer than the master; if more, confirm with the user
         # Get the table names from the master database

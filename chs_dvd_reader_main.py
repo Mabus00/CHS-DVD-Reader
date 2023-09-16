@@ -78,10 +78,10 @@ class CHSDVDReaderApp(QMainWindow):
         self.create_db.generate_database()
 
         # close the master database so it can be opened in run_checker (assumption is that create_database isn't always used)
-        utils.close_database(self.ui.createDatabaseTextBrowser, self.master_database_conn)
+        utils.close_database(self.ui.createDatabaseTextBrowser, self.master_database_conn, self.master_database_name)
 
     def run_checker(self):
-         # delete if necessary then build new database
+         # delete if necessary then build new current database
         if os.path.exists(self.master_database_name):
             utils.delete_existing_database(self.current_database_name, self.ui.runCheckerTextBrowser)
 
@@ -101,6 +101,10 @@ class CHSDVDReaderApp(QMainWindow):
         # instantiate run_checker and pass instance of database_signals, etc...
         self.run_checker = RunChecker(self.run_checker_signals, self.master_database_name, self.master_database_conn, self.master_database_cursor, self.current_database_name, self.current_database_conn, self.current_database_cursor, self.ui.runCheckerTextBrowser)
         self.run_checker.compare_databases()
+
+        # close the master database so it can be opened in run_checker (assumption is that create_database isn't always used)
+        utils.close_database(self.ui.createDatabaseTextBrowser, self.master_database_conn, self.master_database_name)
+        utils.close_database(self.ui.runCheckerTextBrowser, self.current_database_conn, self.current_database_name)
 
 def main():
     app = QApplication(sys.argv)
