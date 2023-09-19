@@ -19,6 +19,9 @@ class RunChecker():
         self.current_database_cursor = current_database_cursor
         self.text_browser_widget = runCheckerTextBrowser
 
+        self.master_yyyymmdd = ''
+        self.current_yyyymmdd = ''
+
     # Method to compare databases
     def compare_databases(self):
         # Define table prefixes to be compared
@@ -54,13 +57,13 @@ class RunChecker():
         # get the first yyyymmdd prefix of each table in each database
         for prefix in table_prefixes:
             # Get the yyyymmdd from the first table in the master database
-            master_yyyymmdd = utils.get_first_table_yyyymmdd(prefix, self.master_database_conn)
-            if master_yyyymmdd is not None:
-                master_dates[prefix] = master_yyyymmdd
+            self.master_yyyymmdd = utils.get_first_table_yyyymmdd(prefix, self.master_database_conn)
+            if self.master_yyyymmdd is not None:
+                master_dates[prefix] = self.master_yyyymmdd
             # Get the yyyymmdd from the first table in the current database
-            current_yyyymmdd = utils.get_first_table_yyyymmdd(prefix, self.current_database_conn)
-            if current_yyyymmdd is not None:
-                current_dates[prefix] = current_yyyymmdd
+            self.current_yyyymmdd = utils.get_first_table_yyyymmdd(prefix, self.current_database_conn)
+            if self.current_yyyymmdd is not None:
+                current_dates[prefix] = self.current_yyyymmdd
         return master_dates, current_dates
 
     def compare_tables_east_west_dates(self, master_dates, current_dates):
@@ -91,6 +94,15 @@ class RunChecker():
             utils.update_text_browser(self.text_browser_widget, "\nCurrent East & West DVD dates are not a month or more later than the Master Database dates.")
         return month_result
 
+    # Function to replace text between the first and second underscores with one underscore
+    def replace_text_with_underscore(self, table_name):
+        parts = table_name.split('_')
+        return parts[0] + '_' + '_'.join(parts[2:])
+    
+    def replace_underscore_with_text(self, table_name, yyyymmdd):
+        parts = table_name.split('_')
+        return '_'.join([parts[0], yyyymmdd] + parts[1:])  # Join all parts with underscores
+
     def compare_database_content(self):
         # Get the list of table names for both databases
         self.master_database_cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
@@ -98,33 +110,27 @@ class RunChecker():
 
         self.current_database_cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
         tables_current = [row[0] for row in self.current_database_cursor.fetchall()]
-
-        # Function to replace text between the first and second underscores with one underscore
-        def replace_text_with_underscore(table_name):
-            parts = table_name.split('_')
-            if len(parts) > 2:
-                return parts[0] + '_' + '_'.join(parts[2:])
-            else:
-                return table_name
-
+       
         # Apply the function to remove the text between the first and second underscores
-        tables_master = [replace_text_with_underscore(table) for table in tables_master]
-        tables_current = [replace_text_with_underscore(table) for table in tables_current]
+        tables_master_temp = [self.replace_text_with_underscore(table) for table in tables_master]
+        tables_current_temp = [self.replace_text_with_underscore(table) for table in tables_current]
 
         # Find tables in "master" that are not in "current" and vice versa
-        tables_missing_in_current = set(tables_master) - set(tables_current)
-        tables_missing_in_master = set(tables_current) - set(tables_master)
+        tables_missing_in_current = set(tables_master_temp) - set(tables_current_temp)
+        tables_missing_in_master = set(tables_current_temp) - set(tables_master_temp)
 
         # Print tables that are not matching between "master" and "current"
         if tables_missing_in_current:
             print("Tables missing in 'current' but present in 'master':")
             for table in tables_missing_in_current:
-                print(table)
+                temp = self.replace_underscore_with_text(table, self.current_yyyymmdd)
+                print(temp)
 
         if tables_missing_in_master:
             print("\nTables missing in 'master' but present in 'current':")
             for table in tables_missing_in_master:
-                print(table)
+                temp = self.replace_underscore_with_text(table, self.master_yyyymmdd)
+                print(temp)
 
 
 
