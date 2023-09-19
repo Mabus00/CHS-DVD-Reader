@@ -36,9 +36,8 @@ class RunChecker():
                 utils.update_text_browser(self.text_browser_widget, "\nThe Master and Current databases are not in compliance with the date matching criteria. Please review the results and address the indicated issues.")
                 return
 
-        
-        # Additional steps for the comparison process (commented out)
         # 3. start with master and find the same table (with the newer date) in current
+        self.compare_database_content()
         # 4. for each row compare: chart number, Edn Date, Last NM, Ed number and Title and report any discrepancies/ store them in a local table. Chart numbers matching will be a challenge if not the same.
         # 5. report all discrepancies (for now) as errors so you can see what the differences are.
         # 6. as you move forward and you can differentiate between new charts, new editions, and withdrawn charts, add these details to each specific local table, with the remainder staying in errors.
@@ -47,9 +46,6 @@ class RunChecker():
 
         # Print a message to indicate that the checker has run
         print('The Checker ran succesfully!')
-
-        # Compare the DTG of the master database and the current database; ensure the current is at least one month newer than the master; if more, confirm with the user
-        # Get the table names from the master database
 
     def get_databases_yyyymmdd(self, table_prefixes):
         # Initialize dictionaries to store dates found in each database
@@ -94,6 +90,42 @@ class RunChecker():
         else:
             utils.update_text_browser(self.text_browser_widget, "\nCurrent East & West DVD dates are not a month or more later than the Master Database dates.")
         return month_result
+
+    def compare_database_content(self):
+        # Get the list of table names for both databases
+        self.master_database_cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+        tables_master = [row[0] for row in self.master_database_cursor.fetchall()]
+
+        self.current_database_cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+        tables_current = [row[0] for row in self.current_database_cursor.fetchall()]
+
+        # Function to replace text between the first and second underscores with one underscore
+        def replace_text_with_underscore(table_name):
+            parts = table_name.split('_')
+            if len(parts) > 2:
+                return parts[0] + '_' + '_'.join(parts[2:])
+            else:
+                return table_name
+
+        # Apply the function to remove the text between the first and second underscores
+        tables_master = [replace_text_with_underscore(table) for table in tables_master]
+        tables_current = [replace_text_with_underscore(table) for table in tables_current]
+
+        # Find tables in "master" that are not in "current" and vice versa
+        tables_missing_in_current = set(tables_master) - set(tables_current)
+        tables_missing_in_master = set(tables_current) - set(tables_master)
+
+        # Print tables that are not matching between "master" and "current"
+        if tables_missing_in_current:
+            print("Tables missing in 'current' but present in 'master':")
+            for table in tables_missing_in_current:
+                print(table)
+
+        if tables_missing_in_master:
+            print("\nTables missing in 'master' but present in 'current':")
+            for table in tables_missing_in_master:
+                print(table)
+
 
 
 # Main execution block (can be used for testing)
