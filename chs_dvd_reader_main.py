@@ -81,7 +81,7 @@ class CHSDVDReaderApp(QMainWindow):
         utils.close_database(self.ui.createDatabaseTextBrowser, self.master_database_conn, self.master_database_name)
 
     def run_checker(self):
-         # delete if necessary then build new current database
+        # delete if necessary then build new current database
         if os.path.exists(self.master_database_name):
             utils.delete_existing_database(self.current_database_name, self.ui.runCheckerTextBrowser)
 
