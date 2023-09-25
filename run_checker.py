@@ -135,8 +135,6 @@ class RunChecker():
                 temp = self.replace_underscore_with_text(table, self.master_yyyymmdd)
                 self.errors_textbox.emit(temp)
 
-
-
 # Main execution block (can be used for testing)
 if __name__ == "__main__":
     pass
