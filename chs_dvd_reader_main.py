@@ -8,9 +8,9 @@ I could have gone directly from the UI signal to the slot but chose this instead
 
 import sys
 import os
-from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog
+from PyQt5.QtWidgets import QApplication, QMainWindow
 from chs_dvd_gui import Ui_MainWindow
-from custom_signals import CreateDatabaseSignals, RunCheckerSignals
+from custom_signals import CreateDatabaseSignals, RunCheckerSignals, ErrorsSignals
 from create_database import CreateDatabase
 from run_checker import RunChecker
 import common_utils as utils
@@ -34,6 +34,9 @@ class CHSDVDReaderApp(QMainWindow):
         # Create an instance of RunCheckerSignals
         self.run_checker_signals = RunCheckerSignals()
 
+        # Create an instance of ErrorsSignals
+        self.errors_signals = ErrorsSignals()
+
         # Create an instance of CreateDatabaseSignals
         self.database_signals = CreateDatabaseSignals()
 
@@ -56,8 +59,9 @@ class CHSDVDReaderApp(QMainWindow):
 
         # Using a lambda function to create an anonymous function that takes a single argument 'message'.
         # The lambda function is being used as an argument to the emit method of the custom signal.
-        self.database_signals.create_database_textbox.connect(lambda message: utils.update_text_browser(self.ui.createDatabaseTextBrowser, message))
         self.run_checker_signals.run_checker_textbox.connect(lambda message: utils.update_text_browser(self.ui.runCheckerTextBrowser, message))
+        self.errors_signals.errors_textbox.connect(lambda message: utils.update_text_browser(self.ui.errorsTextBrowser, message))
+        self.database_signals.create_database_textbox.connect(lambda message: utils.update_text_browser(self.ui.createDatabaseTextBrowser, message))
 
     def build_database(self):
         # delete if necessary then build new database
@@ -74,7 +78,7 @@ class CHSDVDReaderApp(QMainWindow):
         self.master_database_conn, self.master_database_cursor = utils.get_database_connection(self.master_database_name, self.ui.createDatabaseTextBrowser)
 
         # instantiate create_database and pass instance of database_signals, etc...
-        self.create_db = CreateDatabase(self.database_signals, self.ui.database_input_path.text(), self.master_database_conn, self.master_database_cursor, self.ui.createDatabaseTextBrowser)
+        self.create_db = CreateDatabase(self.database_signals.create_database_textbox, self.ui.database_input_path.text(), self.master_database_conn, self.master_database_cursor, self.ui.createDatabaseTextBrowser)
         self.create_db.generate_database()
 
         # close the master database so it can be opened in run_checker (assumption is that create_database isn't always used)
@@ -99,7 +103,7 @@ class CHSDVDReaderApp(QMainWindow):
         # self.create_db.generate_database()
 
         # instantiate run_checker and pass instance of database_signals, etc...
-        self.run_checker = RunChecker(self.run_checker_signals, self.master_database_name, self.master_database_conn, self.master_database_cursor, self.current_database_name, self.current_database_conn, self.current_database_cursor, self.ui.runCheckerTextBrowser)
+        self.run_checker = RunChecker(self.run_checker_signals.run_checker_textbox, self.errors_signals.errors_textbox, self.master_database_name, self.master_database_conn, self.master_database_cursor, self.current_database_name, self.current_database_conn, self.current_database_cursor, self.ui.runCheckerTextBrowser)
         self.run_checker.compare_databases()
 
         # close the master database so it can be opened in run_checker (assumption is that create_database isn't always used)

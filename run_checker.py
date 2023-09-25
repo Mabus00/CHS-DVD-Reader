@@ -6,9 +6,10 @@ from datetime import datetime
 class RunChecker():
 
     # Constructor for initializing the RunChecker object
-    def __init__(self, database_signals, master_database_name, master_database_conn, master_database_cursor, current_database_name, current_database_conn, current_database_cursor, runCheckerTextBrowser):
+    def __init__(self, run_checker_textbox, errors_textbox, master_database_name, master_database_conn, master_database_cursor, current_database_name, current_database_conn, current_database_cursor, runCheckerTextBrowser):
         # Create an instance of CreateDatabaseSignals (not shown in code, assuming it's an imported class)
-        self.database_signals = database_signals
+        self.run_checker_textbox = run_checker_textbox
+        self.errors_textbox = errors_textbox
 
         # Establish database names, connections, and cursors
         self.master_database_name = master_database_name
@@ -33,10 +34,10 @@ class RunChecker():
             match_result = self.compare_tables_east_west_dates(master_dates, current_dates)
             month_result = self.compare_database_dates(master_dates, current_dates)
             if match_result and month_result:
-                utils.update_text_browser(self.text_browser_widget, "\nThe Master and Current databases are in compliance with the date matching criteria. ")
+                self.run_checker_textbox.emit("\nThe Master and Current databases are in compliance with the date matching criteria. ")
                 break  # Exit the loop if both conditions are True
             else:
-                utils.update_text_browser(self.text_browser_widget, "\nThe Master and Current databases are not in compliance with the date matching criteria. Please review the results and address the indicated issues.")
+                self.run_checker_textbox.emit("\nThe Master and Current databases are not in compliance with the date matching criteria. Please review the results and address the indicated issues.")
                 return
 
         # 3. start with master and find the same table (with the newer date) in current
@@ -74,10 +75,10 @@ class RunChecker():
             master_dates.get('EastDVD') == master_dates.get('WestDVD') and
             current_dates.get('EastDVD') == current_dates.get('WestDVD')
         ):
-            utils.update_text_browser(self.text_browser_widget, "\nEast & West DVD dates match within one or both databases.")
+            self.run_checker_textbox.emit("\nEast & West DVD dates match within one or both databases.")
             match_result = True
         else:
-            utils.update_text_browser(self.text_browser_widget, "\nEast & West DVD dates do not match within one or both databases.")
+            self.run_checker_textbox.emit("\nEast & West DVD dates do not match within one or both databases.")
         return match_result
 
     def compare_database_dates(self, master_dates, current_dates):
@@ -88,10 +89,10 @@ class RunChecker():
         master_date = datetime.strptime(master_dates.get('EastDVD'), '%Y%m%d')
         current_date = datetime.strptime(current_dates.get('EastDVD'), '%Y%m%d')
         if current_date.month > master_date.month:
-            utils.update_text_browser(self.text_browser_widget, "\nCurrent East & West DVD dates are a month or more later than the Master Database dates.")
+            self.run_checker_textbox.emit("\nCurrent East & West DVD dates are a month or more later than the Master Database dates.")
             month_result = True
         else:
-            utils.update_text_browser(self.text_browser_widget, "\nCurrent East & West DVD dates are not a month or more later than the Master Database dates.")
+            self.run_checker_textbox.emit("\nCurrent East & West DVD dates are not a month or more later than the Master Database dates.")
         return month_result
 
     # Function to replace text between the first and second underscores with one underscore
@@ -121,16 +122,18 @@ class RunChecker():
 
         # Print tables that are not matching between "master" and "current"
         if tables_missing_in_current:
-            print("Tables missing in 'current' but present in 'master':")
+            self.run_checker_textbox.emit("\nErrors were noted - see the Errors Tab")
+            self.errors_textbox.emit("Tables missing in 'current' but present in 'master':")
             for table in tables_missing_in_current:
                 temp = self.replace_underscore_with_text(table, self.current_yyyymmdd)
-                print(temp)
+                self.errors_textbox.emit(temp)
 
         if tables_missing_in_master:
-            print("\nTables missing in 'master' but present in 'current':")
+            self.run_checker_textbox.emit("\nErrors were noted - see the Errors Tab")
+            self.errors_textbox.emit("\nTables missing in 'master' but present in 'current':")
             for table in tables_missing_in_master:
                 temp = self.replace_underscore_with_text(table, self.master_yyyymmdd)
-                print(temp)
+                self.errors_textbox.emit(temp)
 
 
 
