@@ -13,6 +13,7 @@ from chs_dvd_gui import Ui_MainWindow
 from custom_signals import CreateDatabaseSignals, RunCheckerSignals, ErrorsSignals
 from create_database import CreateDatabase
 from run_checker import RunChecker
+from compare_database_content import CompareDatabases
 import common_utils as utils
 
 class CHSDVDReaderApp(QMainWindow):
@@ -78,7 +79,7 @@ class CHSDVDReaderApp(QMainWindow):
         self.master_database_conn, self.master_database_cursor = utils.get_database_connection(self.master_database_name, self.ui.createDatabaseTextBrowser)
 
         # instantiate create_database and pass instance of database_signals, etc...
-        self.create_db = CreateDatabase(self.database_signals.create_database_textbox, self.ui.database_input_path.text(), self.master_database_conn, self.master_database_cursor, self.ui.createDatabaseTextBrowser)
+        self.create_db = CreateDatabase(self.database_signals.create_database_textbox, self.ui.database_input_path.text(), self.master_database_conn, self.master_database_cursor)
         self.create_db.generate_database()
 
         # close the master database so it can be opened in run_checker (assumption is that create_database isn't always used)
@@ -86,6 +87,7 @@ class CHSDVDReaderApp(QMainWindow):
 
     def run_checker(self):
         # delete if necessary then build new current database
+        # NOTE UNCOMMENT FOR PRODUCTION ONLY
         # if os.path.exists(self.master_database_name):
         #     utils.delete_existing_database(self.current_database_name, self.ui.runCheckerTextBrowser)
 
@@ -99,12 +101,30 @@ class CHSDVDReaderApp(QMainWindow):
 
         # create current database
         # instantiate generate_database and pass instance of database_signals to create the current month's database
-        # self.create_db = CreateDatabase(self.run_checker_signals, self.ui.checker_data_input_path.text(), self.current_database_conn, self.current_database_cursor, self.ui.runCheckerTextBrowser)
+        # NOTE UNCOMMENT FOR PRODUCTION ONLY
+        # self.create_db = CreateDatabase(self.run_checker_signals.run_checker_textbox, self.ui.checker_data_input_path.text(), self.current_database_conn, self.current_database_cursor)
         # self.create_db.generate_database()
 
         # instantiate run_checker and pass instance of database_signals, etc...
-        self.run_checker = RunChecker(self.run_checker_signals.run_checker_textbox, self.errors_signals.errors_textbox, self.master_database_name, self.master_database_conn, self.master_database_cursor, self.current_database_name, self.current_database_conn, self.current_database_cursor, self.ui.runCheckerTextBrowser)
-        self.run_checker.compare_databases()
+        self.run_checker = RunChecker(self.run_checker_signals.run_checker_textbox, self.errors_signals.errors_textbox, self.master_database_conn, self.current_database_conn)
+        compliance = self.run_checker.confirm_database_compliance()
+
+        if not compliance:
+            print('not in compliance. program stops here')
+        else:
+            self.compare_databases = CompareDatabases(self.run_checker_signals.run_checker_textbox, self.errors_signals.errors_textbox, self.master_database_cursor, self.current_database_cursor)
+            self.compare_databases.compare_database_content()
+            print(compliance)
+        # 3. start with master and find the same table (with the newer date) in current
+        # self.compare_database_content()
+        # 4. for each row compare: chart number, Edn Date, Last NM, Ed number and Title and report any discrepancies/ store them in a local table. Chart numbers matching will be a challenge if not the same.
+        # 5. report all discrepancies (for now) as errors so you can see what the differences are.
+        # 6. as you move forward and you can differentiate between new charts, new editions, and withdrawn charts, add these details to each specific local table, with the remainder staying in errors.
+        # 7. add the ability to print the result as a pdf.
+        # 8. once all has been verified and the user is happy, overwrite the master with the current.
+
+        # Print a message to indicate that the checker has run
+        print('The Checker ran succesfully!')
 
         # close the master database so it can be opened in run_checker (assumption is that create_database isn't always used)
         utils.close_database(self.ui.createDatabaseTextBrowser, self.master_database_conn, self.master_database_name)

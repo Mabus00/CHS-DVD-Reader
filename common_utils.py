@@ -129,6 +129,15 @@ def insert_data(table_name, txt_file_path, cursor):
 
 ''' Run Checker common functions '''
 
+# Function to replace text between the first and second underscores with one underscore
+def replace_text_with_underscore(table_name):
+    parts = table_name.split('_')
+    return parts[0] + '_' + '_'.join(parts[2:])
+
+def replace_underscore_with_text(table_name, yyyymmdd):
+    parts = table_name.split('_')
+    return '_'.join([parts[0], yyyymmdd] + parts[1:])  # Join all parts with underscore
+
 def extract_yyyymmdd(table_name):
     return table_name.split('_')[1]
 

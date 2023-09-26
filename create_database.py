@@ -13,7 +13,7 @@ import common_utils as utils
 
 class CreateDatabase():
 
-    def __init__(self, create_database_textbox, database_input_path, database_conn, database_cursor, createDatabaseTextBrowser):
+    def __init__(self, create_database_textbox, database_input_path, database_conn, database_cursor):
         # Create an instance of CreateDatabaseSignals
         self.create_database_textbox = create_database_textbox
         # establish where the cursors are in the database
@@ -21,8 +21,6 @@ class CreateDatabase():
         self.database_cursor = database_cursor
         # database data input path
         self.input_data_path = database_input_path
-        # establish 
-        self.text_browser_widget = createDatabaseTextBrowser
 
     def generate_database(self):      
         if self.input_data_path[:1] == "C": #  Case 1: the files are in a folder on the desktop
@@ -44,7 +42,7 @@ class CreateDatabase():
                 if folders:
                     self.create_database_textbox.emit(f"\nFolders in '{dvd_name}':")
                     # database data input path is self.input_data_path
-                    self.process_folders(folders, self.text_browser_widget, self.input_data_path, dvd_name)
+                    self.process_folders(folders, self.input_data_path, dvd_name)
                 else:
                     self.create_database_textbox.emit(f"\nNo folders found in '{dvd_name}'.")
             else:
