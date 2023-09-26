@@ -1,10 +1,10 @@
+'''
+Compares the master and current database table names to see if any are new or missing and reports the findings on the error tab.
 
-
-
+'''
 
 # Import necessary modules
 import common_utils as utils
-from datetime import datetime
 
 # Define the RunChecker class
 class CompareDatabases():

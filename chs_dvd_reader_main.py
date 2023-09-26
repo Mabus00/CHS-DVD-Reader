@@ -14,6 +14,7 @@ from custom_signals import CreateDatabaseSignals, RunCheckerSignals, ErrorsSigna
 from create_database import CreateDatabase
 from run_checker import RunChecker
 from compare_database_content import CompareDatabases
+from compare_database_tables import CompareTables
 import common_utils as utils
 
 class CHSDVDReaderApp(QMainWindow):
@@ -110,16 +111,16 @@ class CHSDVDReaderApp(QMainWindow):
         compliance = self.run_checker.confirm_database_compliance()
 
         if not compliance:
-            print('not in compliance. program stops here')
+            utils.show_warning_popup('You have error messages that need to be ackowledged before proceeding.')
         else:
             self.compare_databases = CompareDatabases(self.run_checker_signals.run_checker_textbox, self.errors_signals.errors_textbox, self.master_database_cursor, self.current_database_cursor)
             self.compare_databases.compare_database_content()
+
+            self.compare_databases = CompareTables(self.run_checker_signals.run_checker_textbox, self.errors_signals.errors_textbox, self.master_database_cursor, self.current_database_cursor)
+            self.compare_databases.compare_database_tables()
+
             print(compliance)
-        # 3. start with master and find the same table (with the newer date) in current
-        # self.compare_database_content()
-        # 4. for each row compare: chart number, Edn Date, Last NM, Ed number and Title and report any discrepancies/ store them in a local table. Chart numbers matching will be a challenge if not the same.
-        # 5. report all discrepancies (for now) as errors so you can see what the differences are.
-        # 6. as you move forward and you can differentiate between new charts, new editions, and withdrawn charts, add these details to each specific local table, with the remainder staying in errors.
+        
         # 7. add the ability to print the result as a pdf.
         # 8. once all has been verified and the user is happy, overwrite the master with the current.
 

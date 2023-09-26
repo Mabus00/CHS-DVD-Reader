@@ -4,6 +4,7 @@ Does the basic checks to ensure:
 2. the new current database is at least one month older than the master database; this to ensure the comparison between databases is valid.
 
 If all good returns True and the process continues
+
 '''
 
 # Import necessary modules
