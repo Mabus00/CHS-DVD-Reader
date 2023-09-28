@@ -58,15 +58,27 @@ class CompareDatabaseTables():
 
                 # Iterate through rows of master_data
                 for i, row in enumerate(master_data):
-                    chart_name = row[chart_column_index]
+                    
+                    # Initialize a list to store missing chart names
+                    missing_charts = []
 
-                    # Check if the chart name from master_data is not in current_data
-                    if chart_name not in current_chart_names:
-                        # Print the table name
-                        print(f"Differences found in table: {temp_current_table_name}")
+                    # get master_data chart name for the current row; remember the master is master!
+                    master_chart_name = row[chart_column_index]
 
-                        # Print the chart name that is missing in current_data
-                        print(f"Chart name missing in current_data at Row {i + 1}: {chart_name}")
+                    # Check if the chart name from master_data is in current_data; if not there the chart has been removed
+                    if master_chart_name not in current_chart_names:
+                        # Append the missing chart name to the list
+                        missing_charts.append(master_chart_name)
+
+                    # Print missing charts for the current row if any
+                    if missing_charts:
+                        print(f"Charts missing in current DVD folder: {temp_current_table_name}")
+                        # Loop through and print each missing chart name individually
+                        for missing_chart in missing_charts:
+                            print(missing_chart)
+                        print
+
+                    
 
                 
         # 3. start with master and find the same table (with the newer date) in current
