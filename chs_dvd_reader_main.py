@@ -130,7 +130,7 @@ class CHSDVDReaderApp(QMainWindow):
 
             # Compares 
             self.compare_databases = CompareDatabaseTables(self.run_checker_signals.run_checker_textbox, self.errors_signals.errors_textbox, self.master_database_cursor, self.current_database_cursor)
-            #self.compare_databases.compare_database_tables(tables_master, tables_current, tables_missing_in_current, tables_missing_in_master)
+            self.compare_databases.compare_database_tables(tables_master, tables_current, tables_missing_in_current, tables_missing_in_master)
 
 
         # for now; TODO add checkboxes so user can indicate errors are acceptable / not acceptable
