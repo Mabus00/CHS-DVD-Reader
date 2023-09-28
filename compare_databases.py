@@ -1,5 +1,6 @@
 '''
-Compares the master and current database table names to see if any are new or missing and reports the findings on the error tab.
+Compares the content of the master and current databases and finds new (i.e., not in master but in current) or missing 
+(i.e., in master but not in current) tables and reports the findings on the error tab
 
 '''
 
@@ -22,7 +23,7 @@ class CompareDatabases():
         self.master_yyyymmdd = ''
         self.current_yyyymmdd = ''
 
-    def compare_database_content(self):
+    def compare_databases(self):
         # Get the list of table names for both databases
         self.master_database_cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
         tables_master = [row[0] for row in self.master_database_cursor.fetchall()]
@@ -52,6 +53,8 @@ class CompareDatabases():
             for table in tables_missing_in_master:
                 temp = utils.replace_underscore_with_text(table, self.master_yyyymmdd)
                 self.errors_textbox.emit(temp)
+
+        return tables_missing_in_current, tables_missing_in_master
 
 # Main execution block (can be used for testing)
 if __name__ == "__main__":

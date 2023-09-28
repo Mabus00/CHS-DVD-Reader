@@ -36,6 +36,7 @@ class WithdrawnSignals(QObject):
 class ErrorsSignals(QObject):
     # Custom signals specific to the "Errors" tab
     errors_textbox = pyqtSignal(str)
+    accept_errors_checkbox = pyqtSignal(bool)
 
 class CreateDatabaseSignals(QObject):
     # Custom signals specific to the "Create / Rebuild Database" tab

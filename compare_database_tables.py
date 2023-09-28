@@ -1,9 +1,4 @@
 '''
-Does the basic checks to ensure:
-1. the East and West tables in each of the master and current databases have the same date; this to ensure the tables were created correctly.
-2. the new current database is at least one month older than the master database; this to ensure the comparison between databases is valid.
-
-If all good returns True and the process continues
 
 '''
 
@@ -11,7 +6,7 @@ If all good returns True and the process continues
 import common_utils as utils
 
 # Define the RunChecker class
-class CompareTables():
+class CompareDatabaseTables():
 
     # Constructor for initializing the RunChecker object
     def __init__(self, run_checker_textbox, errors_textbox, master_database_cursor, current_database_cursor):

@@ -5,9 +5,12 @@ module of common functions that are called more than once by different modules
 '''
 import os
 import sqlite3
-from PyQt5.QtWidgets import QMessageBox, QFileDialog
+from PyQt5.QtWidgets import QMessageBox, QFileDialog, QTextBrowser
 import subprocess
 import time
+import inspect
+import sys
+import chs_dvd_gui as Ui_MainWindow
 
 ''' common functions used by more than one model / module'''
 def open_file_explorer(parent, input_path):
@@ -25,6 +28,13 @@ def show_warning_popup(message):
 def update_text_browser(text_browser, message):
     text_browser.insertPlainText(message + "\n")  # Append the message and a newline
     text_browser.ensureCursorVisible()
+
+def clear_all_text_boxes(text_browsers):
+    # Create a list of QTextBrowser widgets by inspecting the module
+    for text_browser in text_browsers:
+        text_browser.clear()
+
+    print('all text boxes cleared')
 
 ''' Databse common functions '''
 

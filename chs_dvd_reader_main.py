@@ -8,13 +8,14 @@ I could have gone directly from the UI signal to the slot but chose this instead
 
 import sys
 import os
-from PyQt5.QtWidgets import QApplication, QMainWindow
+import inspect
+from PyQt5.QtWidgets import QApplication, QMainWindow, QTextBrowser
 from chs_dvd_gui import Ui_MainWindow
 from custom_signals import CreateDatabaseSignals, RunCheckerSignals, ErrorsSignals
 from create_database import CreateDatabase
 from run_checker import RunChecker
-from compare_database_content import CompareDatabases
-from compare_database_tables import CompareTables
+from compare_databases import CompareDatabases
+from compare_database_tables import CompareDatabaseTables
 import common_utils as utils
 
 class CHSDVDReaderApp(QMainWindow):
@@ -24,6 +25,9 @@ class CHSDVDReaderApp(QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.setWindowTitle("CHS DVD Reader")
+
+        # create list of text browsers so they can be cleared en masse
+        self.text_browsers = [obj for name, obj in inspect.getmembers(self.ui) if isinstance(obj, QTextBrowser)]
 
         # set master database input path to nothing; user must select path manually 
         self.master_database_input_path = ""
@@ -87,6 +91,9 @@ class CHSDVDReaderApp(QMainWindow):
         utils.close_database(self.ui.createDatabaseTextBrowser, self.master_database_conn, self.master_database_name)
 
     def run_checker(self):
+        # clear all text boxes before running the checker
+        utils.clear_all_text_boxes(self.text_browsers)
+        
         # delete if necessary then build new current database
         # NOTE UNCOMMENT FOR PRODUCTION ONLY
         # if os.path.exists(self.master_database_name):
@@ -106,20 +113,28 @@ class CHSDVDReaderApp(QMainWindow):
         # self.create_db = CreateDatabase(self.run_checker_signals.run_checker_textbox, self.ui.checker_data_input_path.text(), self.current_database_conn, self.current_database_cursor)
         # self.create_db.generate_database()
 
-        # instantiate run_checker and pass instance of database_signals, etc...
+        # instantiate run_checker
         self.run_checker = RunChecker(self.run_checker_signals.run_checker_textbox, self.errors_signals.errors_textbox, self.master_database_conn, self.current_database_conn)
+        # compliance = East and West tables within each database have the same date and the new current database is at least one month older than the master database
+        # required to proceed further
         compliance = self.run_checker.confirm_database_compliance()
-
+        # check compliance
         if not compliance:
             utils.show_warning_popup('You have error messages that need to be ackowledged before proceeding.')
         else:
+            # Compares the content of the master and current databases and finds new (i.e., not in master but in current) or missing 
+            # (i.e., in master but not in current) tables and reports the findings on the error tab
             self.compare_databases = CompareDatabases(self.run_checker_signals.run_checker_textbox, self.errors_signals.errors_textbox, self.master_database_cursor, self.current_database_cursor)
-            self.compare_databases.compare_database_content()
+            tables_missing_in_current, tables_missing_in_master = self.compare_databases.compare_databases()
 
-            self.compare_databases = CompareTables(self.run_checker_signals.run_checker_textbox, self.errors_signals.errors_textbox, self.master_database_cursor, self.current_database_cursor)
+            # Compares 
+            self.compare_databases = CompareDatabaseTables(self.run_checker_signals.run_checker_textbox, self.errors_signals.errors_textbox, self.master_database_cursor, self.current_database_cursor)
             self.compare_databases.compare_database_tables()
 
-            print(compliance)
+
+        # for now; TODO add checkboxes so user can indicate errors are acceptable / not acceptable
+        # required signal before the master database is rebuilt using the current database
+        print(f'accept errors is {self.ui.acceptErrorsCheckBox.isChecked()}')
         
         # 7. add the ability to print the result as a pdf.
         # 8. once all has been verified and the user is happy, overwrite the master with the current.
