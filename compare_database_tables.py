@@ -21,9 +21,21 @@ class CompareDatabaseTables():
         self.master_yyyymmdd = ''
         self.current_yyyymmdd = ''
 
-    def compare_database_tables(self):
-        # Get the list of table names for both databases
+    def compare_database_tables(self, tables_master, tables_current, tables_missing_in_current, tables_missing_in_master):
+        # tables_missing_in_current represent tables that have been removed, whereas tables_missing_in_master represent tables that have been added
         print('compare tables')
+   
+        # Remove tables_missing_from_master from tables_master
+        tables_master = [table for table in tables_master if table not in tables_missing_in_master]
+
+        # remove yyyymmdd from table name; not required for comparison because correct yyyymmdd has already been established
+        mod_tables_master = set(utils.replace_text_with_underscore(table_name, pos_to_replace=1) for table_name in tables_master)
+        mod_tables_current = set(utils.replace_text_with_underscore(table_name, pos_to_replace=1) for table_name in tables_current)
+        
+        # Iterate over the prefixes and compare
+        for prefix in mod_tables_master:
+            if prefix not in mod_tables_current:
+                print(f"Prefix '{prefix}' exists in master but is missing in current.")
 
         
         # 3. start with master and find the same table (with the newer date) in current

@@ -93,7 +93,7 @@ class CHSDVDReaderApp(QMainWindow):
     def run_checker(self):
         # clear all text boxes before running the checker
         utils.clear_all_text_boxes(self.text_browsers)
-        
+
         # delete if necessary then build new current database
         # NOTE UNCOMMENT FOR PRODUCTION ONLY
         # if os.path.exists(self.master_database_name):
@@ -125,11 +125,12 @@ class CHSDVDReaderApp(QMainWindow):
             # Compares the content of the master and current databases and finds new (i.e., not in master but in current) or missing 
             # (i.e., in master but not in current) tables and reports the findings on the error tab
             self.compare_databases = CompareDatabases(self.run_checker_signals.run_checker_textbox, self.errors_signals.errors_textbox, self.master_database_cursor, self.current_database_cursor)
-            tables_missing_in_current, tables_missing_in_master = self.compare_databases.compare_databases()
+            # tables_missing_in_current represent tables that have been removed, whereas tables_missing_in_master represent tables that have been added
+            tables_master, tables_current, tables_missing_in_current, tables_missing_in_master = self.compare_databases.compare_databases()
 
             # Compares 
             self.compare_databases = CompareDatabaseTables(self.run_checker_signals.run_checker_textbox, self.errors_signals.errors_textbox, self.master_database_cursor, self.current_database_cursor)
-            self.compare_databases.compare_database_tables()
+            #self.compare_databases.compare_database_tables(tables_master, tables_current, tables_missing_in_current, tables_missing_in_master)
 
 
         # for now; TODO add checkboxes so user can indicate errors are acceptable / not acceptable

@@ -36,7 +36,7 @@ def clear_all_text_boxes(text_browsers):
 
     print('all text boxes cleared')
 
-''' Databse common functions '''
+''' Database common functions '''
 
 def initialize_database(database_name, text_browser_widget):
     conn = sqlite3.connect(database_name)
@@ -139,14 +139,22 @@ def insert_data(table_name, txt_file_path, cursor):
 
 ''' Run Checker common functions '''
 
-# Function to replace text between the first and second underscores with one underscore
-def replace_text_with_underscore(table_name):
+# Function to remove indicated portion from table_name
+def remove_text(table_name, part_to_replace):
     parts = table_name.split('_')
-    return parts[0] + '_' + '_'.join(parts[2:])
+    new_parts = [part for part in parts if part != part_to_replace]
+    new_table_name = '_'.join(new_parts)
+    return new_table_name
 
-def replace_underscore_with_text(table_name, yyyymmdd):
+def insert_text(table_name, text, pos_to_insert):
     parts = table_name.split('_')
-    return '_'.join([parts[0], yyyymmdd] + parts[1:])  # Join all parts with underscore
+    # Check if the specified part_to_replace is within the valid range
+    if 0 <= pos_to_insert < len(parts) - 1:
+        parts.insert(pos_to_insert, text)  # Replace the specified part with an empty string
+        
+        # Filter out empty parts and join with underscores
+        new_table_name = '_'.join(filter(None, parts))
+    return new_table_name  # Join all parts with underscore
 
 def extract_yyyymmdd(table_name):
     return table_name.split('_')[1]
@@ -162,3 +170,6 @@ def get_first_table_yyyymmdd(prefix, database_conn):
         return extract_yyyymmdd(first_table)
 
     return None
+
+''' compare_databse_tables common functions '''
+
