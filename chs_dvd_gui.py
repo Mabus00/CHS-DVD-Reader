@@ -177,7 +177,7 @@ class Ui_MainWindow(object):
         self.createDatabaseProgressReportLabel.setText(_translate("MainWindow", "Progress Report:"))
         self.buildDatabaseButton.setText(_translate("MainWindow", "Execute Create Database"))
         self.selectDataPathButton.setText(_translate("MainWindow", "Press to select input data path"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.rebuild_database), _translate("MainWindow", "Create Database"))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.rebuild_database), _translate("MainWindow", "Create Master Database"))
         self.menuFile.setTitle(_translate("MainWindow", "File"))
         self.actionSave.setText(_translate("MainWindow", "Save"))
         self.actionSave.setStatusTip(_translate("MainWindow", "Save as new database"))

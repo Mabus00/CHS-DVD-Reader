@@ -274,7 +274,7 @@
     </widget>
     <widget class="QWidget" name="rebuild_database">
      <attribute name="title">
-      <string>Create Database</string>
+      <string>Create Master Database</string>
      </attribute>
      <widget class="QCheckBox" name="rebuild_checkbox">
       <property name="geometry">

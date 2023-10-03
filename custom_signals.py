@@ -17,9 +17,8 @@ class RunCheckerSignals(QObject):
 
 class NewChartsSignals(QObject):
     # Custom signals specific to the "New Chart" tab
-    new_chart_detected = pyqtSignal(str)
-    chart_verification_failed = pyqtSignal(str)
     new_charts_textbox = pyqtSignal(str)
+    #accept_new_charts_checkbox = pyqtSignal(bool)
 
 class NewEditionsSignals(QObject):
     # Custom signals specific to the "New Edition" tab

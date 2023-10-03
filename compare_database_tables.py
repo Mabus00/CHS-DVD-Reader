@@ -9,9 +9,10 @@ import common_utils as utils
 class CompareDatabaseTables():
 
     # Constructor for initializing the RunChecker object
-    def __init__(self, run_checker_textbox, errors_textbox, master_database_cursor, current_database_cursor):
+    def __init__(self, run_checker_textbox, errors_textbox, new_charts_textbox, master_database_cursor, current_database_cursor):
         # Create an instance of CreateDatabaseSignals (not shown in code, assuming it's an imported class)
         self.run_checker_textbox = run_checker_textbox
+        self.new_charts_textbox = new_charts_textbox
         self.errors_textbox = errors_textbox
 
         # Establish database cursors
@@ -74,10 +75,10 @@ class CompareDatabaseTables():
 
             # Print missing charts for the current row if any
             if missing_charts:
-                print(f"Charts missing in current DVD folder {temp_current_table_name}:")
-               # Concatenate the missing chart names with commas and print them
+                self.new_charts_textbox.emit(f"Charts missing in current DVD folder {temp_current_table_name}:")
+                # Concatenate the missing chart names with commas and print them
                 missing_chart_str = ', '.join(missing_charts)
-                print(missing_chart_str)
+                self.new_charts_textbox.emit(missing_chart_str)
 
                 
 
