@@ -20,9 +20,6 @@ class CompareDatabases():
         self.master_database_cursor = master_database_cursor
         self.current_database_cursor = current_database_cursor
 
-        self.master_yyyymmdd = ''
-        self.current_yyyymmdd = ''
-
     def compare_databases(self):
         # Get the list of table names for both databases
         self.master_database_cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
@@ -32,33 +29,34 @@ class CompareDatabases():
         tables_current = [row[0] for row in self.current_database_cursor.fetchall()]
 
         # extract yyyymmdd from table names to conduct comparison
-        self.master_yyyymmdd = utils.extract_yyyymmdd(tables_master[0])
-        self.current_yyyymmdd = utils.extract_yyyymmdd(tables_current[0])
+        master_yyyymmdd = utils.extract_yyyymmdd(tables_master[0])
+        current_yyyymmdd = utils.extract_yyyymmdd(tables_current[0])
         
         # Apply the function to remove the yyyymmdd from the table name
-        tables_master_temp = [utils.remove_text(table, self.master_yyyymmdd) for table in tables_master]
-        tables_current_temp = [utils.remove_text(table, self.current_yyyymmdd) for table in tables_current]
+        tables_master_temp = [utils.remove_text(table, master_yyyymmdd) for table in tables_master]
+        tables_current_temp = [utils.remove_text(table, current_yyyymmdd) for table in tables_current]
 
         # Find tables in "master" that are not in "current" and vice versa
         tables_missing_in_current = set(tables_master_temp) - set(tables_current_temp)
         tables_missing_in_master = set(tables_current_temp) - set(tables_master_temp)
 
-        # Print tables that are not matching between "master" and "current"
+        # Print tables that are in master but not in current; either newly deleted or a CHS error
         if tables_missing_in_current:
             self.run_checker_textbox.emit("\nErrors were noted - see the Errors Tab")
             self.errors_textbox.emit("These tables have been removed from this months DVDs:")
             for table in tables_missing_in_current:
-                temp = utils.insert_text(table, self.current_yyyymmdd, pos_to_insert=1)
+                temp = utils.insert_text(table, current_yyyymmdd, pos_to_insert=1)
                 self.errors_textbox.emit(temp)
 
+        # Print tables that are in current but not in master); either newly added or a CHS error
         if tables_missing_in_master:
             self.run_checker_textbox.emit("\nErrors were noted - see the Errors Tab")
             self.errors_textbox.emit("\nThese new tables have been added to this months DVDs:")
             for table in tables_missing_in_master:
-                temp = utils.insert_text(table, self.master_yyyymmdd, pos_to_insert=1)
+                temp = utils.insert_text(table, master_yyyymmdd, pos_to_insert=1)
                 self.errors_textbox.emit(temp)
 
-        return tables_master, tables_current, tables_missing_in_current, tables_missing_in_master
+        return tables_master_temp, tables_current_temp, tables_missing_in_master, tables_missing_in_current, master_yyyymmdd, current_yyyymmdd
 
 # Main execution block (can be used for testing)
 if __name__ == "__main__":
