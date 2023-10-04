@@ -22,16 +22,15 @@ class CompareChartNumbers():
         self.master_database_cursor = master_database_cursor
         self.current_database_cursor = current_database_cursor
 
-    def compare_chart_numbers(self, tables_master_temp, tables_missing_in_current, master_yyyymmdd, current_yyyymmdd):
-        # tables_missing_in_current represent tables that have been newly deleted or a CHS error; user to verify and confirm
-        # tables_missing_in_master represent tables that have been newly added or a CHS error; user to verify and confirm and update of database at end of verification will correct
-        # either way it's been noted on the error tab so no need to take further action
+    def compare_chart_numbers(self, tables_master, master_yyyymmdd, current_yyyymmdd):
+
         print('compare tables')
 
-        result_list = []
+        charts_withdrawn_result = []
+        new_charts_result = []
 
-        # Iterate through table names in tables_master_temp and find corresponding table in tables_current_temp
-        for table_name in tables_master_temp:
+        # Iterate through table names in tables_master and find corresponding table in tables_current_temp
+        for table_name in tables_master:
             # add the yyyymmdd to match complete table name
             temp_master_table_name = utils.insert_text(table_name, master_yyyymmdd, pos_to_insert=1)
             temp_current_table_name = utils.insert_text(table_name, current_yyyymmdd, pos_to_insert=1)
@@ -50,6 +49,7 @@ class CompareChartNumbers():
             current_chart_numbers = set(row[chart_column_index] for row in current_data)
 
             # Initialize a list to new charts and store missing chart numbers
+            new_charts = []
             missing_charts = []
 
             # Initialize a set to keep track of encountered chart names
@@ -71,11 +71,39 @@ class CompareChartNumbers():
                     # Add the chart name to the encountered_chart_names set
                     encountered_chart_numbers.add(master_chart_number)
 
-            # If there are missing charts for this table, add the table name and missing charts to the result_list
+            # If there are missing charts for this table, add the table name and missing charts to the charts_withdrawn_result
             if missing_charts:
-                result_list.append((temp_current_table_name, missing_charts))
+                charts_withdrawn_result.append((temp_current_table_name, missing_charts))
+            
 
-        return result_list
+
+            # Create a set of chart numbers from current_data for faster lookup
+            master_chart_numbers = set(row[chart_column_index] for row in master_data)
+
+            # reset encountered chart names
+            encountered_chart_numbers = set()
+
+            # Iterate through rows of current_data
+            for i, row in enumerate(current_data):
+
+                # get master_data chart name for the current row; remember the master is master!
+                current_chart_number = row[chart_column_index]
+
+                # Check if the chart name from master_data is in current_data; if not add to missing_charts list
+                if (current_chart_number not in master_chart_numbers) and (current_chart_number not in encountered_chart_numbers):
+                    # Append the missing chart name to the list
+                    new_charts.append(current_chart_number)
+                
+                # whether or not above condition fails add it to encountered_chart_numbers so we don't keep checking repeating master_chart_numbers
+                if current_chart_number not in encountered_chart_numbers:
+                    # Add the chart name to the encountered_chart_names set
+                    encountered_chart_numbers.add(current_chart_number)
+
+            # If there are new charts for this table, add the table name and new charts to the new_charts_result
+            if new_charts:
+                new_charts_result.append((temp_current_table_name, new_charts))
+
+        return charts_withdrawn_result, new_charts_result
                 
         # 3. start with master and find the same table (with the newer date) in current
         # self.compare_database_content()

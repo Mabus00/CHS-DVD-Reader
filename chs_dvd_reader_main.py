@@ -4,6 +4,8 @@ Main controller for app.
 Note I chose to use custom signals and slots to provide greater seperation of concerns and looser coupli.g
 I could have gone directly from the UI signal to the slot but chose this instead.
 
+tables = CHS DVD folders
+
 '''
 
 import sys
@@ -141,18 +143,27 @@ class CHSDVDReaderApp(QMainWindow):
 
             # Remove tables_missing_from_current from tables_master so table content matching can occur; no need to check tables_missing_in_master because these are newly added
             tables_master_temp = [table for table in tables_master_temp if table not in tables_missing_in_current]
-            
-            # Compares master and current databases and report charts withdrawn
-            self.compare_databases = CompareChartNumbers(self.master_database_cursor, self.current_database_cursor)
-            charts_withdrawn = self.compare_databases.compare_chart_numbers(tables_master_temp, tables_missing_in_current, master_yyyymmdd, current_yyyymmdd)
 
-            # Print missing charts for the current row if any
+            # creates instance of CompareChartNumbers
+            self.compare_databases = CompareChartNumbers(self.master_database_cursor, self.current_database_cursor)
+            # compares master and current databases and report charts withdrawn; which database is compared to which is controlled by the order of the yyyymmdd
+            charts_withdrawn, new_charts = self.compare_databases.compare_chart_numbers(tables_master_temp, master_yyyymmdd, current_yyyymmdd)
+
+            # Print missing charts
             if charts_withdrawn:
                 for table_name, missing_charts in charts_withdrawn:
                     self.charts_withdrawn_signals.chart_withdrawn_textbox.emit(f"Charts missing in current DVD folder {table_name}:")
                     # Concatenate the missing chart names with commas and print them
                     missing_chart_str = ', '.join(missing_charts)
                     self.charts_withdrawn_signals.chart_withdrawn_textbox.emit(missing_chart_str + '\n')
+                
+            # Print new charts
+            if new_charts:
+                for table_name, missing_charts in new_charts:
+                    self.new_charts_signals.new_charts_textbox.emit(f"New charts in current DVD folder {table_name}:")
+                    # Concatenate the missing chart names with commas and print them
+                    missing_chart_str = ', '.join(missing_charts)
+                    self.new_charts_signals.new_charts_textbox.emit(missing_chart_str + '\n')
                 
 
             # Compares master and current databases and report new charts
