@@ -11,7 +11,7 @@ import os
 import inspect
 from PyQt5.QtWidgets import QApplication, QMainWindow, QTextBrowser
 from chs_dvd_gui import Ui_MainWindow
-from custom_signals import CreateDatabaseSignals, RunCheckerSignals, NewChartsSignals, ErrorsSignals
+from custom_signals import CreateDatabaseSignals, RunCheckerSignals, NewChartsSignals, WithdrawnSignals, ErrorsSignals
 from create_database import CreateDatabase
 from run_checker import RunChecker
 from compare_databases import CompareDatabases
@@ -41,10 +41,13 @@ class CHSDVDReaderApp(QMainWindow):
         self.run_checker_signals = RunCheckerSignals()
 
         # Create an instance of NewChartsSignals
-        self.new_charts_signals = NewChartsSignals
+        self.new_charts_signals = NewChartsSignals()
 
         # Create an instance of ErrorsSignals
         self.errors_signals = ErrorsSignals()
+
+        # Create an instance of WithdrawnSignals
+        self.charts_withdrawn_signals = WithdrawnSignals()
 
         # Create an instance of CreateDatabaseSignals
         self.database_signals = CreateDatabaseSignals()
@@ -71,6 +74,7 @@ class CHSDVDReaderApp(QMainWindow):
         self.run_checker_signals.run_checker_textbox.connect(lambda message: utils.update_text_browser(self.ui.runCheckerTextBrowser, message))
         self.errors_signals.errors_textbox.connect(lambda message: utils.update_text_browser(self.ui.errorsTextBrowser, message))
         self.new_charts_signals.new_charts_textbox.connect(lambda message: utils.update_text_browser(self.ui.newChartsTextBrowser, message))
+        self.charts_withdrawn_signals.chart_withdrawn_textbox.connect(lambda message: utils.update_text_browser(self.ui.chartsWithdrawnTextBrowser, message))
         self.database_signals.create_database_textbox.connect(lambda message: utils.update_text_browser(self.ui.createDatabaseTextBrowser, message))
 
     def build_database(self):
@@ -133,7 +137,7 @@ class CHSDVDReaderApp(QMainWindow):
             tables_master_temp, tables_current_temp, tables_missing_in_master, tables_missing_in_current, master_yyyymmdd, current_yyyymmdd = self.compare_databases.compare_databases()
 
             # Compares 
-            self.compare_databases = CompareDatabaseTables(self.run_checker_signals.run_checker_textbox, self.new_charts_signals.new_charts_textbox, self.errors_signals.errors_textbox, self.master_database_cursor, self.current_database_cursor)
+            self.compare_databases = CompareDatabaseTables(self.run_checker_signals.run_checker_textbox, self.new_charts_signals.new_charts_textbox, self.charts_withdrawn_signals.chart_withdrawn_textbox, self.errors_signals.errors_textbox, self.master_database_cursor, self.current_database_cursor)
             self.compare_databases.compare_database_tables(tables_master_temp, tables_current_temp, tables_missing_in_master, tables_missing_in_current, master_yyyymmdd, current_yyyymmdd)
 
 

@@ -28,9 +28,7 @@ class NewEditionsSignals(QObject):
 
 class WithdrawnSignals(QObject):
     # Custom signals specific to the "Withdrawals" tab
-    chart_withdrawn = pyqtSignal(str)
-    withdrawal_verification_failed = pyqtSignal(str)
-    withdrawn_textbox = pyqtSignal(str)
+    chart_withdrawn_textbox = pyqtSignal(str)
 
 class ErrorsSignals(QObject):
     # Custom signals specific to the "Errors" tab
