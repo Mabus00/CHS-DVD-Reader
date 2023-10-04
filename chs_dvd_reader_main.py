@@ -15,7 +15,7 @@ from custom_signals import CreateDatabaseSignals, RunCheckerSignals, NewChartsSi
 from create_database import CreateDatabase
 from run_checker import RunChecker
 from compare_databases import CompareDatabases
-from compare_database_tables import CompareDatabaseTables
+from compare_chart_numbers import CompareChartNumbers
 import common_utils as utils
 
 class CHSDVDReaderApp(QMainWindow):
@@ -132,13 +132,30 @@ class CHSDVDReaderApp(QMainWindow):
         else:
             # Compares the content of the master and current databases and finds new (i.e., not in master but in current) or missing 
             # (i.e., in master but not in current) tables and reports the findings on the error tab
+            # need to run this first so you can ignore missing tables in follow on code
             self.compare_databases = CompareDatabases(self.run_checker_signals.run_checker_textbox, self.errors_signals.errors_textbox, self.master_database_cursor, self.current_database_cursor)
             # tables_missing_in_current represent tables that have been removed, whereas tables_missing_in_master represent tables that have been added
+            # tables_master_temp and tables_current_temp have yyyymmdd removed; do this once and share with other modules
+            # master_yyyymmdd and current_yyyymmdd are the extracted yyyymmdd for each; do this once and share with other modules
             tables_master_temp, tables_current_temp, tables_missing_in_master, tables_missing_in_current, master_yyyymmdd, current_yyyymmdd = self.compare_databases.compare_databases()
 
-            # Compares 
-            self.compare_databases = CompareDatabaseTables(self.run_checker_signals.run_checker_textbox, self.new_charts_signals.new_charts_textbox, self.charts_withdrawn_signals.chart_withdrawn_textbox, self.errors_signals.errors_textbox, self.master_database_cursor, self.current_database_cursor)
-            self.compare_databases.compare_database_tables(tables_master_temp, tables_current_temp, tables_missing_in_master, tables_missing_in_current, master_yyyymmdd, current_yyyymmdd)
+            # Remove tables_missing_from_current from tables_master so table content matching can occur; no need to check tables_missing_in_master because these are newly added
+            tables_master_temp = [table for table in tables_master_temp if table not in tables_missing_in_current]
+            
+            # Compares master and current databases and report charts withdrawn
+            self.compare_databases = CompareChartNumbers(self.master_database_cursor, self.current_database_cursor)
+            charts_withdrawn = self.compare_databases.compare_chart_numbers(tables_master_temp, tables_missing_in_current, master_yyyymmdd, current_yyyymmdd)
+
+            # Print missing charts for the current row if any
+            if charts_withdrawn:
+                for table_name, missing_charts in charts_withdrawn:
+                    self.charts_withdrawn_signals.chart_withdrawn_textbox.emit(f"Charts missing in current DVD folder {table_name}:")
+                    # Concatenate the missing chart names with commas and print them
+                    missing_chart_str = ', '.join(missing_charts)
+                    self.charts_withdrawn_signals.chart_withdrawn_textbox.emit(missing_chart_str + '\n')
+                
+
+            # Compares master and current databases and report new charts
 
 
         # for now; TODO add checkboxes so user can indicate errors are acceptable / not acceptable

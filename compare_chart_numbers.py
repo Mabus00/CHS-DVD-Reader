@@ -1,4 +1,11 @@
 '''
+Compares the master_database and current_database chart numbers in mathcing tables (tables = folders) and 
+reports on:
+1. charts withdrawn - charts that exist in the master_database but are not in the current_database.
+2. new charts - charts that don't exist in the master_database but do exist in the current_database.
+
+Note - either of the above conditions can also be considered errors on the CHS DVD which is why the user 
+needs to accept the indicated reports before moving on and updating the master_database with the current_database.
 
 '''
 
@@ -6,31 +13,22 @@
 import common_utils as utils
 
 # Define the RunChecker class
-class CompareDatabaseTables():
+class CompareChartNumbers():
 
     # Constructor for initializing the RunChecker object
-    def __init__(self, run_checker_textbox, new_charts_textbox, charts_withdrawn_textbox, errors_textbox, master_database_cursor, current_database_cursor):
-        # Create an instance of CreateDatabaseSignals (not shown in code, assuming it's an imported class)
-        self.run_checker_textbox = run_checker_textbox
-        self.new_charts_textbox = new_charts_textbox
-        self.chart_withdrawn_textbox = charts_withdrawn_textbox
-        self.errors_textbox = errors_textbox
+    def __init__(self, master_database_cursor, current_database_cursor):
 
         # Establish database cursors
         self.master_database_cursor = master_database_cursor
         self.current_database_cursor = current_database_cursor
 
-        self.master_yyyymmdd = ''
-        self.current_yyyymmdd = ''
-
-    def compare_database_tables(self, tables_master_temp, tables_current_temp, tables_missing_in_master, tables_missing_in_current, master_yyyymmdd, current_yyyymmdd):
-        # tables_missing_in_current represent tables that have been newly deleted or a CHS error
-        # tables_missing_in_master represent tables that have been newly added or a CHS error
+    def compare_chart_numbers(self, tables_master_temp, tables_missing_in_current, master_yyyymmdd, current_yyyymmdd):
+        # tables_missing_in_current represent tables that have been newly deleted or a CHS error; user to verify and confirm
+        # tables_missing_in_master represent tables that have been newly added or a CHS error; user to verify and confirm and update of database at end of verification will correct
         # either way it's been noted on the error tab so no need to take further action
         print('compare tables')
-   
-        # Remove tables_missing_from_current from tables_master so table content matches can occur
-        tables_master_temp = [table for table in tables_master_temp if table not in tables_missing_in_current]
+
+        result_list = []
 
         # Iterate through table names in tables_master_temp and find corresponding table in tables_current_temp
         for table_name in tables_master_temp:
@@ -45,13 +43,13 @@ class CompareDatabaseTables():
             self.current_database_cursor.execute(f"SELECT * FROM {temp_current_table_name}")
             current_data = self.current_database_cursor.fetchall()
 
-            # Set the index of the "chart" column (first column = chart number)
+            # Set the index of the table column (first column = chart number)
             chart_column_index = 0
 
-            # Create a set of chart names from current_data for faster lookup
+            # Create a set of chart numbers from current_data for faster lookup
             current_chart_numbers = set(row[chart_column_index] for row in current_data)
 
-            # Initialize a list to store missing chart names
+            # Initialize a list to new charts and store missing chart numbers
             missing_charts = []
 
             # Initialize a set to keep track of encountered chart names
@@ -73,15 +71,11 @@ class CompareDatabaseTables():
                     # Add the chart name to the encountered_chart_names set
                     encountered_chart_numbers.add(master_chart_number)
 
-
-            # Print missing charts for the current row if any
+            # If there are missing charts for this table, add the table name and missing charts to the result_list
             if missing_charts:
-                self.chart_withdrawn_textbox.emit(f"Charts missing in current DVD folder {temp_current_table_name}:")
-                # Concatenate the missing chart names with commas and print them
-                missing_chart_str = ', '.join(missing_charts)
-                self.chart_withdrawn_textbox.emit(missing_chart_str + '\n')
-                
+                result_list.append((temp_current_table_name, missing_charts))
 
+        return result_list
                 
         # 3. start with master and find the same table (with the newer date) in current
         # self.compare_database_content()
