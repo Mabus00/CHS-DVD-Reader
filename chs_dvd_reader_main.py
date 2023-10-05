@@ -1,5 +1,5 @@
 '''
-Main controller for app.  There are two sub controllers:
+Main CONTROLLER for app.  There are two sub controllers:
 1. sub-controller to build_database
 2. sub-controller to run_checker.
 
@@ -8,10 +8,13 @@ I could have gone directly from the UI signal to the slot but chose this instead
 
 tables = CHS DVD folders
 
+Signals are controlled from here only.
+
+VIEW = chs_dvd_gui
+
 '''
 
 import sys
-import os
 import inspect
 from PyQt5.QtWidgets import QApplication, QMainWindow, QTextBrowser
 from chs_dvd_gui import Ui_MainWindow
@@ -84,16 +87,13 @@ class CHSDVDReaderApp(QMainWindow):
     def build_database(self):
         # instantiate create_database and pass instance of database_name, etc...
         self.create_db = BuildMasterDatabase(self.master_database_name, self.ui.rebuild_checkbox, self.database_signals.create_database_textbox, self.ui.database_input_path.text())
-        # confirm that pre-conditions are met before proceeding
-        rebuild_selected, path_selected = self.create_db.pre_build_checks()
-        
-        if rebuild_selected and path_selected:
+        # confirm that pre-conditions are met before proceeding        
+        if all(self.create_db.pre_build_checks()):
             # establish database connections; operate under assumption that master_database won't be created each time widget is used
             master_database_conn, master_database_cursor = utils.get_database_connection(self.master_database_name, self.database_signals.create_database_textbox)
             self.create_db.generate_database(master_database_conn, master_database_cursor)
         else:
             return
-
         # close the master database so it can be opened in run_checker (assumption is that create_database isn't always used)
         utils.close_database(self.database_signals.create_database_textbox, master_database_conn, self.master_database_name)
 
