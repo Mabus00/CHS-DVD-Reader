@@ -5,12 +5,9 @@ module of common functions that are called more than once by different modules
 '''
 import os
 import sqlite3
-from PyQt5.QtWidgets import QMessageBox, QFileDialog, QTextBrowser
+from PyQt5.QtWidgets import QMessageBox, QFileDialog
 import subprocess
 import time
-import inspect
-import sys
-import chs_dvd_gui as Ui_MainWindow
 
 ''' common functions used by more than one model / module'''
 def open_file_explorer(parent, input_path):
@@ -41,16 +38,16 @@ def clear_all_text_boxes(text_browsers):
 def initialize_database(database_name, text_browser_widget):
     conn = sqlite3.connect(database_name)
     cursor = conn.cursor()
-    update_text_browser(text_browser_widget, f"New '{database_name}' created and opened")
+    text_browser_widget.emit(f"New '{database_name}' created and opened")
     return conn, cursor
 
 def get_database_connection(database_name, text_browser_widget):
     conn, cursor = initialize_database(database_name, text_browser_widget)
     return conn, cursor
 
-def confirm_database_deletion(parent, database_name, text_browser_widget):
+def confirm_database_deletion(rebuild_checkbox, database_name, text_browser_widget):
     # chs_dvd.db exists
-    while not parent.isChecked():
+    while not rebuild_checkbox.isChecked():
         show_warning_popup("Database exists. Check the 'Confirm deletion of database' box to proceed")
         return False
     else:
@@ -65,12 +62,12 @@ def confirm_data_path(text):
         
 def delete_existing_database(database_name, text_browser_widget):
     os.remove(database_name)
-    update_text_browser(text_browser_widget, f"Database '{database_name}' deleted.")
+    text_browser_widget.emit(f"Database '{database_name}' deleted.")
 
 def close_database(text_browser_widget, database_conn, database_name):
     if database_conn:
         database_conn.close()
-    update_text_browser(text_browser_widget, f'\n{database_name} closed.')
+    text_browser_widget.emit(f'\n{database_name} closed.')
 
 # Function to list folders in the DVD path
 def list_folders(folder_path):

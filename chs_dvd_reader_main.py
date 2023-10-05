@@ -1,5 +1,7 @@
 '''
-Main controller for app.
+Main controller for app.  There are two sub controllers:
+1. sub-controller to build_database
+2. sub-controller to run_checker.
 
 Note I chose to use custom signals and slots to provide greater seperation of concerns and looser coupli.g
 I could have gone directly from the UI signal to the slot but chose this instead.
@@ -14,7 +16,7 @@ import inspect
 from PyQt5.QtWidgets import QApplication, QMainWindow, QTextBrowser
 from chs_dvd_gui import Ui_MainWindow
 from custom_signals import CreateDatabaseSignals, RunCheckerSignals, NewChartsSignals, WithdrawnSignals, ErrorsSignals
-from create_database import CreateDatabase
+from build_master_database import BuildMasterDatabase
 from run_checker import RunChecker
 from compare_databases import CompareDatabases
 from compare_chart_numbers import CompareChartNumbers
@@ -80,25 +82,20 @@ class CHSDVDReaderApp(QMainWindow):
         self.database_signals.create_database_textbox.connect(lambda message: utils.update_text_browser(self.ui.createDatabaseTextBrowser, message))
 
     def build_database(self):
-        # delete if necessary then build new database
-        if os.path.exists(self.master_database_name):
-            if not utils.confirm_database_deletion(self.ui.rebuild_checkbox, self.master_database_name, self.ui.createDatabaseTextBrowser):
-                return
+        # instantiate create_database and pass instance of database_name, etc...
+        self.create_db = BuildMasterDatabase(self.master_database_name, self.ui.rebuild_checkbox, self.database_signals.create_database_textbox, self.ui.database_input_path.text())
+        # confirm that pre-conditions are met before proceeding
+        rebuild_selected, path_selected = self.create_db.pre_build_checks()
         
-        # ensure user has selected a data input path
-        if not utils.confirm_data_path(self.ui.database_input_path.text()):
+        if rebuild_selected and path_selected:
+            # establish database connections; operate under assumption that master_database won't be created each time widget is used
+            master_database_conn, master_database_cursor = utils.get_database_connection(self.master_database_name, self.database_signals.create_database_textbox)
+            self.create_db.generate_database(master_database_conn, master_database_cursor)
+        else:
             return
 
-        # create master database
-        # establish database connections; operate under assumption that master_database won't be created each time widget is used
-        self.master_database_conn, self.master_database_cursor = utils.get_database_connection(self.master_database_name, self.ui.createDatabaseTextBrowser)
-
-        # instantiate create_database and pass instance of database_signals, etc...
-        self.create_db = CreateDatabase(self.database_signals.create_database_textbox, self.ui.database_input_path.text(), self.master_database_conn, self.master_database_cursor)
-        self.create_db.generate_database()
-
         # close the master database so it can be opened in run_checker (assumption is that create_database isn't always used)
-        utils.close_database(self.ui.createDatabaseTextBrowser, self.master_database_conn, self.master_database_name)
+        utils.close_database(self.database_signals.create_database_textbox, master_database_conn, self.master_database_name)
 
     def run_checker(self):
         # clear all text boxes before running the checker
@@ -110,8 +107,8 @@ class CHSDVDReaderApp(QMainWindow):
         #     utils.delete_existing_database(self.current_database_name, self.ui.runCheckerTextBrowser)
 
         # establish database connections; operate under assumption that master_database won't be created each time widget is used
-        self.master_database_conn, self.master_database_cursor = utils.get_database_connection(self.master_database_name, self.ui.createDatabaseTextBrowser)
-        self.current_database_conn, self.current_database_cursor = utils.get_database_connection(self.current_database_name, self.ui.runCheckerTextBrowser)
+        self.master_database_conn, self.master_database_cursor = utils.get_database_connection(self.master_database_name, self.database_signals.create_database_textbox)
+        self.current_database_conn, self.current_database_cursor = utils.get_database_connection(self.current_database_name, self.database_signals.create_database_textbox)
 
         # ensure user has selected a current data input path
         if not utils.confirm_data_path(self.ui.checker_data_input_path.text()):

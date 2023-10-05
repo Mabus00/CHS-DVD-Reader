@@ -11,24 +11,43 @@ Intent later is to modify this code to also read from a .zip file (this is how t
 import os
 import common_utils as utils
 
-class CreateDatabase():
+class BuildMasterDatabase():
 
-    def __init__(self, create_database_textbox, database_input_path, database_conn, database_cursor):
-        # Create an instance of CreateDatabaseSignals
+    def __init__(self, master_database_name, rebuild_checkbox, create_database_textbox, database_input_path):
+        self.master_database_name = master_database_name
+        # Create custom_signals connections
+        self.rebuild_checkbox = rebuild_checkbox
         self.create_database_textbox = create_database_textbox
-        # establish where the cursors are in the database
-        self.database_conn = database_conn
-        self.database_cursor = database_cursor
+
         # database data input path
         self.input_data_path = database_input_path
 
-    def generate_database(self):      
+    def pre_build_checks(self):
+        rebuild_selected = True
+        path_selected = True
+
+        # delete if necessary then build new database
+        if os.path.exists(self.master_database_name):
+            if not utils.confirm_database_deletion(self.rebuild_checkbox, self.master_database_name, self.create_database_textbox):
+                rebuild_selected = False
+        
+        # ensure user has selected a data input path
+        if not utils.confirm_data_path(self.input_data_path):
+            path_selected = False
+        
+        return rebuild_selected, path_selected
+
+    def generate_database(self, master_database_conn, master_database_cursor):
+        # declare master database connection and cursor
+        self.master_database_conn = master_database_conn
+        self.master_database_cursor = master_database_cursor
+
         if self.input_data_path[:1] == "C": #  Case 1: the files are in a folder on the desktop
             self.process_desktop_folder()
         else:# Case 2: files are on a DVD reader
             self.process_dvd()
         # Commit the changes at the end
-        self.database_conn.commit()
+        self.master_database_conn.commit()
         self.create_database_textbox.emit("\nCHS Database Successfully Created!")
 
     def process_dvd(self):
@@ -82,11 +101,11 @@ class CreateDatabase():
             self.create_database_textbox.emit(f"Folder: {folder}")
             for txt_file in txt_files:
                 txt_file_path = os.path.join(sub_folder_path, txt_file)
-                utils.create_table(table_name, txt_file_path, self.database_cursor)  # Create the table
-                utils.insert_data(table_name, txt_file_path, self.database_cursor)    # Insert data into the table
+                utils.create_table(table_name, txt_file_path, self.master_database_cursor)  # Create the table
+                utils.insert_data(table_name, txt_file_path, self.master_database_cursor)    # Insert data into the table
             self.create_database_textbox.emit("Table and data added.")
         else:
             self.create_database_textbox.emit("\nNo .txt files in this folder.")
    
 if __name__ == "__main__":
-    pass
+   pass
