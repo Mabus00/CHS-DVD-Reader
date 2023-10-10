@@ -17,9 +17,8 @@ class RunCheckerSignals(QObject):
 
 class NewChartsSignals(QObject):
     # Custom signals specific to the "New Chart" tab
-    new_chart_detected = pyqtSignal(str)
-    chart_verification_failed = pyqtSignal(str)
     new_charts_textbox = pyqtSignal(str)
+    #accept_new_charts_checkbox = pyqtSignal(bool)
 
 class NewEditionsSignals(QObject):
     # Custom signals specific to the "New Edition" tab
@@ -29,13 +28,12 @@ class NewEditionsSignals(QObject):
 
 class WithdrawnSignals(QObject):
     # Custom signals specific to the "Withdrawals" tab
-    chart_withdrawn = pyqtSignal(str)
-    withdrawal_verification_failed = pyqtSignal(str)
-    withdrawn_textbox = pyqtSignal(str)
+    chart_withdrawn_textbox = pyqtSignal(str)
 
 class ErrorsSignals(QObject):
     # Custom signals specific to the "Errors" tab
     errors_textbox = pyqtSignal(str)
+    accept_errors_checkbox = pyqtSignal(bool)
 
 class CreateDatabaseSignals(QObject):
     # Custom signals specific to the "Create / Rebuild Database" tab

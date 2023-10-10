@@ -26,21 +26,28 @@ def update_text_browser(text_browser, message):
     text_browser.insertPlainText(message + "\n")  # Append the message and a newline
     text_browser.ensureCursorVisible()
 
-''' Databse common functions '''
+def clear_all_text_boxes(text_browsers):
+    # Create a list of QTextBrowser widgets by inspecting the module
+    for text_browser in text_browsers:
+        text_browser.clear()
+
+    print('all text boxes cleared')
+
+''' Database common functions '''
 
 def initialize_database(database_name, text_browser_widget):
     conn = sqlite3.connect(database_name)
     cursor = conn.cursor()
-    update_text_browser(text_browser_widget, f"New '{database_name}' created and opened")
+    text_browser_widget.emit(f"New '{database_name}' created and opened")
     return conn, cursor
 
 def get_database_connection(database_name, text_browser_widget):
     conn, cursor = initialize_database(database_name, text_browser_widget)
     return conn, cursor
 
-def confirm_database_deletion(parent, database_name, text_browser_widget):
+def confirm_database_deletion(rebuild_checkbox, database_name, text_browser_widget):
     # chs_dvd.db exists
-    while not parent.isChecked():
+    while not rebuild_checkbox.isChecked():
         show_warning_popup("Database exists. Check the 'Confirm deletion of database' box to proceed")
         return False
     else:
@@ -55,12 +62,12 @@ def confirm_data_path(text):
         
 def delete_existing_database(database_name, text_browser_widget):
     os.remove(database_name)
-    update_text_browser(text_browser_widget, f"Database '{database_name}' deleted.")
+    text_browser_widget.emit(f"Database '{database_name}' deleted.")
 
 def close_database(text_browser_widget, database_conn, database_name):
     if database_conn:
         database_conn.close()
-    update_text_browser(text_browser_widget, f'\n{database_name} closed.')
+    text_browser_widget.emit(f'\n{database_name} closed.')
 
 # Function to list folders in the DVD path
 def list_folders(folder_path):
@@ -129,6 +136,23 @@ def insert_data(table_name, txt_file_path, cursor):
 
 ''' Run Checker common functions '''
 
+# Function to remove indicated portion from table_name
+def remove_text(table_name, part_to_replace):
+    parts = table_name.split('_')
+    new_parts = [part for part in parts if part != part_to_replace]
+    new_table_name = '_'.join(new_parts)
+    return new_table_name
+
+def insert_text(table_name, text, pos_to_insert):
+    parts = table_name.split('_')
+    # Check if the specified part_to_replace is within the valid range
+    if 0 <= pos_to_insert < len(parts) - 1:
+        parts.insert(pos_to_insert, text)  # Replace the specified part with an empty string
+        
+        # Filter out empty parts and join with underscores
+        new_table_name = '_'.join(filter(None, parts))
+    return new_table_name  # Join all parts with underscore
+
 def extract_yyyymmdd(table_name):
     return table_name.split('_')[1]
 
@@ -143,3 +167,6 @@ def get_first_table_yyyymmdd(prefix, database_conn):
         return extract_yyyymmdd(first_table)
 
     return None
+
+''' compare_databse_tables common functions '''
+
