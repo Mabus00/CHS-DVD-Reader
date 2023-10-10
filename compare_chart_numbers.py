@@ -55,7 +55,7 @@ class CompareChartNumbers():
             # Initialize a set to keep track of encountered chart names
             encountered_chart_numbers = set()
 
-            # Iterate through rows of master_data
+            # Iterate through rows of master_data and find missing chart numbers
             for i, row in enumerate(master_data):
 
                 # get master_data chart name for the current row; remember the master is master!
@@ -83,7 +83,7 @@ class CompareChartNumbers():
             # reset encountered chart names
             encountered_chart_numbers = set()
 
-            # Iterate through rows of current_data
+            # Iterate through rows of current_data and find new chart numbers
             for i, row in enumerate(current_data):
 
                 # get master_data chart name for the current row; remember the master is master!

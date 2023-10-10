@@ -56,7 +56,7 @@ class CompareDatabases():
                 temp = utils.insert_text(table, master_yyyymmdd, pos_to_insert=1)
                 self.errors_textbox.emit(temp)
 
-        return tables_master_temp, tables_current_temp, tables_missing_in_master, tables_missing_in_current, master_yyyymmdd, current_yyyymmdd
+        return tables_master_temp, tables_current_temp, tables_missing_in_current, master_yyyymmdd, current_yyyymmdd
 
 # Main execution block (can be used for testing)
 if __name__ == "__main__":

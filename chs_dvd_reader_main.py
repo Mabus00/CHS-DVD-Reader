@@ -91,6 +91,7 @@ class CHSDVDReaderApp(QMainWindow):
         # confirm that pre-build checks are met before proceeding        
         if all(self.create_db.pre_build_checks()):
             # establish database connections; operate under assumption that master_database won't be created each time widget is used
+            # note that this can't be done earlier because pre-build-checks deletes existing databases, and this can't happen if a connection to the database has been opened
             master_database_conn, master_database_cursor = utils.get_database_connection(self.master_database_name, self.database_signals.create_database_textbox)
             self.create_db.generate_database(master_database_conn, master_database_cursor)
         else:
@@ -131,7 +132,7 @@ class CHSDVDReaderApp(QMainWindow):
                 # tables_missing_in_current represent tables that have been removed, whereas tables_missing_in_master represent tables that have been added
                 # tables_master_temp and tables_current_temp have yyyymmdd removed; do this once and share with other modules
                 # master_yyyymmdd and current_yyyymmdd are the extracted yyyymmdd for each; do this once and share with other modules
-                tables_master_temp, tables_current_temp, tables_missing_in_master, tables_missing_in_current, master_yyyymmdd, current_yyyymmdd = self.compare_databases.compare_databases()
+                tables_master_temp, tables_current_temp, tables_missing_in_current, master_yyyymmdd, current_yyyymmdd = self.compare_databases.compare_databases()
 
                 # Remove tables_missing_from_current from tables_master so table content matching can occur; no need to check tables_missing_in_master because these are newly added
                 tables_master_temp = [table for table in tables_master_temp if table not in tables_missing_in_current]
