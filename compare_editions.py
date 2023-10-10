@@ -1,11 +1,15 @@
 '''
-Compares the master_database and current_database chart numbers in mathcing tables (tables = folders) and 
-reports on:
-1. charts withdrawn - charts that exist in the master_database but are not in the current_database.
-2. new charts - charts that don't exist in the master_database but do exist in the current_database.
+new editions in column 3 either EDTN (Vector) or Edn Date (Raster)
 
-Note - either of the above conditions can also be considered errors on the CHS DVD which is why the user 
-needs to accept the indicated reports before moving on and updating the master_database with the current_database.
+process:
+    confirm column 3 entry for each chart (row) matches; if yes no need to check anything else because no change to edition date/number
+    if they don't match:
+        raster: check the date of current is newer than master
+            if yes = new edition
+            if no = possible error
+        vector: check if current edition number is greater that master edition number
+            if yes = new edition
+            if no = possible error
 
 '''
 
