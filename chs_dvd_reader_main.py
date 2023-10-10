@@ -104,14 +104,15 @@ class CHSDVDReaderApp(QMainWindow):
 
         # instantiate run_checker
         self.run_checker = RunChecker(self.current_database_name, self.run_checker_signals.run_checker_textbox, self.errors_signals.errors_textbox, self.ui.checker_data_input_path.text())
-
+        
+        # confirm that pre-build checks are met before proceeding 
         if self.run_checker.pre_build_checks():
             # establish database connections; operate under assumption that master_database won't be created each time widget is used
             master_database_conn, master_database_cursor = utils.get_database_connection(self.master_database_name, self.database_signals.create_database_textbox)
             current_database_conn, current_database_cursor = utils.get_database_connection(self.current_database_name, self.database_signals.create_database_textbox)
 
             # create current database
-            # instantiate generate_database and pass instance of database_signals to create the current month's database; note rebuild_checkbox not needed
+            # instantiate generate_database and create the current month's database; note rebuild_checkbox not needed
             # NOTE UNCOMMENT FOR PRODUCTION ONLY
             self.create_db = BuildDatabase(self.current_database_name, None, self.run_checker_signals.run_checker_textbox, self.ui.checker_data_input_path.text())
             self.create_db.generate_database(current_database_conn, current_database_cursor)

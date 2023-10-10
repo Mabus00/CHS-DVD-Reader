@@ -30,7 +30,7 @@ class RunChecker():
     def pre_build_checks(self):
         path_selected = True
         
-        # delete if necessary then build new current database
+        # delete if necessary; database will be rebuilt
         # NOTE UNCOMMENT FOR PRODUCTION ONLY
         if os.path.exists(self.current_database_name):
             utils.delete_existing_database(self.current_database_name, self.run_checker_textbox)

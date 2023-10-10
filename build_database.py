@@ -26,7 +26,7 @@ class BuildDatabase():
         rebuild_selected = True
         path_selected = True
 
-        # delete if necessary then build new database
+        # delete if necessary; database will be rebuilt
         if os.path.exists(self.master_database_name):
             if not utils.confirm_database_deletion(self.rebuild_checkbox, self.master_database_name, self.create_database_textbox):
                 rebuild_selected = False

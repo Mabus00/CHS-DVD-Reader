@@ -43,7 +43,7 @@ class CompareChartNumbers():
             current_data = self.current_database_cursor.fetchall()
 
             # Set the index of the table column (first column = chart number)
-            chart_column_index = 0
+            chart_column_index = 1
 
             # Create a set of chart numbers from current_data for faster lookup
             current_chart_numbers = set(row[chart_column_index] for row in current_data)
