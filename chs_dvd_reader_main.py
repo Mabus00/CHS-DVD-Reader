@@ -15,6 +15,7 @@ VIEW = chs_dvd_gui
 '''
 
 import sys
+import os
 import inspect
 from PyQt5.QtWidgets import QApplication, QMainWindow, QTextBrowser
 from chs_dvd_gui import Ui_MainWindow
@@ -103,25 +104,25 @@ class CHSDVDReaderApp(QMainWindow):
 
         # delete if necessary then build new current database
         # NOTE UNCOMMENT FOR PRODUCTION ONLY
-        # if os.path.exists(self.master_database_name):
-        #     utils.delete_existing_database(self.current_database_name, self.ui.runCheckerTextBrowser)
+        if os.path.exists(self.current_database_name):
+            utils.delete_existing_database(self.current_database_name, self.run_checker_signals.run_checker_textbox)
 
         # establish database connections; operate under assumption that master_database won't be created each time widget is used
-        self.master_database_conn, self.master_database_cursor = utils.get_database_connection(self.master_database_name, self.database_signals.create_database_textbox)
-        self.current_database_conn, self.current_database_cursor = utils.get_database_connection(self.current_database_name, self.database_signals.create_database_textbox)
+        master_database_conn, master_database_cursor = utils.get_database_connection(self.master_database_name, self.database_signals.create_database_textbox)
+        current_database_conn, current_database_cursor = utils.get_database_connection(self.current_database_name, self.database_signals.create_database_textbox)
 
         # ensure user has selected a current data input path
         if not utils.confirm_data_path(self.ui.checker_data_input_path.text()):
             return
 
         # create current database
-        # instantiate generate_database and pass instance of database_signals to create the current month's database
+        # instantiate generate_database and pass instance of database_signals to create the current month's database; note rebuild_checkbox not needed
         # NOTE UNCOMMENT FOR PRODUCTION ONLY
-        # self.create_db = CreateDatabase(self.run_checker_signals.run_checker_textbox, self.ui.checker_data_input_path.text(), self.current_database_conn, self.current_database_cursor)
-        # self.create_db.generate_database()
+        self.create_db = BuildDatabase(self.current_database_name, None, self.run_checker_signals.run_checker_textbox, self.ui.checker_data_input_path.text())
+        self.create_db.generate_database(current_database_conn, current_database_cursor)
 
         # instantiate run_checker
-        self.run_checker = RunChecker(self.run_checker_signals.run_checker_textbox, self.errors_signals.errors_textbox, self.master_database_conn, self.current_database_conn)
+        self.run_checker = RunChecker(self.run_checker_signals.run_checker_textbox, self.errors_signals.errors_textbox, master_database_conn, current_database_conn)
         # compliance = East and West tables within each database have the same date and the new current database is at least one month older than the master database
         # required to proceed further
         compliance = self.run_checker.confirm_database_compliance()
@@ -132,7 +133,7 @@ class CHSDVDReaderApp(QMainWindow):
             # Compares the content of the master and current databases and finds new (i.e., not in master but in current) or missing 
             # (i.e., in master but not in current) tables and reports the findings on the error tab
             # need to run this first so you can ignore missing tables in follow on code
-            self.compare_databases = CompareDatabases(self.run_checker_signals.run_checker_textbox, self.errors_signals.errors_textbox, self.master_database_cursor, self.current_database_cursor)
+            self.compare_databases = CompareDatabases(self.run_checker_signals.run_checker_textbox, self.errors_signals.errors_textbox, master_database_cursor, current_database_cursor)
             # tables_missing_in_current represent tables that have been removed, whereas tables_missing_in_master represent tables that have been added
             # tables_master_temp and tables_current_temp have yyyymmdd removed; do this once and share with other modules
             # master_yyyymmdd and current_yyyymmdd are the extracted yyyymmdd for each; do this once and share with other modules
@@ -142,7 +143,7 @@ class CHSDVDReaderApp(QMainWindow):
             tables_master_temp = [table for table in tables_master_temp if table not in tables_missing_in_current]
 
             # creates instance of CompareChartNumbers
-            self.compare_databases = CompareChartNumbers(self.master_database_cursor, self.current_database_cursor)
+            self.compare_databases = CompareChartNumbers(master_database_cursor, current_database_cursor)
             # compares master and current databases and report charts withdrawn; which database is compared to which is controlled by the order of the yyyymmdd
             charts_withdrawn, new_charts = self.compare_databases.compare_chart_numbers(tables_master_temp, master_yyyymmdd, current_yyyymmdd)
 
@@ -177,8 +178,8 @@ class CHSDVDReaderApp(QMainWindow):
         print('The Checker ran succesfully!')
 
         # close the master database so it can be opened in run_checker (assumption is that create_database isn't always used)
-        utils.close_database(self.ui.createDatabaseTextBrowser, self.master_database_conn, self.master_database_name)
-        utils.close_database(self.ui.runCheckerTextBrowser, self.current_database_conn, self.current_database_name)
+        utils.close_database(self.database_signals.create_database_textbox, master_database_conn, self.master_database_name)
+        utils.close_database(self.run_checker_signals.run_checker_textbox, current_database_conn, self.current_database_name)
 
 def main():
     app = QApplication(sys.argv)
