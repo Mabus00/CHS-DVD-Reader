@@ -3,7 +3,7 @@ Main CONTROLLER for app.  There are two sub controllers:
 1. sub-controller to build_database
 2. sub-controller to run_checker.
 
-Note I chose to use custom signals and slots to provide greater seperation of concerns and looser coupli.g
+I chose to use custom signals and slots to provide greater seperation of concerns and looser coupling.
 I could have gone directly from the UI signal to the slot but chose this instead.
 
 tables = CHS DVD folders
@@ -19,7 +19,7 @@ import inspect
 from PyQt5.QtWidgets import QApplication, QMainWindow, QTextBrowser
 from chs_dvd_gui import Ui_MainWindow
 from custom_signals import CreateDatabaseSignals, RunCheckerSignals, NewChartsSignals, WithdrawnSignals, ErrorsSignals
-from build_master_database import BuildMasterDatabase
+from build_database import BuildDatabase
 from run_checker import RunChecker
 from compare_databases import CompareDatabases
 from compare_chart_numbers import CompareChartNumbers
@@ -86,7 +86,7 @@ class CHSDVDReaderApp(QMainWindow):
 
     def build_database(self):
         # instantiate create_database and pass instance of database_name, etc...
-        self.create_db = BuildMasterDatabase(self.master_database_name, self.ui.rebuild_checkbox, self.database_signals.create_database_textbox, self.ui.database_input_path.text())
+        self.create_db = BuildDatabase(self.master_database_name, self.ui.rebuild_checkbox, self.database_signals.create_database_textbox, self.ui.database_input_path.text())
         # confirm that pre-conditions are met before proceeding        
         if all(self.create_db.pre_build_checks()):
             # establish database connections; operate under assumption that master_database won't be created each time widget is used

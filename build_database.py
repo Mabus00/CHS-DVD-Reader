@@ -11,7 +11,7 @@ Intent later is to modify this code to also read from a .zip file (this is how t
 import os
 import common_utils as utils
 
-class BuildMasterDatabase():
+class BuildDatabase():
 
     def __init__(self, master_database_name, rebuild_checkbox, create_database_textbox, database_input_path):
         self.master_database_name = master_database_name

@@ -5,6 +5,8 @@ Does the basic checks to ensure:
 
 If all good returns True and the process continues
 
+Updated to streamline.
+
 '''
 
 # Import necessary modules
