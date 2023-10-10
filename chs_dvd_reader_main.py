@@ -88,7 +88,7 @@ class CHSDVDReaderApp(QMainWindow):
     def build_database(self):
         # instantiate create_database and pass instance of database_name, etc...
         self.create_db = BuildDatabase(self.master_database_name, self.ui.rebuild_checkbox, self.database_signals.create_database_textbox, self.ui.database_input_path.text())
-        # confirm that pre-conditions are met before proceeding        
+        # confirm that pre-build checks are met before proceeding        
         if all(self.create_db.pre_build_checks()):
             # establish database connections; operate under assumption that master_database won't be created each time widget is used
             master_database_conn, master_database_cursor = utils.get_database_connection(self.master_database_name, self.database_signals.create_database_textbox)
@@ -102,70 +102,64 @@ class CHSDVDReaderApp(QMainWindow):
         # clear all text boxes before running the checker
         utils.clear_all_text_boxes(self.text_browsers)
 
-        # delete if necessary then build new current database
-        # NOTE UNCOMMENT FOR PRODUCTION ONLY
-        if os.path.exists(self.current_database_name):
-            utils.delete_existing_database(self.current_database_name, self.run_checker_signals.run_checker_textbox)
-
-        # establish database connections; operate under assumption that master_database won't be created each time widget is used
-        master_database_conn, master_database_cursor = utils.get_database_connection(self.master_database_name, self.database_signals.create_database_textbox)
-        current_database_conn, current_database_cursor = utils.get_database_connection(self.current_database_name, self.database_signals.create_database_textbox)
-
-        # ensure user has selected a current data input path
-        if not utils.confirm_data_path(self.ui.checker_data_input_path.text()):
-            return
-
-        # create current database
-        # instantiate generate_database and pass instance of database_signals to create the current month's database; note rebuild_checkbox not needed
-        # NOTE UNCOMMENT FOR PRODUCTION ONLY
-        self.create_db = BuildDatabase(self.current_database_name, None, self.run_checker_signals.run_checker_textbox, self.ui.checker_data_input_path.text())
-        self.create_db.generate_database(current_database_conn, current_database_cursor)
-
         # instantiate run_checker
-        self.run_checker = RunChecker(self.run_checker_signals.run_checker_textbox, self.errors_signals.errors_textbox, master_database_conn, current_database_conn)
-        # compliance = East and West tables within each database have the same date and the new current database is at least one month older than the master database
-        # required to proceed further
-        compliance = self.run_checker.confirm_database_compliance()
-        # check compliance
-        if not compliance:
-            utils.show_warning_popup('You have error messages that need to be ackowledged before proceeding.')
+        self.run_checker = RunChecker(self.current_database_name, self.run_checker_signals.run_checker_textbox, self.errors_signals.errors_textbox, self.ui.checker_data_input_path.text())
+
+        if self.run_checker.pre_build_checks():
+            # establish database connections; operate under assumption that master_database won't be created each time widget is used
+            master_database_conn, master_database_cursor = utils.get_database_connection(self.master_database_name, self.database_signals.create_database_textbox)
+            current_database_conn, current_database_cursor = utils.get_database_connection(self.current_database_name, self.database_signals.create_database_textbox)
+
+            # create current database
+            # instantiate generate_database and pass instance of database_signals to create the current month's database; note rebuild_checkbox not needed
+            # NOTE UNCOMMENT FOR PRODUCTION ONLY
+            self.create_db = BuildDatabase(self.current_database_name, None, self.run_checker_signals.run_checker_textbox, self.ui.checker_data_input_path.text())
+            self.create_db.generate_database(current_database_conn, current_database_cursor)
+
+            # compliance = East and West tables within each database have the same date and the new current database is at least one month older than the master database
+            # required to proceed further
+            compliance = self.run_checker.confirm_database_compliance(master_database_conn, current_database_conn)
+            # check compliance
+            if not compliance:
+                utils.show_warning_popup('You have error messages that need to be ackowledged before proceeding.')
+            else:
+                # Compares the content of the master and current databases and finds new (i.e., not in master but in current) or missing 
+                # (i.e., in master but not in current) tables and reports the findings on the error tab
+                # need to run this first so you can ignore missing tables in follow on code
+                self.compare_databases = CompareDatabases(self.run_checker_signals.run_checker_textbox, self.errors_signals.errors_textbox, master_database_cursor, current_database_cursor)
+                # tables_missing_in_current represent tables that have been removed, whereas tables_missing_in_master represent tables that have been added
+                # tables_master_temp and tables_current_temp have yyyymmdd removed; do this once and share with other modules
+                # master_yyyymmdd and current_yyyymmdd are the extracted yyyymmdd for each; do this once and share with other modules
+                tables_master_temp, tables_current_temp, tables_missing_in_master, tables_missing_in_current, master_yyyymmdd, current_yyyymmdd = self.compare_databases.compare_databases()
+
+                # Remove tables_missing_from_current from tables_master so table content matching can occur; no need to check tables_missing_in_master because these are newly added
+                tables_master_temp = [table for table in tables_master_temp if table not in tables_missing_in_current]
+
+                # creates instance of CompareChartNumbers
+                self.compare_databases = CompareChartNumbers(master_database_cursor, current_database_cursor)
+                # compares master and current databases and report charts withdrawn; which database is compared to which is controlled by the order of the yyyymmdd
+                charts_withdrawn, new_charts = self.compare_databases.compare_chart_numbers(tables_master_temp, master_yyyymmdd, current_yyyymmdd)
+
+                # Print missing charts
+                if charts_withdrawn:
+                    for table_name, missing_charts in charts_withdrawn:
+                        self.charts_withdrawn_signals.chart_withdrawn_textbox.emit(f"Charts missing in current DVD folder {table_name}:")
+                        # Concatenate the missing chart names with commas and print them
+                        missing_chart_str = ', '.join(missing_charts)
+                        self.charts_withdrawn_signals.chart_withdrawn_textbox.emit(missing_chart_str + '\n')
+                    
+                # Print new charts
+                if new_charts:
+                    for table_name, missing_charts in new_charts:
+                        self.new_charts_signals.new_charts_textbox.emit(f"New charts in current DVD folder {table_name}:")
+                        # Concatenate the missing chart names with commas and print them
+                        missing_chart_str = ', '.join(missing_charts)
+                        self.new_charts_signals.new_charts_textbox.emit(missing_chart_str + '\n')
+                    
+
+                # Compares master and current databases and report new charts
         else:
-            # Compares the content of the master and current databases and finds new (i.e., not in master but in current) or missing 
-            # (i.e., in master but not in current) tables and reports the findings on the error tab
-            # need to run this first so you can ignore missing tables in follow on code
-            self.compare_databases = CompareDatabases(self.run_checker_signals.run_checker_textbox, self.errors_signals.errors_textbox, master_database_cursor, current_database_cursor)
-            # tables_missing_in_current represent tables that have been removed, whereas tables_missing_in_master represent tables that have been added
-            # tables_master_temp and tables_current_temp have yyyymmdd removed; do this once and share with other modules
-            # master_yyyymmdd and current_yyyymmdd are the extracted yyyymmdd for each; do this once and share with other modules
-            tables_master_temp, tables_current_temp, tables_missing_in_master, tables_missing_in_current, master_yyyymmdd, current_yyyymmdd = self.compare_databases.compare_databases()
-
-            # Remove tables_missing_from_current from tables_master so table content matching can occur; no need to check tables_missing_in_master because these are newly added
-            tables_master_temp = [table for table in tables_master_temp if table not in tables_missing_in_current]
-
-            # creates instance of CompareChartNumbers
-            self.compare_databases = CompareChartNumbers(master_database_cursor, current_database_cursor)
-            # compares master and current databases and report charts withdrawn; which database is compared to which is controlled by the order of the yyyymmdd
-            charts_withdrawn, new_charts = self.compare_databases.compare_chart_numbers(tables_master_temp, master_yyyymmdd, current_yyyymmdd)
-
-            # Print missing charts
-            if charts_withdrawn:
-                for table_name, missing_charts in charts_withdrawn:
-                    self.charts_withdrawn_signals.chart_withdrawn_textbox.emit(f"Charts missing in current DVD folder {table_name}:")
-                    # Concatenate the missing chart names with commas and print them
-                    missing_chart_str = ', '.join(missing_charts)
-                    self.charts_withdrawn_signals.chart_withdrawn_textbox.emit(missing_chart_str + '\n')
-                
-            # Print new charts
-            if new_charts:
-                for table_name, missing_charts in new_charts:
-                    self.new_charts_signals.new_charts_textbox.emit(f"New charts in current DVD folder {table_name}:")
-                    # Concatenate the missing chart names with commas and print them
-                    missing_chart_str = ', '.join(missing_charts)
-                    self.new_charts_signals.new_charts_textbox.emit(missing_chart_str + '\n')
-                
-
-            # Compares master and current databases and report new charts
-
+            return
 
         # for now; TODO add checkboxes so user can indicate errors are acceptable / not acceptable
         # required signal before the master database is rebuilt using the current database

@@ -10,6 +10,7 @@ Updated to streamline.
 '''
 
 # Import necessary modules
+import os
 import common_utils as utils
 from datetime import datetime
 
@@ -17,21 +18,35 @@ from datetime import datetime
 class RunChecker():
 
     # Constructor for initializing the RunChecker object
-    def __init__(self, run_checker_textbox, errors_textbox, master_database_conn, current_database_conn):
+    def __init__(self, current_database_name, run_checker_textbox, errors_textbox, database_input_path):
+        self.current_database_name = current_database_name
         # Create an instance of CreateDatabaseSignals (not shown in code, assuming it's an imported class)
         self.run_checker_textbox = run_checker_textbox
         self.errors_textbox = errors_textbox
 
-        # Establish database names, connections, and cursors
-        self.master_database_conn = master_database_conn
-        self.current_database_conn = current_database_conn
+        # database data input path
+        self.input_data_path = database_input_path
 
+    def pre_build_checks(self):
+        path_selected = True
+        
+        # delete if necessary then build new current database
+        # NOTE UNCOMMENT FOR PRODUCTION ONLY
+        if os.path.exists(self.current_database_name):
+            utils.delete_existing_database(self.current_database_name, self.run_checker_textbox)
+
+        # ensure user has selected a data input path
+        if not utils.confirm_data_path(self.input_data_path):
+            path_selected = False
+        
+        return path_selected
+    
     # Method to compare databases
-    def confirm_database_compliance(self):
+    def confirm_database_compliance(self, master_database_conn, current_database_conn):
         # Define table prefixes to be compared
         table_prefixes = ['EastDVD', 'WestDVD']
         # get the yyyymmdd for THE FIRST TABLE in both databases to conduct following two checks
-        master_dates, current_dates = self.get_databases_yyyymmdd(table_prefixes)
+        master_dates, current_dates = self.get_databases_yyyymmdd(master_database_conn, current_database_conn, table_prefixes)
         # Call the compare_tables_east_west_dates and compare_database_dates methods to perform table and databases comparisons
         match_result = self.compare_tables_east_west_dates(master_dates, current_dates)
         month_result = self.compare_database_dates(master_dates, current_dates)
@@ -42,18 +57,18 @@ class RunChecker():
             self.run_checker_textbox.emit("\nThe Master and Current databases are not in compliance with the date matching criteria. Please review the results and address the indicated issues.")
             return False
 
-    def get_databases_yyyymmdd(self, table_prefixes):
+    def get_databases_yyyymmdd(self, master_database_conn, current_database_conn, table_prefixes):
         # Initialize dictionaries to store dates found in each database
         master_dates = {}
         current_dates = {}
         # get the first yyyymmdd prefix of each table in each database
         for prefix in table_prefixes:
             # Get the yyyymmdd from the first table in the master database
-            master_yyyymmdd = utils.get_first_table_yyyymmdd(prefix, self.master_database_conn)
+            master_yyyymmdd = utils.get_first_table_yyyymmdd(prefix, master_database_conn)
             if master_yyyymmdd is not None:
                 master_dates[prefix] = master_yyyymmdd
             # Get the yyyymmdd from the first table in the current database
-            current_yyyymmdd = utils.get_first_table_yyyymmdd(prefix, self.current_database_conn)
+            current_yyyymmdd = utils.get_first_table_yyyymmdd(prefix, current_database_conn)
             if current_yyyymmdd is not None:
                 current_dates[prefix] = current_yyyymmdd
         return master_dates, current_dates
