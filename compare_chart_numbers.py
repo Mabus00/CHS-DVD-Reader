@@ -24,8 +24,6 @@ class CompareChartNumbers():
 
     def compare_chart_numbers(self, tables_master, master_yyyymmdd, current_yyyymmdd):
 
-        print('compare tables')
-
         charts_withdrawn_result = []
         new_charts_result = []
 
@@ -43,73 +41,48 @@ class CompareChartNumbers():
             current_data = self.current_database_cursor.fetchall()
 
             # Set the index of the table column (first column = chart number)
-            chart_column_index = 0
+            chart_column_index = 1
 
-            # Create a set of chart numbers from current_data for faster lookup
-            current_chart_numbers = set(row[chart_column_index] for row in current_data)
+            result = self.detect_column_changes(chart_column_index, master_data, current_data, temp_current_table_name)
+            charts_withdrawn_result.extend(result for result in [result] if result)
 
-            # Initialize a list to new charts and store missing chart numbers
-            new_charts = []
-            missing_charts = []
-
-            # Initialize a set to keep track of encountered chart names
-            encountered_chart_numbers = set()
-
-            # Iterate through rows of master_data
-            for i, row in enumerate(master_data):
-
-                # get master_data chart name for the current row; remember the master is master!
-                master_chart_number = row[chart_column_index]
-
-                # Check if the chart name from master_data is in current_data; if not add to missing_charts list
-                if (master_chart_number not in current_chart_numbers) and (master_chart_number not in encountered_chart_numbers):
-                    # Append the missing chart name to the list
-                    missing_charts.append(master_chart_number)
-                
-                # whether or not above condition fails add it to encountered_chart_numbers so we don't keep checking repeating master_chart_numbers
-                if master_chart_number not in encountered_chart_numbers:
-                    # Add the chart name to the encountered_chart_names set
-                    encountered_chart_numbers.add(master_chart_number)
-
-            # If there are missing charts for this table, add the table name and missing charts to the charts_withdrawn_result
-            if missing_charts:
-                charts_withdrawn_result.append((temp_current_table_name, missing_charts))
-            
-
-
-            # Create a set of chart numbers from current_data for faster lookup
-            master_chart_numbers = set(row[chart_column_index] for row in master_data)
-
-            # reset encountered chart names
-            encountered_chart_numbers = set()
-
-            # Iterate through rows of current_data
-            for i, row in enumerate(current_data):
-
-                # get master_data chart name for the current row; remember the master is master!
-                current_chart_number = row[chart_column_index]
-
-                # Check if the chart name from master_data is in current_data; if not add to missing_charts list
-                if (current_chart_number not in master_chart_numbers) and (current_chart_number not in encountered_chart_numbers):
-                    # Append the missing chart name to the list
-                    new_charts.append(current_chart_number)
-                
-                # whether or not above condition fails add it to encountered_chart_numbers so we don't keep checking repeating master_chart_numbers
-                if current_chart_number not in encountered_chart_numbers:
-                    # Add the chart name to the encountered_chart_names set
-                    encountered_chart_numbers.add(current_chart_number)
-
-            # If there are new charts for this table, add the table name and new charts to the new_charts_result
-            if new_charts:
-                new_charts_result.append((temp_current_table_name, new_charts))
+            result = self.detect_column_changes(chart_column_index, current_data, master_data, temp_current_table_name)
+            new_charts_result.extend(result for result in [result] if result)
 
         return charts_withdrawn_result, new_charts_result
-                
-        # 3. start with master and find the same table (with the newer date) in current
-        # self.compare_database_content()
-        # 4. for each row compare: chart number, Edn Date, Last NM, Ed number and Title and report any discrepancies/ store them in a local table. Chart numbers matching will be a challenge if not the same.
-        # 5. report all discrepancies (for now) as errors so you can see what the differences are.
-        # 6. as you move forward and you can differentiate between new charts, new editions, and withdrawn charts, add these details to each specific local table, with the remainder staying in errors.
+    
+    def detect_column_changes(self, column_index, base_table, secondary_table, temp_current_table_name):
+        # base_table = primary table against which the secondary_table is being compared
+        # reset encountered chart numbers
+        encountered_chart_numbers = set()
+
+        # Create a set of chart numbers from current_data for faster lookup
+        chart_numbers = set(row[column_index] for row in secondary_table)
+
+        # Initialize a list to new charts and store missing chart numbers
+        found_charts = []
+
+        # Initialize a set to keep track of encountered chart names
+        encountered_chart_numbers = set()
+
+        # Iterate through rows of master_data
+        for i, row in enumerate(base_table):
+
+            # get master_data chart name for the current row; remember the master is master!
+            master_chart_number = row[column_index]
+
+            # Check if the chart name from master_data is in current_data; if not add to missing_charts list
+            if (master_chart_number not in chart_numbers) and (master_chart_number not in encountered_chart_numbers):
+                # Append the missing chart name to the list
+                found_charts.append(master_chart_number)
+            
+            # whether or not above condition fails add it to encountered_chart_numbers so we don't keep checking repeating master_chart_numbers
+            if master_chart_number not in encountered_chart_numbers:
+                # Add the chart name to the encountered_chart_names set
+                encountered_chart_numbers.add(master_chart_number)
+
+        # If there are missing charts for this table, add the table name and missing charts to the charts_withdrawn_result
+        return (temp_current_table_name, found_charts) if found_charts else None
 
 
 # Main execution block (can be used for testing)
