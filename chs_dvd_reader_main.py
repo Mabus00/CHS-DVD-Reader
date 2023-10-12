@@ -127,7 +127,7 @@ class CHSDVDReaderApp(QMainWindow):
                 utils.show_warning_popup('You have error messages that need to be ackowledged before proceeding.')
             else:
                 # Compares the content of the master and current databases and finds new (i.e., not in master but in current) or missing 
-                # (i.e., in master but not in current) tables and reports the findings on the error tab
+                # (i.e., in master but not in current) tables and reports the findings on the appropriate tabs.
                 # need to run this first so you can ignore missing tables in follow on code
                 self.compare_databases = CompareDatabases(self.run_checker_signals.run_checker_textbox, self.errors_signals.errors_textbox, master_database_cursor, current_database_cursor)
                 # tables_missing_in_current represent tables that have been removed, whereas tables_missing_in_master represent tables that have been added
@@ -143,7 +143,7 @@ class CHSDVDReaderApp(QMainWindow):
                 # compares master and current databases and report charts withdrawn; which database is compared to which is controlled by the order of the yyyymmdd
                 charts_withdrawn, new_charts = self.compare_databases.compare_chart_numbers(tables_master_temp, master_yyyymmdd, current_yyyymmdd)
 
-                # Print missing charts
+                # Report missing charts on missing charts tab
                 if charts_withdrawn:
                     for table_name, missing_charts in charts_withdrawn:
                         self.charts_withdrawn_signals.chart_withdrawn_textbox.emit(f"Charts missing in current DVD folder {table_name}:")
@@ -151,7 +151,7 @@ class CHSDVDReaderApp(QMainWindow):
                         missing_chart_str = ', '.join(missing_charts)
                         self.charts_withdrawn_signals.chart_withdrawn_textbox.emit(missing_chart_str + '\n')
                     
-                # Print new charts
+                # Report new charts on new charts tab
                 if new_charts:
                     for table_name, missing_charts in new_charts:
                         self.new_charts_signals.new_charts_textbox.emit(f"New charts in current DVD folder {table_name}:")
@@ -162,7 +162,10 @@ class CHSDVDReaderApp(QMainWindow):
         else:
             return
 
-        # instantiate compare editions
+        # remove charts_withdrawn from current_database so the databases match
+        
+
+        # instantiate Compare Editions
         self.compare_editions = CompareEditions()
                 
         # for now; TODO add checkboxes so user can indicate errors are acceptable / not acceptable
@@ -175,7 +178,7 @@ class CHSDVDReaderApp(QMainWindow):
         # Print a message to indicate that the checker has run
         print('The Checker ran succesfully!')
 
-        # close the master database so it can be opened in run_checker (assumption is that create_database isn't always used)
+        # close the databases
         utils.close_database(self.database_signals.create_database_textbox, master_database_conn, self.master_database_name)
         utils.close_database(self.run_checker_signals.run_checker_textbox, current_database_conn, self.current_database_name)
 
