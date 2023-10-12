@@ -24,6 +24,7 @@ from build_database import BuildDatabase
 from run_checker import RunChecker
 from compare_databases import CompareDatabases
 from compare_chart_numbers import CompareChartNumbers
+from compare_editions import CompareEditions
 import common_utils as utils
 
 class CHSDVDReaderApp(QMainWindow):
@@ -157,12 +158,13 @@ class CHSDVDReaderApp(QMainWindow):
                         # Concatenate the missing chart names with commas and print them
                         missing_chart_str = ', '.join(missing_charts)
                         self.new_charts_signals.new_charts_textbox.emit(missing_chart_str + '\n')
-                    
-
-                # Compares master and current databases and report new charts
+    
         else:
             return
 
+        # instantiate compare editions
+        self.compare_editions = CompareEditions()
+                
         # for now; TODO add checkboxes so user can indicate errors are acceptable / not acceptable
         # required signal before the master database is rebuilt using the current database
         print(f'accept errors is {self.ui.acceptErrorsCheckBox.isChecked()}')

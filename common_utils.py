@@ -112,7 +112,7 @@ def get_dvd_name(input_data_path, max_retries=5, retry_interval=1):
 
 # Function to create a table with column names from a text file
 def create_table(table_name, txt_file_path, cursor):
-    with open(txt_file_path, 'r') as txt_file:
+    with open(txt_file_path, 'r', errors='ignore') as txt_file:
         column_names = txt_file.readline().strip().split('\t')
         sanitized_column_names = [name.replace(".", "").strip() for name in column_names]
         quoted_column_names = [f'"{name}"' for name in sanitized_column_names]
@@ -122,7 +122,7 @@ def create_table(table_name, txt_file_path, cursor):
 
 # Function to insert data into a table from a text file
 def insert_data(table_name, txt_file_path, cursor):
-    with open(txt_file_path, 'r') as txt_file:
+    with open(txt_file_path, 'r', errors='ignore') as txt_file:
         next(txt_file)  # Skip the first line (column names)
         next(txt_file)  # Skip the second line
         for line in txt_file:
