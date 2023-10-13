@@ -24,7 +24,7 @@ from build_database import BuildDatabase
 from run_checker import RunChecker
 from compare_databases import CompareDatabases
 from compare_chart_numbers import CompareChartNumbers
-from compare_editions import CompareEditions
+from find_data_mismatches import FindDataMismatches
 import common_utils as utils
 
 class CHSDVDReaderApp(QMainWindow):
@@ -151,7 +151,7 @@ class CHSDVDReaderApp(QMainWindow):
         
 
         # instantiate Compare Editions
-        self.compare_editions = CompareEditions()
+        self.find_data_mismatches = FindDataMismatches()
                 
         # for now; TODO add checkboxes so user can indicate errors are acceptable / not acceptable
         # required signal before the master database is rebuilt using the current database
