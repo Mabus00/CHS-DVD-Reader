@@ -17,12 +17,12 @@ process:
 import common_utils as utils
 
 # Define the RunChecker class
-class CompareEditions():
+class FindDataMismatches():
 
     # Constructor for initializing the CompareEditions object
     def __init__(self):
 
-        print('compare editions')
+        print('looking for mismatches')
 
 
 # Main execution block (can be used for testing)
