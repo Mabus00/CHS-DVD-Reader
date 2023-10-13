@@ -45,7 +45,7 @@ class CompareDatabases():
         # Print tables that are in master but not in current; either newly deleted or a CHS error
         if tables_missing_in_current:
             self.run_checker_textbox.emit("\nErrors were noted - see the Errors Tab")
-            self.errors_textbox.emit("These tables have been removed from this months DVDs:")
+            self.errors_textbox.emit("These folders have been removed from this months DVDs:")
             for table in tables_missing_in_current:
                 temp = utils.insert_text(table, current_yyyymmdd, pos_to_insert=1)
                 self.errors_textbox.emit(temp)
@@ -53,7 +53,7 @@ class CompareDatabases():
         # Print tables that are in current but not in master); either newly added or a CHS error
         if tables_missing_in_master:
             self.run_checker_textbox.emit("\nErrors were noted - see the Errors Tab")
-            self.errors_textbox.emit("\nThese new tables have been added to this months DVDs:")
+            self.errors_textbox.emit("\nThese new folders have been added to this months DVDs:")
             for table in tables_missing_in_master:
                 temp = utils.insert_text(table, master_yyyymmdd, pos_to_insert=1)
                 self.errors_textbox.emit(temp)

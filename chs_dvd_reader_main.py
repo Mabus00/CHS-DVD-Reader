@@ -133,7 +133,7 @@ class CHSDVDReaderApp(QMainWindow):
                 # master_yyyymmdd and current_yyyymmdd are the extracted yyyymmdd for each
                 tables_master_temp, tables_current_temp, tables_missing_in_current, master_yyyymmdd, current_yyyymmdd = self.compare_databases.compare_databases()
                 # Remove tables_missing_from_current from tables_master so table content matches; no need to check tables_missing_in_master because these are newly added
-                tables_master_temp = [table for table in tables_master_temp if table not in tables_missing_in_current]
+                tables_master_temp = list(set(tables_master_temp) - set(tables_missing_in_current))
                 # creates instance of CompareChartNumbers
                 self.compare_databases = CompareChartNumbers(master_database_cursor, current_database_cursor)
                 # compares master and current databases and report charts withdrawn and new charts
@@ -151,8 +151,8 @@ class CHSDVDReaderApp(QMainWindow):
         
 
         # instantiate Compare Editions
-        self.find_data_mismatches = FindDataMismatches()
-                
+        self.find_data_mismatches = FindDataMismatches(master_database_cursor, current_database_cursor)
+        self.find_data_mismatches.find_mismatches(tables_master_temp, master_yyyymmdd, current_yyyymmdd)
         # for now; TODO add checkboxes so user can indicate errors are acceptable / not acceptable
         # required signal before the master database is rebuilt using the current database
         print(f'accept errors is {self.ui.acceptErrorsCheckBox.isChecked()}')
