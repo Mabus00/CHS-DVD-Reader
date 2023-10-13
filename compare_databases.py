@@ -1,6 +1,8 @@
 '''
-Compares the content of the master and current databases and finds new (i.e., not in master but in current) or missing 
+Compares the content of the master and current databases and finds new (i.e., not in master but in current) or missing (i.e., withdrawn)
 (i.e., in master but not in current) tables and reports the findings on the error tab
+
+table = folder
 
 '''
 

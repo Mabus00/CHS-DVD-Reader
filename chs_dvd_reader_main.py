@@ -113,9 +113,7 @@ class CHSDVDReaderApp(QMainWindow):
             master_database_conn, master_database_cursor = utils.get_database_connection(self.master_database_name, self.database_signals.create_database_textbox)
             current_database_conn, current_database_cursor = utils.get_database_connection(self.current_database_name, self.database_signals.create_database_textbox)
 
-            # create current database
-            # instantiate generate_database and create the current month's database; note rebuild_checkbox not needed
-            # NOTE UNCOMMENT FOR PRODUCTION ONLY
+            # instantiate generate_database and create the current month's database
             self.create_db = BuildDatabase(self.current_database_name, None, self.run_checker_signals.run_checker_textbox, self.ui.checker_data_input_path.text())
             self.create_db.generate_database(current_database_conn, current_database_cursor)
 
@@ -126,42 +124,29 @@ class CHSDVDReaderApp(QMainWindow):
             if not compliance:
                 utils.show_warning_popup('You have error messages that need to be ackowledged before proceeding.')
             else:
-                # Compares the content of the master and current databases and finds new (i.e., not in master but in current) or missing 
+                # Compares the content of the master and current databases and finds new (i.e., not in master but in current) or missing (i.e., withdrawn)
                 # (i.e., in master but not in current) tables and reports the findings on the appropriate tabs.
-                # need to run this first so you can ignore missing tables in follow on code
+                # run this first so you can ignore missing tables in follow on code
                 self.compare_databases = CompareDatabases(self.run_checker_signals.run_checker_textbox, self.errors_signals.errors_textbox, master_database_cursor, current_database_cursor)
-                # tables_missing_in_current represent tables that have been removed, whereas tables_missing_in_master represent tables that have been added
+                # tables_missing_in_current represent tables that have been removed; tables_missing_in_master represent tables that have been added in current
                 # tables_master_temp and tables_current_temp have yyyymmdd removed; do this once and share with other modules
-                # master_yyyymmdd and current_yyyymmdd are the extracted yyyymmdd for each; do this once and share with other modules
+                # master_yyyymmdd and current_yyyymmdd are the extracted yyyymmdd for each
                 tables_master_temp, tables_current_temp, tables_missing_in_current, master_yyyymmdd, current_yyyymmdd = self.compare_databases.compare_databases()
-
-                # Remove tables_missing_from_current from tables_master so table content matching can occur; no need to check tables_missing_in_master because these are newly added
+                # Remove tables_missing_from_current from tables_master so table content matches; no need to check tables_missing_in_master because these are newly added
                 tables_master_temp = [table for table in tables_master_temp if table not in tables_missing_in_current]
-
                 # creates instance of CompareChartNumbers
                 self.compare_databases = CompareChartNumbers(master_database_cursor, current_database_cursor)
-                # compares master and current databases and report charts withdrawn; which database is compared to which is controlled by the order of the yyyymmdd
+                # compares master and current databases and report charts withdrawn and new charts
                 charts_withdrawn, new_charts = self.compare_databases.compare_chart_numbers(tables_master_temp, master_yyyymmdd, current_yyyymmdd)
-
                 # Report missing charts on missing charts tab
                 if charts_withdrawn:
-                    for table_name, missing_charts in charts_withdrawn:
-                        self.charts_withdrawn_signals.chart_withdrawn_textbox.emit(f"Charts missing in current DVD folder {table_name}:")
-                        # Concatenate the missing chart names with commas and print them
-                        missing_chart_str = ', '.join(missing_charts)
-                        self.charts_withdrawn_signals.chart_withdrawn_textbox.emit(missing_chart_str + '\n')
-                    
+                    utils.create_tab_report(charts_withdrawn, self.charts_withdrawn_signals.chart_withdrawn_textbox)
                 # Report new charts on new charts tab
                 if new_charts:
-                    for table_name, missing_charts in new_charts:
-                        self.new_charts_signals.new_charts_textbox.emit(f"New charts in current DVD folder {table_name}:")
-                        # Concatenate the missing chart names with commas and print them
-                        missing_chart_str = ', '.join(missing_charts)
-                        self.new_charts_signals.new_charts_textbox.emit(missing_chart_str + '\n')
-    
+                    utils.create_tab_report(new_charts, self.new_charts_signals.new_charts_textbox)
         else:
             return
-
+        
         # remove charts_withdrawn from current_database so the databases match
         
 

@@ -201,3 +201,10 @@ def detect_column_changes(column_index, base_table, secondary_table, table_name)
 
         # If there are missing charts for this table, add the table name and missing charts to the charts_withdrawn_result
         return (table_name, found_charts) if found_charts else None
+
+def create_tab_report(results, target_textbox):
+    for table_name, missing_charts in results:
+        target_textbox.emit(f"Charts missing in current DVD folder {table_name}:")
+        # Concatenate the missing chart names with commas and print them
+        missing_chart_str = ', '.join(missing_charts)
+        target_textbox.emit(missing_chart_str + '\n')
