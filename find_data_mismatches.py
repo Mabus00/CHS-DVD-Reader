@@ -15,9 +15,9 @@ Raster table columns:
 Vector table columns:
 0 Chart
 1 ENC
-2 EDTN
-3 ISDT
-4 UADT
+2 EDTN.UPDN = Edition Number.Update Number
+3 ISDT = Issue Date
+4 UADT = Update Application Date
 5 Title
 
 '''
