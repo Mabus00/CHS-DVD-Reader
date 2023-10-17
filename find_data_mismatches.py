@@ -46,29 +46,33 @@ class FindDataMismatches():
             
             # Table exists in both databases; compare content
             self.master_database_cursor.execute(f"SELECT * FROM {temp_master_table_name}")
-            master_columns = [description[0] for description in self.master_database_cursor.description]
+            master_data = self.master_database_cursor.fetchall()
 
             self.current_database_cursor.execute(f"SELECT * FROM {temp_current_table_name}")
-            current_columns = [description[0] for description in self.current_database_cursor.description]
+            current_data = self.current_database_cursor.fetchall()
 
-            # Compare columns starting from the second column
-            for i in range(1, min(len(master_columns), len(current_columns))):
-                master_column = master_columns[i]
-                current_column = current_columns[i]
+            # Define the index of the second column (file name)
+            second_column_index = 1  # Assuming 0-based index
 
-                self.master_database_cursor.execute(f"SELECT [{master_column}] FROM {temp_master_table_name};")
-                master_data = [row[0] for row in self.master_database_cursor.fetchall()]
+            # Iterate through rows in the master table
+            for master_row_number, master_row in enumerate(master_data, start=1):
+                # Extract the file name from the master row
+                master_file_name = master_row[second_column_index]
 
-                self.current_database_cursor.execute(f"SELECT [{current_column}] FROM {temp_current_table_name};")
-                current_data = [row[0] for row in self.current_database_cursor.fetchall()]
+                # Find the corresponding row in the current table using the file name
+                matching_current_row = None
+                for current_row_number, current_row in enumerate(current_data, start=1):
+                    if current_row[second_column_index] == master_file_name:
+                        matching_current_row = current_row
+                        break
 
-            # Compare data and report any mismatches
-            if master_data != current_data:
-                # Compare data and report any mismatches
-                for row_number, (master_value, current_value) in enumerate(zip(master_data, current_data), start=1):
-                    if master_value != current_value:
-                        print(f"Mismatch in table '{table_name}', column '{master_column}' at row {row_number}.")
-
+                # If a matching row is found, compare the content of the remaining four columns
+                if matching_current_row:
+                    for i in range(2, len(master_row)):  # Start from the third column (0-based index)
+                        master_value = master_row[i]
+                        current_value = matching_current_row[i]
+                        if master_value != current_value:
+                            print(f"Mismatch in table '{table_name}', file name '{master_file_name}', column '{i + 1}' at master row {master_row_number} and current row {current_row_number}.")
 
 
 # Main execution block (can be used for testing)
