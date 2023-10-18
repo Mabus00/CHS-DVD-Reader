@@ -140,10 +140,12 @@ class CHSDVDReaderApp(QMainWindow):
                 charts_withdrawn, new_charts = self.compare_databases.compare_chart_numbers(tables_master_temp, master_yyyymmdd, current_yyyymmdd)
                 # Report missing charts on missing charts tab
                 if charts_withdrawn:
-                    utils.create_tab_report(charts_withdrawn, self.charts_withdrawn_signals.chart_withdrawn_textbox)
+                    message = "Charts missing in current DVD folder"
+                    utils.create_tab_report(charts_withdrawn, self.charts_withdrawn_signals.chart_withdrawn_textbox, message)
                 # Report new charts on new charts tab
                 if new_charts:
-                    utils.create_tab_report(new_charts, self.new_charts_signals.new_charts_textbox)
+                    message = "New charts in current DVD folder"
+                    utils.create_tab_report(new_charts, self.new_charts_signals.new_charts_textbox, message)
         else:
             return
         
@@ -152,7 +154,7 @@ class CHSDVDReaderApp(QMainWindow):
 
         # instantiate Compare Editions
         self.find_data_mismatches = FindDataMismatches(master_database_cursor, current_database_cursor)
-        self.find_data_mismatches.find_mismatches(tables_master_temp, master_yyyymmdd, current_yyyymmdd)
+        new_editions, errors = self.find_data_mismatches.find_mismatches(tables_master_temp, master_yyyymmdd, current_yyyymmdd)
         # for now; TODO add checkboxes so user can indicate errors are acceptable / not acceptable
         # required signal before the master database is rebuilt using the current database
         print(f'accept errors is {self.ui.acceptErrorsCheckBox.isChecked()}')
