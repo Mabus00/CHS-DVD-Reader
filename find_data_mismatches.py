@@ -38,6 +38,9 @@ class FindDataMismatches():
         print('looking for mismatches')
 
     def find_mismatches(self, tables_master, master_yyyymmdd, current_yyyymmdd):
+        new_editions = []
+        errors = []
+
          # Iterate through table names in tables_master and find corresponding table in tables_current_temp
         for table_name in tables_master:
             # add the yyyymmdd to match complete table name
@@ -53,6 +56,10 @@ class FindDataMismatches():
 
             # Define the index of the second column (file name)
             second_column_index = 1  # Assuming 0-based index
+
+            # Initialize a list to new charts and store missing chart numbers
+            found_charts = []
+            found_errors = []
 
             # Iterate through rows in the master table
             for master_row_number, master_row in enumerate(master_data, start=1):
@@ -72,8 +79,23 @@ class FindDataMismatches():
                         master_value = master_row[i]
                         current_value = matching_current_row[i]
                         if master_value != current_value:
+                            if "RM" in master_row[second_column_index]:
+                                if current_value > master_value:
+                                    found_charts.append((master_row[second_column_index], matching_current_row[4]))
+                                else:
+                                    found_errors.append((master_row[second_column_index], matching_current_row[4]))
+                            else:
+                                if current_value > master_value:
+                                    found_charts.append((master_row[second_column_index], matching_current_row[2]))
+                                else:
+                                    found_errors.append((master_row[second_column_index], matching_current_row[2 ]))
                             print(f"Mismatch in table '{table_name}', file name '{master_file_name}', column '{i + 1}' at master row {master_row_number} and current row {current_row_number}.")
+            if found_charts:
+                new_editions.append((table_name, found_charts))
+            if found_errors:
+                errors.append((table_name, found_errors))
 
+        return new_editions, errors
 
 # Main execution block (can be used for testing)
 if __name__ == "__main__":
