@@ -180,9 +180,6 @@ def detect_column_changes(column_index, base_table, secondary_table, table_name)
         # Initialize a list to new charts and store missing chart numbers
         found_charts = []
 
-        # Initialize a set to keep track of encountered chart names
-        encountered_chart_numbers = set()
-
         # Iterate through rows of master_data
         for i, row in enumerate(base_table):
 
@@ -202,9 +199,9 @@ def detect_column_changes(column_index, base_table, secondary_table, table_name)
         # If there are missing charts for this table, add the table name and missing charts to the charts_withdrawn_result
         return (table_name, found_charts) if found_charts else None
 
-def create_tab_report(results, target_textbox):
-    for table_name, missing_charts in results:
-        target_textbox.emit(f"Charts missing in current DVD folder {table_name}:")
-        # Concatenate the missing chart names with commas and print them
-        missing_chart_str = ', '.join(missing_charts)
-        target_textbox.emit(missing_chart_str + '\n')
+def create_tab_report(results, target_textbox, message):
+    for table_name, charts in results:
+        target_textbox.emit(f"{message} {table_name}:")
+        # Concatenate the chart numbers with commas
+        chart_str = ', '.join(charts)
+        target_textbox.emit(chart_str + '\n')
