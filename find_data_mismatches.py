@@ -36,6 +36,10 @@ class FindDataMismatches():
         self.master_database_cursor = master_database_cursor
         self.current_database_cursor = current_database_cursor
 
+        self.raster_table_columns = ['Chart', 'File', 'Edn Date', 'Last NTM', 'Edn#', 'Title']
+
+        self.vector_table_columns = ['Chart','ENC','EDTN','ISDT','UADT','Title']
+
         print('looking for mismatches')
 
     def find_mismatches(self, tables_master, master_yyyymmdd, current_yyyymmdd):
@@ -85,17 +89,18 @@ class FindDataMismatches():
                             master_value, current_value = utils.convert_date_for_comparison(master_value, current_value)
 
                         if master_value != current_value:
-                            if "RM" in master_row[second_column_index]:
+                            if "RM" in table_name:
                                 if current_value > master_value:
-                                    found_charts.append((master_row[second_column_index], matching_current_row[4]))
+                                    found_charts.append((master_row[second_column_index], matching_current_row[i + 1]))
                                 else:
-                                    found_errors.append((master_row[second_column_index], matching_current_row[4]))
+                                    found_errors.append((master_row[second_column_index], matching_current_row[i + 1]))
+                                print(f"'{table_name}', '{master_file_name}', '{self.raster_table_columns[i]}' = '{master_row[i]}' ->  '{matching_current_row[i]}', master row {master_row_number} / current row {current_row_number}.")
                             else:
                                 if current_value > master_value:
-                                    found_charts.append((master_row[second_column_index], matching_current_row[2]))
+                                    found_charts.append((master_row[second_column_index], matching_current_row[i + 1]))
                                 else:
-                                    found_errors.append((master_row[second_column_index], matching_current_row[2 ]))
-                            print(f"Mismatch in table '{table_name}', file name '{master_file_name}', column '{i + 1}' at master row {master_row_number} and current row {current_row_number}.")
+                                    found_errors.append((master_row[second_column_index], matching_current_row[i + 1]))
+                                print(f"'{table_name}', '{master_file_name}', '{self.vector_table_columns[i]}' = '{master_row[i]}' ->  '{matching_current_row[i]}', master row {master_row_number} / current row {current_row_number}.")
             if found_charts:
                 new_editions.append((table_name, found_charts))
             if found_errors:
