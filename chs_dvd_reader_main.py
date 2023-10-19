@@ -162,13 +162,13 @@ class CHSDVDReaderApp(QMainWindow):
         # 7. add the ability to print the result as a pdf.
         # 8. once all has been verified and the user is happy, overwrite the master with the current.
 
-        # Print a message to indicate that the checker has run
-        print('The Checker ran succesfully!')
-
         # close the databases
         utils.close_database(self.database_signals.create_database_textbox, master_database_conn, self.master_database_name)
         utils.close_database(self.run_checker_signals.run_checker_textbox, current_database_conn, self.current_database_name)
 
+        # Print a message to indicate that the checker has run
+        self.run_checker_signals.run_checker_textbox.emit('The Checker ran succesfully!')
+        
 def main():
     app = QApplication(sys.argv)
     window = CHSDVDReaderApp()
