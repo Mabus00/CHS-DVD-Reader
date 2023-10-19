@@ -8,6 +8,7 @@ import sqlite3
 from PyQt5.QtWidgets import QMessageBox, QFileDialog
 import subprocess
 import time
+from datetime import datetime
 
 ''' common functions used by more than one model / module'''
 def open_file_explorer(parent, input_path):
@@ -205,3 +206,15 @@ def create_tab_report(results, target_textbox, message):
         # Concatenate the chart numbers with commas
         chart_str = ', '.join(charts)
         target_textbox.emit(chart_str + '\n')
+
+def is_valid_date(date_str):
+    try:
+        datetime.strptime(date_str, "%d-%b-%Y")
+        return True
+    except ValueError:
+        return False
+    
+def convert_date_for_comparison(master_input_date, current_input_date):
+    date_format = "%d-%b-%Y"
+    return datetime.strptime(master_input_date, date_format), datetime.strptime(current_input_date, date_format)
+

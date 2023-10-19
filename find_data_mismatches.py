@@ -24,6 +24,7 @@ Vector table columns:
 
 # Import necessary modules
 import common_utils as utils
+from datetime import datetime
 
 # Define the RunChecker class
 class FindDataMismatches():
@@ -78,6 +79,11 @@ class FindDataMismatches():
                     for i in range(2, len(master_row)):  # Start from the third column (0-based index)
                         master_value = master_row[i]
                         current_value = matching_current_row[i]
+
+                        is_date = utils.is_valid_date(master_value)
+                        if is_date:
+                            master_value, current_value = utils.convert_date_for_comparison(master_value, current_value)
+
                         if master_value != current_value:
                             if "RM" in master_row[second_column_index]:
                                 if current_value > master_value:
