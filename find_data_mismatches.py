@@ -89,17 +89,14 @@ class FindDataMismatches():
                             master_value, current_value = utils.convert_date_for_comparison(master_value, current_value)
 
                         if master_value != current_value:
+                            if current_value > master_value:
+                                    found_charts.append((master_row[second_column_index], matching_current_row[i]))
+                            else:
+                                found_errors.append((master_row[second_column_index], matching_current_row[i]))
+
                             if "RM" in table_name:
-                                if current_value > master_value:
-                                    found_charts.append((master_row[second_column_index], matching_current_row[i + 1]))
-                                else:
-                                    found_errors.append((master_row[second_column_index], matching_current_row[i + 1]))
                                 print(f"'{table_name}', '{master_file_name}', '{self.raster_table_columns[i]}' = '{master_row[i]}' ->  '{matching_current_row[i]}', master row {master_row_number} / current row {current_row_number}.")
                             else:
-                                if current_value > master_value:
-                                    found_charts.append((master_row[second_column_index], matching_current_row[i + 1]))
-                                else:
-                                    found_errors.append((master_row[second_column_index], matching_current_row[i + 1]))
                                 print(f"'{table_name}', '{master_file_name}', '{self.vector_table_columns[i]}' = '{master_row[i]}' ->  '{matching_current_row[i]}', master row {master_row_number} / current row {current_row_number}.")
             if found_charts:
                 new_editions.append((table_name, found_charts))
