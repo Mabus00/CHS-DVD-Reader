@@ -132,18 +132,17 @@ class CHSDVDReaderApp(QMainWindow):
                 # tables_master_temp and tables_current_temp have yyyymmdd removed; do this once and share with other modules
                 # master_yyyymmdd and current_yyyymmdd are the extracted yyyymmdd for each
                 tables_master_temp, tables_current_temp, tables_missing_in_master, tables_missing_in_current, master_yyyymmdd, current_yyyymmdd = self.compare_databases.compare_databases()
-
-                # Print tables that are in master but not in current; either newly deleted or a CHS error
-                if tables_missing_in_current:
+                # report withdrawn or new folders in current_database
+                if tables_missing_in_current or tables_missing_in_master:
                     utils.show_warning_popup("Errors were noted - see the Errors Tab")
-                    message = "Folders removed from this months DVDs:"
-                    utils.create_errors_tab_report(tables_missing_in_current, current_yyyymmdd, self.errors_signals.errors_textbox, message)
-
-                # Print tables that are in current but not in master); either newly added or a CHS error
-                if tables_missing_in_master:
-                    utils.show_warning_popup("Errors were noted - see the Errors Tab")
-                    message = "New folders added to this months DVDs:"
-                    utils.create_errors_tab_report(tables_missing_in_master, current_yyyymmdd, self.errors_signals.errors_textbox, message)
+                    error_messages = {
+                        "missing_current": "Folders removed from this month's DVDs:",
+                        "missing_master": "Folders added to this month's DVDs:",
+                    }
+                    for error_type, table_list in {"missing_current": tables_missing_in_current, "missing_master": tables_missing_in_master}.items():
+                        if table_list:
+                            message = error_messages[error_type]
+                            utils.create_errors_tab_report(table_list, current_yyyymmdd, self.errors_signals.errors_textbox, message)
 
                 # Remove tables_missing_from_current from tables_master so table content matches; no need to check tables_missing_in_master because these are newly added
                 tables_master_temp = list(set(tables_master_temp) - set(tables_missing_in_current))
