@@ -18,11 +18,10 @@ from datetime import datetime
 class RunChecker():
 
     # Constructor for initializing the RunChecker object
-    def __init__(self, current_database_name, run_checker_textbox, errors_textbox, database_input_path):
+    def __init__(self, current_database_name, run_checker_textbox, database_input_path):
         self.current_database_name = current_database_name
         # Create an instance of CreateDatabaseSignals (not shown in code, assuming it's an imported class)
         self.run_checker_textbox = run_checker_textbox
-        self.errors_textbox = errors_textbox
 
         # database data input path
         self.input_data_path = database_input_path

@@ -105,7 +105,7 @@ class CHSDVDReaderApp(QMainWindow):
         utils.clear_all_text_boxes(self.text_browsers)
 
         # instantiate run_checker
-        self.run_checker = RunChecker(self.current_database_name, self.run_checker_signals.run_checker_textbox, self.errors_signals.errors_textbox, self.ui.checker_data_input_path.text())
+        self.run_checker = RunChecker(self.current_database_name, self.run_checker_signals.run_checker_textbox, self.ui.checker_data_input_path.text())
         
         # confirm that pre-build checks are met before proceeding 
         if self.run_checker.pre_build_checks():
@@ -127,11 +127,24 @@ class CHSDVDReaderApp(QMainWindow):
                 # Compares the content of the master and current databases and finds new (i.e., not in master but in current) or missing (i.e., withdrawn)
                 # (i.e., in master but not in current) tables and reports the findings on the appropriate tabs.
                 # run this first so you can ignore missing tables in follow on code
-                self.compare_databases = CompareDatabases(self.run_checker_signals.run_checker_textbox, self.errors_signals.errors_textbox, master_database_cursor, current_database_cursor)
+                self.compare_databases = CompareDatabases(master_database_cursor, current_database_cursor)
                 # tables_missing_in_current represent tables that have been removed; tables_missing_in_master represent tables that have been added in current
                 # tables_master_temp and tables_current_temp have yyyymmdd removed; do this once and share with other modules
                 # master_yyyymmdd and current_yyyymmdd are the extracted yyyymmdd for each
-                tables_master_temp, tables_current_temp, tables_missing_in_current, master_yyyymmdd, current_yyyymmdd = self.compare_databases.compare_databases()
+                tables_master_temp, tables_current_temp, tables_missing_in_master, tables_missing_in_current, master_yyyymmdd, current_yyyymmdd = self.compare_databases.compare_databases()
+
+                # Print tables that are in master but not in current; either newly deleted or a CHS error
+                if tables_missing_in_current:
+                    utils.show_warning_popup("Errors were noted - see the Errors Tab")
+                    message = "Folders removed from this months DVDs:"
+                    utils.create_errors_tab_report(tables_missing_in_current, current_yyyymmdd, self.errors_signals.errors_textbox, message)
+
+                # Print tables that are in current but not in master); either newly added or a CHS error
+                if tables_missing_in_master:
+                    utils.show_warning_popup("Errors were noted - see the Errors Tab")
+                    message = "New folders added to this months DVDs:"
+                    utils.create_errors_tab_report(tables_missing_in_master, current_yyyymmdd, self.errors_signals.errors_textbox, message)
+
                 # Remove tables_missing_from_current from tables_master so table content matches; no need to check tables_missing_in_master because these are newly added
                 tables_master_temp = list(set(tables_master_temp) - set(tables_missing_in_current))
                 # creates instance of CompareChartNumbers
@@ -141,20 +154,18 @@ class CHSDVDReaderApp(QMainWindow):
                 # Report missing charts on missing charts tab
                 if charts_withdrawn:
                     message = "Charts missing in current DVD folder"
-                    utils.create_tab_report(charts_withdrawn, self.charts_withdrawn_signals.chart_withdrawn_textbox, message)
+                    utils.create_charts_tab_report(charts_withdrawn, self.charts_withdrawn_signals.chart_withdrawn_textbox, message)
                 # Report new charts on new charts tab
                 if new_charts:
                     message = "New charts in current DVD folder"
-                    utils.create_tab_report(new_charts, self.new_charts_signals.new_charts_textbox, message)
+                    utils.create_charts_tab_report(new_charts, self.new_charts_signals.new_charts_textbox, message)
         else:
             return
-        
-        # remove charts_withdrawn from current_database so the databases match
-        
 
         # instantiate Compare Editions
         self.find_data_mismatches = FindDataMismatches(master_database_cursor, current_database_cursor)
         new_editions, errors = self.find_data_mismatches.find_mismatches(tables_master_temp, master_yyyymmdd, current_yyyymmdd)
+        
         # for now; TODO add checkboxes so user can indicate errors are acceptable / not acceptable
         # required signal before the master database is rebuilt using the current database
         print(f'accept errors is {self.ui.acceptErrorsCheckBox.isChecked()}')

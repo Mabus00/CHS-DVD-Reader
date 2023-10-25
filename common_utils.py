@@ -9,6 +9,7 @@ from PyQt5.QtWidgets import QMessageBox, QFileDialog
 import subprocess
 import time
 from datetime import datetime
+import common_utils as utils
 
 ''' common functions used by more than one model / module'''
 def open_file_explorer(parent, input_path):
@@ -200,12 +201,34 @@ def detect_column_changes(column_index, base_table, secondary_table, table_name)
         # If there are missing charts for this table, add the table name and missing charts to the charts_withdrawn_result
         return (table_name, found_charts) if found_charts else None
 
-def create_tab_report(results, target_textbox, message):
+def create_charts_tab_report(results, target_textbox, message):
+    # tab reports for new and withdrawn charts
     for table_name, charts in results:
         target_textbox.emit(f"{message} {table_name}:")
         # Concatenate the chart numbers with commas
         chart_str = ', '.join(charts)
         target_textbox.emit(chart_str + '\n')
+
+def create_editions_tab_report(results, target_textbox, message):
+    # tab report for new editions
+    for table_name, charts in results:
+        target_textbox.emit(f"{message} {table_name}:")
+        # Concatenate the chart numbers with commas
+        chart_str = ', '.join(charts)
+        target_textbox.emit(chart_str + '\n')
+
+def create_errors_tab_report(results, current_yyyymmdd, target_textbox, message):
+    # tab report for any errors.
+    combined_results = "" 
+    for result in results:
+        # check to see if there's a date requirement; if no current_yyyymmdd then it's just a message
+        if current_yyyymmdd:
+            temp = utils.insert_text(result, current_yyyymmdd, pos_to_insert=1)
+            if combined_results:
+                # If there are already results in the combined string, add a comma and space
+                combined_results += ", "
+            combined_results += temp
+    target_textbox.emit(f"{message} {combined_results} \n")
 
 def is_valid_date(date_str):
     try:
