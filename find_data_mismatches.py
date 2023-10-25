@@ -94,6 +94,7 @@ class FindDataMismatches():
                             else:
                                 found_errors.append((master_row[second_column_index], matching_current_row[i]))
 
+                            # RIGHT HERE - BUILD TABLES OF INFORMATION FOR RETURN THEN TO COMMON_UTILS
                             if "RM" in table_name:
                                 print(f"'{table_name}', '{master_file_name}', '{self.raster_table_columns[i]}' = '{master_row[i]}' ->  '{matching_current_row[i]}', master row {master_row_number} / current row {current_row_number}.")
                             else:
