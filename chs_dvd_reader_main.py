@@ -5,6 +5,7 @@ Main CONTROLLER for app.  There are two sub controllers:
 
 I chose to use custom signals and slots to provide greater seperation of concerns and looser coupling.
 I could have gone directly from the UI signal to the slot but chose this instead.
+Note that I control almost all signals from here.  I could have done that in utils but i felt if went against the MVC architecture.
 
 tables = CHS DVD folders
 
@@ -19,7 +20,7 @@ import os
 import inspect
 from PyQt5.QtWidgets import QApplication, QMainWindow, QTextBrowser
 from chs_dvd_gui import Ui_MainWindow
-from custom_signals import CreateDatabaseSignals, RunCheckerSignals, NewChartsSignals, WithdrawnSignals, ErrorsSignals
+from custom_signals import CreateDatabaseSignals, RunCheckerSignals, NewChartsSignals, NewEditionsSignals, WithdrawnSignals, ErrorsSignals
 from build_database import BuildDatabase
 from run_checker import RunChecker
 from compare_databases import CompareDatabases
@@ -52,6 +53,9 @@ class CHSDVDReaderApp(QMainWindow):
         # Create an instance of NewChartsSignals
         self.new_charts_signals = NewChartsSignals()
 
+        # Create an instance of NewChartsSignals
+        self.new_editions_signals = NewEditionsSignals()
+
         # Create an instance of ErrorsSignals
         self.errors_signals = ErrorsSignals()
 
@@ -83,6 +87,7 @@ class CHSDVDReaderApp(QMainWindow):
         self.run_checker_signals.run_checker_textbox.connect(lambda message: utils.update_text_browser(self.ui.runCheckerTextBrowser, message))
         self.errors_signals.errors_textbox.connect(lambda message: utils.update_text_browser(self.ui.errorsTextBrowser, message))
         self.new_charts_signals.new_charts_textbox.connect(lambda message: utils.update_text_browser(self.ui.newChartsTextBrowser, message))
+        self.new_editions_signals.new_editions_textbox.connect(lambda message: utils.update_text_browser(self.ui.newEditionsTextBrowser, message))
         self.charts_withdrawn_signals.chart_withdrawn_textbox.connect(lambda message: utils.update_text_browser(self.ui.chartsWithdrawnTextBrowser, message))
         self.database_signals.create_database_textbox.connect(lambda message: utils.update_text_browser(self.ui.createDatabaseTextBrowser, message))
 
@@ -150,7 +155,7 @@ class CHSDVDReaderApp(QMainWindow):
                 self.compare_databases = CompareChartNumbers(master_database_cursor, current_database_cursor)
                 # compares master and current databases and report charts withdrawn and new charts
                 charts_withdrawn, new_charts = self.compare_databases.compare_chart_numbers(tables_master_temp, master_yyyymmdd, current_yyyymmdd)
-                # Report missing charts on missing charts tab
+                # Report missing charts on missing charts tab; can't use same process as above because of textbox identification
                 if charts_withdrawn:
                     message = "Charts missing in current DVD folder"
                     utils.create_charts_tab_report(charts_withdrawn, self.charts_withdrawn_signals.chart_withdrawn_textbox, message)
@@ -164,6 +169,15 @@ class CHSDVDReaderApp(QMainWindow):
         # instantiate Compare Editions
         self.find_data_mismatches = FindDataMismatches(master_database_cursor, current_database_cursor)
         new_editions, errors = self.find_data_mismatches.find_mismatches(tables_master_temp, master_yyyymmdd, current_yyyymmdd)
+        # report new_editions and errors
+         # Report missing charts on missing charts tab; can't use same process as above because of textbox identification
+        if new_editions:
+            message = "The following folders have the indicated new editions:"
+            utils.create_editions_tab_report(new_editions, current_yyyymmdd, self.new_editions_signals.new_editions_textbox, message)
+        # Report new charts on new charts tab
+        if errors:
+            message = "The following folders have these possible errors:"
+            utils.create_errors_tab_report(errors, current_yyyymmdd, self.errors_signals.errors_textbox, message)
         
         # for now; TODO add checkboxes so user can indicate errors are acceptable / not acceptable
         # required signal before the master database is rebuilt using the current database

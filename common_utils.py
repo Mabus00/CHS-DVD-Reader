@@ -209,13 +209,16 @@ def create_charts_tab_report(results, target_textbox, message):
         chart_str = ', '.join(charts)
         target_textbox.emit(chart_str + '\n')
 
-def create_editions_tab_report(results, target_textbox, message):
-    # tab report for new editions
-    for table_name, charts in results:
-        target_textbox.emit(f"{message} {table_name}:")
-        # Concatenate the chart numbers with commas
-        chart_str = ', '.join(charts)
-        target_textbox.emit(chart_str + '\n')
+def create_editions_tab_report(results, current_yyyymmdd, target_textbox, message):
+    
+    raster_table_columns = ['Chart', 'File', 'Edn Date', 'Last NTM', 'Edn#', 'Title']
+
+    vector_table_columns = ['Chart','ENC','EDTN','ISDT','UADT','Title']
+
+    for result in results:
+        # add date to folder name
+        temp = utils.insert_text(result[0], current_yyyymmdd, pos_to_insert=1)
+        
 
 def create_errors_tab_report(results, current_yyyymmdd, target_textbox, message):
     # tab report for any errors.
