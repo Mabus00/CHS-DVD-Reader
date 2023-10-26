@@ -228,7 +228,7 @@ def update_new_editions_tab(results, current_yyyymmdd, target_textbox, message):
 def update_misc_findings_tab(results, current_yyyymmdd, target_textbox, message):
     # establish the type of misc_finding as the tab is used for different misc reports
     for result in results:
-        if isinstance(result, tuple):
+        if isinstance(result, tuple): # tuple is for folder with full details
             table_name, details = result
             # add date to folder name
             temp = utils.insert_text(table_name, current_yyyymmdd, pos_to_insert=1)
