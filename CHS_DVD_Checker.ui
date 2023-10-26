@@ -233,7 +233,7 @@
     </widget>
     <widget class="QWidget" name="errors">
      <attribute name="title">
-      <string>Misc. Results</string>
+      <string>Misc. Findings</string>
      </attribute>
      <widget class="QTextBrowser" name="errorsTextBrowser">
       <property name="geometry">

@@ -165,22 +165,22 @@ class CHSDVDReaderApp(QMainWindow):
         else:
             return
 
-        # instantiate Compare Editions
+        # instantiate FindDataMismatches
         self.find_data_mismatches = FindDataMismatches(master_database_cursor, current_database_cursor)
-        new_editions, misc_results = self.find_data_mismatches.find_mismatches(tables_master_temp, master_yyyymmdd, current_yyyymmdd)
-        # report new_editions and errors
+        new_editions, misc_findings = self.find_data_mismatches.find_mismatches(tables_master_temp, master_yyyymmdd, current_yyyymmdd)
+        # report new_editions and misc. findings (findings that couldn't be categorized as New Charts, New Editions or Charts Withdrawn)
          # Report missing charts on missing charts tab; can't use same process as above because of textbox identification
         if new_editions:
             message = "The following folders have the indicated new editions:"
             utils.update_editions_tab_report(new_editions, current_yyyymmdd, self.new_editions_signals.new_editions_textbox, message)
         # Report new charts on new charts tab
-        if misc_results:
-            message = "The following folders have these possible errors:"
-            utils.update_errors_tab_report(misc_results, current_yyyymmdd, self.errors_signals.errors_textbox, message)
+        if misc_findings:
+            message = "The following folders have uncategorized findings:"
+            utils.update_errors_tab_report(misc_findings, current_yyyymmdd, self.errors_signals.errors_textbox, message)
         
         # for now; TODO add checkboxes so user can indicate errors are acceptable / not acceptable
         # required signal before the master database is rebuilt using the current database
-        print(f'accept errors is {self.ui.acceptErrorsCheckBox.isChecked()}')
+        print(f'accept Misc. Results is {self.ui.acceptErrorsCheckBox.isChecked()}')
         
         # 7. add the ability to print the result as a pdf.
         # 8. once all has been verified and the user is happy, overwrite the master with the current.

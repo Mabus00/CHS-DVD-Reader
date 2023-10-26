@@ -172,7 +172,7 @@ class Ui_MainWindow(object):
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.withdrawals), _translate("MainWindow", "Charts Withdrawn"))
         self.newChartsLabel_4.setText(_translate("MainWindow", "The following results could not be categorized:"))
         self.acceptErrorsCheckBox.setText(_translate("MainWindow", "The above results have been reviewed and are acceptable"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.errors), _translate("MainWindow", "Misc. Results"))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.errors), _translate("MainWindow", "Misc. Findings"))
         self.rebuild_checkbox.setText(_translate("MainWindow", "Check to confirm: delete and rebuild database?"))
         self.createDatabaseProgressReportLabel.setText(_translate("MainWindow", "Progress Report:"))
         self.buildDatabaseButton.setText(_translate("MainWindow", "Execute Create Database"))

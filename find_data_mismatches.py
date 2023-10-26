@@ -44,14 +44,14 @@ class FindDataMismatches():
 
     def find_mismatches(self, tables_master, master_yyyymmdd, current_yyyymmdd):
         new_editions = []
-        errors = []
+        misc_findings = []
 
-         # Iterate through table names in tables_master and find corresponding table in tables_current_temp
+        # Iterate through table names in tables_master and find corresponding table in tables_current_temp
         for table_name in tables_master:
-            # add the yyyymmdd to match complete table name
+            # add the yyyymmdd to match the complete table name
             temp_master_table_name = utils.insert_text(table_name, master_yyyymmdd, pos_to_insert=1)
             temp_current_table_name = utils.insert_text(table_name, current_yyyymmdd, pos_to_insert=1)
-            
+
             # Table exists in both databases; compare content
             self.master_database_cursor.execute(f"SELECT * FROM {temp_master_table_name}")
             master_data = self.master_database_cursor.fetchall()
@@ -63,48 +63,44 @@ class FindDataMismatches():
             second_column_index = 1  # Assuming 0-based index
 
             # Initialize a list to new charts and store missing chart numbers
-            found_charts = []
-            found_errors = []
+            found_new_edition = []
+            misc_finding = []
 
             # Iterate through rows in the master table
-            for master_row_number, master_row in enumerate(master_data, start=1):
+            for master_row in master_data:
                 # Extract the file name from the master row
                 master_file_name = master_row[second_column_index]
 
                 # Find the corresponding row in the current table using the file name
                 matching_current_row = None
-                for current_row_number, current_row in enumerate(current_data, start=1):
+                for current_row in current_data:
                     if current_row[second_column_index] == master_file_name:
                         matching_current_row = current_row
                         break
 
-                # If a matching row is found, compare the content of the remaining four columns
+                # If a matching row is found, compare the content of the remaining columns
                 if matching_current_row:
-                    for i in range(2, len(master_row)):  # Start from the third column (0-based index)
-                        master_value = master_row[i]
-                        current_value = matching_current_row[i]
+                    master_content = master_row[2:]  # Get the content of columns 2-4
+                    current_content = matching_current_row[2:]  # Get the content of columns 2-4 in current_value
 
-                        is_date = utils.is_valid_date(master_value)
-                        if is_date:
-                            master_value, current_value = utils.convert_date_for_comparison(master_value, current_value)
+                    is_date = all(utils.is_valid_date(value) for value in master_content)
+                    if is_date:
+                        master_content, current_content = zip(*[utils.convert_date_for_comparison(master, current)
+                                                                for master, current in zip(master_content, current_content)])
 
-                        if master_value != current_value:
-                            if current_value > master_value:
-                                    found_charts.append((master_row[second_column_index], matching_current_row[i]))
-                            else:
-                                found_errors.append((master_row[second_column_index], matching_current_row[i]))
+                    if master_content[:3] != current_content[:3]:
+                        found_new_edition.append((master_row[second_column_index], matching_current_row[2:]))
 
-                            # RIGHT HERE - BUILD TABLES OF INFORMATION FOR RETURN THEN TO COMMON_UTILS
-                            if "RM" in table_name:
-                                print(f"'{table_name}', '{master_file_name}', '{self.raster_table_columns[i]}' = '{master_row[i]}' ->  '{matching_current_row[i]}', master row {master_row_number} / current row {current_row_number}.")
-                            else:
-                                print(f"'{table_name}', '{master_file_name}', '{self.vector_table_columns[i]}' = '{master_row[i]}' ->  '{matching_current_row[i]}', master row {master_row_number} / current row {current_row_number}.")
-            if found_charts:
-                new_editions.append((table_name, found_charts))
-            if found_errors:
-                errors.append((table_name, found_errors))
+                    if master_content[3] != current_content[3]:
+                        misc_finding.append((master_row[second_column_index], matching_current_row[2:]))
 
-        return new_editions, errors
+            if found_new_edition:
+                new_editions.append((table_name, found_new_edition))
+            if misc_finding:
+                misc_findings.append((table_name, misc_finding))
+
+        return new_editions, misc_findings
+
 
 # Main execution block (can be used for testing)
 if __name__ == "__main__":
