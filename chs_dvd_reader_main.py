@@ -174,9 +174,9 @@ class CHSDVDReaderApp(QMainWindow):
             message = "The following folders have the indicated new editions:"
             utils.update_new_editions_tab(new_editions, current_yyyymmdd, self.new_editions_signals.new_editions_textbox, message)
         # Report new charts on new charts tab
-        # if misc_findings:
-        #     message = "The following folders have uncategorized findings:"
-        #     utils.update_misc_findings_tab(misc_findings, current_yyyymmdd, self.errors_signals.errors_textbox, message)
+        if misc_findings:
+            message = "The following folders have uncategorized findings that may indicate potential errors:"
+            utils.update_misc_findings_tab(misc_findings, current_yyyymmdd, self.errors_signals.errors_textbox, message)
         
         # for now; TODO add checkboxes so user can indicate errors are acceptable / not acceptable
         # required signal before the master database is rebuilt using the current database

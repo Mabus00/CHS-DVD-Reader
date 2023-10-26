@@ -89,7 +89,11 @@ class FindDataMismatches():
                                                                 for master, current in zip(master_content, current_content)])
 
                     if master_content[:3] != current_content[:3]:
-                        found_new_edition.append(matching_current_row)
+                        # Check each field individually for inequality; ensuring that whatever doesn't match is greater (looking for errors)
+                        if any(m != c and c > m for m, c in zip(master_content[:3], current_content[:3])):
+                            found_new_edition.append(matching_current_row)
+                        else:
+                            misc_finding.append(matching_current_row)
 
                     if master_content[3] != current_content[3]:
                         misc_finding.append(matching_current_row)

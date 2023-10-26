@@ -211,11 +211,6 @@ def update_new_charts_tab(results, target_textbox, message):
         target_textbox.emit(chart_str + '\n')
 
 def update_new_editions_tab(results, current_yyyymmdd, target_textbox, message):
-    
-    raster_table_columns = ['Chart', 'File', 'Edn Date', 'Last NTM', 'Edn#', 'Title']
-
-    vector_table_columns = ['Chart','ENC','EDTN','ISDT','UADT','Title']
-
     for table_name, details in results:
         # add date to folder name
         temp = utils.insert_text(table_name, current_yyyymmdd, pos_to_insert=1)
@@ -231,17 +226,31 @@ def update_new_editions_tab(results, current_yyyymmdd, target_textbox, message):
         target_textbox.emit("\n")
         
 def update_misc_findings_tab(results, current_yyyymmdd, target_textbox, message):
-    # tab report for any errors.
-    combined_results = "" 
+    # establish the type of misc_finding as the tab is used for different misc reports
     for result in results:
-        # check to see if there's a date requirement; if no current_yyyymmdd then it's just a message
-        if current_yyyymmdd:
+        if isinstance(result, tuple):
+            table_name, details = result
+            # add date to folder name
+            temp = utils.insert_text(table_name, current_yyyymmdd, pos_to_insert=1)
+            target_textbox.emit(f"{message} {temp}:")
+            if "RM" in table_name:
+                for data in details:
+                    formatted_data = f"{data[1]:<12} {data[4]:>7}   {data[5]}"
+                    target_textbox.emit(formatted_data)
+            else:
+                for data in details:
+                    formatted_data = f"{data[1]:<12} {data[2]:<7}   {data[5]} "
+                    target_textbox.emit(formatted_data)
+            target_textbox.emit("\n")
+        else:
+            # tab report for any errors.
+            combined_results = "" 
             temp = utils.insert_text(result, current_yyyymmdd, pos_to_insert=1)
             if combined_results:
                 # If there are already results in the combined string, add a comma and space
                 combined_results += ", "
             combined_results += temp
-    target_textbox.emit(f"{message} {combined_results} \n")
+            target_textbox.emit(f"{message} {combined_results} \n")
 
 def is_valid_date(date_str):
     try:
