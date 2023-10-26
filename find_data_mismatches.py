@@ -89,10 +89,10 @@ class FindDataMismatches():
                                                                 for master, current in zip(master_content, current_content)])
 
                     if master_content[:3] != current_content[:3]:
-                        found_new_edition.append((master_row[second_column_index], matching_current_row[2:]))
+                        found_new_edition.append(matching_current_row)
 
                     if master_content[3] != current_content[3]:
-                        misc_finding.append((master_row[second_column_index], matching_current_row[2:]))
+                        misc_finding.append(matching_current_row)
 
             if found_new_edition:
                 new_editions.append((table_name, found_new_edition))

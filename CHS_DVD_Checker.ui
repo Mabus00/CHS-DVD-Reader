@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>939</width>
-    <height>694</height>
+    <width>1126</width>
+    <height>787</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -23,7 +23,7 @@
    <widget class="QLabel" name="title">
     <property name="geometry">
      <rect>
-      <x>250</x>
+      <x>380</x>
       <y>10</y>
       <width>351</width>
       <height>51</height>
@@ -46,10 +46,10 @@
    <widget class="QTabWidget" name="tabWidget">
     <property name="geometry">
      <rect>
-      <x>30</x>
+      <x>40</x>
       <y>70</y>
-      <width>811</width>
-      <height>471</height>
+      <width>1091</width>
+      <height>641</height>
      </rect>
     </property>
     <property name="sizePolicy">
@@ -66,7 +66,7 @@
      </font>
     </property>
     <property name="currentIndex">
-     <number>4</number>
+     <number>5</number>
     </property>
     <property name="documentMode">
      <bool>false</bool>
@@ -136,13 +136,13 @@
        <string>Progress Report:</string>
       </property>
      </widget>
-     <widget class="QTextBrowser" name="runCheckerTextBrowser">
+     <widget class="QTextEdit" name="runCheckerTextBrowser">
       <property name="geometry">
        <rect>
         <x>20</x>
         <y>250</y>
-        <width>601</width>
-        <height>151</height>
+        <width>881</width>
+        <height>281</height>
        </rect>
       </property>
      </widget>
@@ -164,13 +164,13 @@
        <string>The following New Charts are announced:</string>
       </property>
      </widget>
-     <widget class="QTextBrowser" name="newChartsTextBrowser">
+     <widget class="QTextEdit" name="newChartsTextBrowser">
       <property name="geometry">
        <rect>
         <x>20</x>
-        <y>100</y>
-        <width>601</width>
-        <height>221</height>
+        <y>110</y>
+        <width>881</width>
+        <height>281</height>
        </rect>
       </property>
      </widget>
@@ -179,16 +179,6 @@
      <attribute name="title">
       <string>New Editions</string>
      </attribute>
-     <widget class="QTextBrowser" name="newEditionsTextBrowser">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>100</y>
-        <width>601</width>
-        <height>221</height>
-       </rect>
-      </property>
-     </widget>
      <widget class="QLabel" name="newChartsLabel_2">
       <property name="geometry">
        <rect>
@@ -202,21 +192,21 @@
        <string>The following New Editions are announced:</string>
       </property>
      </widget>
+     <widget class="QTextEdit" name="newEditionsTextBrowser">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>100</y>
+        <width>881</width>
+        <height>331</height>
+       </rect>
+      </property>
+     </widget>
     </widget>
     <widget class="QWidget" name="withdrawals">
      <attribute name="title">
       <string>Charts Withdrawn</string>
      </attribute>
-     <widget class="QTextBrowser" name="chartsWithdrawnTextBrowser">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>100</y>
-        <width>601</width>
-        <height>221</height>
-       </rect>
-      </property>
-     </widget>
      <widget class="QLabel" name="newChartsLabel_3">
       <property name="geometry">
        <rect>
@@ -230,21 +220,21 @@
        <string>The following charts are announced as withdrawn:</string>
       </property>
      </widget>
+     <widget class="QTextEdit" name="chartsWithdrawnTextBrowser">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>100</y>
+        <width>881</width>
+        <height>331</height>
+       </rect>
+      </property>
+     </widget>
     </widget>
     <widget class="QWidget" name="errors">
      <attribute name="title">
       <string>Misc. Findings</string>
      </attribute>
-     <widget class="QTextBrowser" name="errorsTextBrowser">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>100</y>
-        <width>601</width>
-        <height>221</height>
-       </rect>
-      </property>
-     </widget>
      <widget class="QLabel" name="newChartsLabel_4">
       <property name="geometry">
        <rect>
@@ -262,13 +252,23 @@
       <property name="geometry">
        <rect>
         <x>20</x>
-        <y>360</y>
+        <y>560</y>
         <width>451</width>
         <height>21</height>
        </rect>
       </property>
       <property name="text">
        <string>The above results have been reviewed and are acceptable</string>
+      </property>
+     </widget>
+     <widget class="QTextEdit" name="errorsTextBrowser">
+      <property name="geometry">
+       <rect>
+        <x>23</x>
+        <y>100</y>
+        <width>881</width>
+        <height>431</height>
+       </rect>
       </property>
      </widget>
     </widget>
@@ -350,13 +350,13 @@
        <string/>
       </property>
      </widget>
-     <widget class="QTextBrowser" name="createDatabaseTextBrowser">
+     <widget class="QTextEdit" name="createDatabaseTextBrowser">
       <property name="geometry">
        <rect>
         <x>20</x>
-        <y>250</y>
-        <width>601</width>
-        <height>151</height>
+        <y>240</y>
+        <width>881</width>
+        <height>251</height>
        </rect>
       </property>
      </widget>
@@ -368,7 +368,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>939</width>
+     <width>1126</width>
      <height>21</height>
     </rect>
    </property>

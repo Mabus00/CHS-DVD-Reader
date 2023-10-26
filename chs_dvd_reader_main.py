@@ -146,7 +146,7 @@ class CHSDVDReaderApp(QMainWindow):
                     for error_type, table_list in {"missing_current": tables_missing_in_current, "missing_master": tables_missing_in_master}.items():
                         if table_list:
                             message = error_messages[error_type]
-                            utils.update_errors_tab_report(table_list, current_yyyymmdd, self.errors_signals.errors_textbox, message)
+                            utils.update_misc_findings_tab(table_list, current_yyyymmdd, self.errors_signals.errors_textbox, message)
 
                 # Remove tables_missing_from_current from tables_master so table content matches; no need to check tables_missing_in_master because these are newly added
                 tables_master_temp = list(set(tables_master_temp) - set(tables_missing_in_current))
@@ -157,11 +157,11 @@ class CHSDVDReaderApp(QMainWindow):
                 # Report missing charts on missing charts tab; can't use same process as above because of textbox identification
                 if charts_withdrawn:
                     message = "Charts missing in current DVD folder"
-                    utils.update_charts_tab_report(charts_withdrawn, self.charts_withdrawn_signals.chart_withdrawn_textbox, message)
+                    utils.update_new_charts_tab(charts_withdrawn, self.charts_withdrawn_signals.chart_withdrawn_textbox, message)
                 # Report new charts on new charts tab
                 if new_charts:
                     message = "New charts in current DVD folder"
-                    utils.update_charts_tab_report(new_charts, self.new_charts_signals.new_charts_textbox, message)
+                    utils.update_new_charts_tab(new_charts, self.new_charts_signals.new_charts_textbox, message)
         else:
             return
 
@@ -172,11 +172,11 @@ class CHSDVDReaderApp(QMainWindow):
          # Report missing charts on missing charts tab; can't use same process as above because of textbox identification
         if new_editions:
             message = "The following folders have the indicated new editions:"
-            utils.update_editions_tab_report(new_editions, current_yyyymmdd, self.new_editions_signals.new_editions_textbox, message)
+            utils.update_new_editions_tab(new_editions, current_yyyymmdd, self.new_editions_signals.new_editions_textbox, message)
         # Report new charts on new charts tab
-        if misc_findings:
-            message = "The following folders have uncategorized findings:"
-            utils.update_errors_tab_report(misc_findings, current_yyyymmdd, self.errors_signals.errors_textbox, message)
+        # if misc_findings:
+        #     message = "The following folders have uncategorized findings:"
+        #     utils.update_misc_findings_tab(misc_findings, current_yyyymmdd, self.errors_signals.errors_textbox, message)
         
         # for now; TODO add checkboxes so user can indicate errors are acceptable / not acceptable
         # required signal before the master database is rebuilt using the current database
