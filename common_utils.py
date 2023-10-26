@@ -201,7 +201,7 @@ def detect_column_changes(column_index, base_table, secondary_table, table_name)
         # If there are missing charts for this table, add the table name and missing charts to the charts_withdrawn_result
         return (table_name, found_charts) if found_charts else None
 
-def create_charts_tab_report(results, target_textbox, message):
+def update_charts_tab_report(results, target_textbox, message):
     # tab reports for new and withdrawn charts
     for table_name, charts in results:
         target_textbox.emit(f"{message} {table_name}:")
@@ -209,7 +209,7 @@ def create_charts_tab_report(results, target_textbox, message):
         chart_str = ', '.join(charts)
         target_textbox.emit(chart_str + '\n')
 
-def create_editions_tab_report(results, current_yyyymmdd, target_textbox, message):
+def update_editions_tab_report(results, current_yyyymmdd, target_textbox, message):
     
     raster_table_columns = ['Chart', 'File', 'Edn Date', 'Last NTM', 'Edn#', 'Title']
 
@@ -219,8 +219,7 @@ def create_editions_tab_report(results, current_yyyymmdd, target_textbox, messag
         # add date to folder name
         temp = utils.insert_text(result[0], current_yyyymmdd, pos_to_insert=1)
         
-
-def create_errors_tab_report(results, current_yyyymmdd, target_textbox, message):
+def update_errors_tab_report(results, current_yyyymmdd, target_textbox, message):
     # tab report for any errors.
     combined_results = "" 
     for result in results:
