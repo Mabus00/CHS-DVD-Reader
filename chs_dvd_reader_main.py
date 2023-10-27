@@ -111,6 +111,7 @@ class CHSDVDReaderApp(QMainWindow):
         # instantiate run_checker
         self.run_checker = RunChecker(self.current_database_name, self.run_checker_signals.run_checker_textbox, self.ui.checker_data_input_path.text())
         
+        # First Part - check for new editions and withdrawn charts
         # confirm that pre-build checks are met before proceeding 
         if self.run_checker.pre_build_checks():
             # establish database connections; operate under assumption that master_database won't be created each time widget is used

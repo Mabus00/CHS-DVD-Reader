@@ -36,12 +36,6 @@ class FindDataMismatches():
         self.master_database_cursor = master_database_cursor
         self.current_database_cursor = current_database_cursor
 
-        self.raster_table_columns = ['Chart', 'File', 'Edn Date', 'Last NTM', 'Edn#', 'Title']
-
-        self.vector_table_columns = ['Chart','ENC','EDTN','ISDT','UADT','Title']
-
-        print('looking for mismatches')
-
     def find_mismatches(self, tables_master, master_yyyymmdd, current_yyyymmdd):
         new_editions = []
         misc_findings = []

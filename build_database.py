@@ -77,7 +77,7 @@ class BuildDatabase():
                 desktop_folder_path = os.path.join(self.input_data_path, folder_name)
                 folders = utils.list_folders(desktop_folder_path)
                 if folders:
-                    self.create_database_textbox.emit(f"\nFolders in '{desktop_folder_path}':")
+                    self.create_database_textbox.emit(f"\nAdded '{desktop_folder_path}' to database.")
                     self.process_folders(folders, desktop_folder_path, folder_name)
                 else:
                     self.create_database_textbox.emit(f"\no folders found in '{desktop_folder_path}'.")
@@ -98,12 +98,10 @@ class BuildDatabase():
         sub_folder_path = os.path.join(folder_path, folder)
         txt_files = utils.get_txt_files(sub_folder_path)
         if txt_files:
-            self.create_database_textbox.emit(f"Folder: {folder}")
             for txt_file in txt_files:
                 txt_file_path = os.path.join(sub_folder_path, txt_file)
                 utils.create_table(table_name, txt_file_path, self.master_database_cursor)  # Create the table
                 utils.insert_data(table_name, txt_file_path, self.master_database_cursor)    # Insert data into the table
-            self.create_database_textbox.emit("Table and data added.")
         else:
             self.create_database_textbox.emit("\nNo .txt files in this folder.")
    
