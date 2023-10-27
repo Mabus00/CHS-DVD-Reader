@@ -22,3 +22,9 @@ sqlite>SELECT * FROM table_name LIMIT n;<br>
 google sqlitebrowser and download / install DB Browser for SQLite - Standard installer for 64-bit windows
 
 
+## TODO (dated 27 Oct 23)
+add master_database entry to misc_reports so user can compare and see the difference.
+one done and happy user selects "accept current month as new master database"; delete chs_dvd.db and rename current_month.db to chs_dvd.db
+create .pdf report; format to mimic NOTMAR .pdf format
+convert to app.
+

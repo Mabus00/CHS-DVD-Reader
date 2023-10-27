@@ -59,7 +59,7 @@ class BuildDatabase():
             if dvd_name:
                 folders = utils.list_folders(self.input_data_path)
                 if folders:
-                    self.create_database_textbox.emit(f"\nFolders in '{dvd_name}':")
+                    self.create_database_textbox.emit(f"\Added '{dvd_name}' to database.")
                     # database data input path is self.input_data_path
                     self.process_folders(folders, self.input_data_path, dvd_name)
                 else:
