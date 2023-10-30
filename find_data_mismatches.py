@@ -81,7 +81,7 @@ class FindDataMismatches():
                     if is_date:
                         master_content, current_content = zip(*[utils.convert_date_for_comparison(master, current)
                                                                 for master, current in zip(master_content, current_content)])
-
+                    # compare the edition information
                     if master_content[:3] != current_content[:3]:
                         # Check each field individually for inequality; ensuring that whatever doesn't match is greater (looking for errors)
                         if any(m != c and c > m for m, c in zip(master_content[:3], current_content[:3])):
@@ -89,6 +89,7 @@ class FindDataMismatches():
                         else:
                             misc_finding.append(matching_current_row)
 
+                    # checking the title to see if any changes
                     if master_content[3] != current_content[3]:
                         misc_finding.append(matching_current_row)
 

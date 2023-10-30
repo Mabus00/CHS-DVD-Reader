@@ -112,7 +112,7 @@ class CHSDVDReaderApp(QMainWindow):
         self.run_checker = RunChecker(self.current_database_name, self.run_checker_signals.run_checker_textbox, self.ui.checker_data_input_path.text())
         
         # First Part - check for new editions and withdrawn charts
-        # confirm that pre-build checks are met before proceeding 
+        # confirm that pre-build checks are met before proceeding; checking whether to delete existing database and a valid path is provided
         if self.run_checker.pre_build_checks():
             # establish database connections; operate under assumption that master_database won't be created each time widget is used
             master_database_conn, master_database_cursor = utils.get_database_connection(self.master_database_name, self.database_signals.create_database_textbox)
@@ -125,9 +125,9 @@ class CHSDVDReaderApp(QMainWindow):
             # compliance = East and West tables within each database have the same date and the new current database is at least one month older than the master database
             # required to proceed further
             compliance = self.run_checker.confirm_database_compliance(master_database_conn, current_database_conn)
-            # check compliance
+            # check compliance; databases are dated correctly and are at least one month apart
             if not compliance:
-                utils.show_warning_popup('You have error messages that need to be ackowledged before proceeding.  See the Misc. Results tab.')
+                utils.show_warning_popup('You have error messages that need to be addressed.  See the Progress Report window.')
             else:
                 # Compares the content of the master and current databases and finds new (i.e., not in master but in current) or missing (i.e., withdrawn)
                 # (i.e., in master but not in current) tables and reports the findings on the appropriate tabs.
@@ -139,7 +139,7 @@ class CHSDVDReaderApp(QMainWindow):
                 tables_master_temp, tables_current_temp, tables_missing_in_master, tables_missing_in_current, master_yyyymmdd, current_yyyymmdd = self.compare_databases.compare_databases()
                 # report withdrawn or new folders in current_database
                 if tables_missing_in_current or tables_missing_in_master:
-                    utils.show_warning_popup("Errors were noted. See the Misc. Results tab.")
+                    utils.show_warning_popup("Possible errors were noted. See the Misc. Results tab.")
                     error_messages = {
                         "missing_current": "Folders removed from this month's DVDs:",
                         "missing_master": "Folders added to this month's DVDs:",
@@ -163,25 +163,28 @@ class CHSDVDReaderApp(QMainWindow):
                 if new_charts:
                     message = "New charts in current DVD folder"
                     utils.update_new_charts_tab(new_charts, self.new_charts_signals.new_charts_textbox, message)
+
+                # instantiate FindDataMismatches
+                self.find_data_mismatches = FindDataMismatches(master_database_cursor, current_database_cursor)
+                new_editions, misc_findings = self.find_data_mismatches.find_mismatches(tables_master_temp, master_yyyymmdd, current_yyyymmdd)
+                # report new_editions and misc. findings (findings that couldn't be categorized as New Charts, New Editions or Charts Withdrawn)
+                # Report missing charts on missing charts tab; can't use same process as above because of textbox identification
+                if new_editions:
+                    message = "The following folders have new editions:"
+                    utils.update_new_editions_tab(new_editions, current_yyyymmdd, self.new_editions_signals.new_editions_textbox, message)
+                # Report new charts on new charts tab
+                if misc_findings:
+                    message = "The following folders have uncategorized findings that may indicate potential errors:"
+                    utils.update_misc_findings_tab(misc_findings, current_yyyymmdd, self.errors_signals.errors_textbox, message)
+                
+                # for now; TODO add checkboxes so user can indicate errors are acceptable / not acceptable
+                # required signal before the master database is rebuilt using the current database
+                print(f'accept Misc. Results is {self.ui.acceptErrorsCheckBox.isChecked()}')
+
+                # Print a message to indicate that the checker has run
+                self.run_checker_signals.run_checker_textbox.emit('The Checker ran succesfully!')
         else:
             return
-
-        # instantiate FindDataMismatches
-        self.find_data_mismatches = FindDataMismatches(master_database_cursor, current_database_cursor)
-        new_editions, misc_findings = self.find_data_mismatches.find_mismatches(tables_master_temp, master_yyyymmdd, current_yyyymmdd)
-        # report new_editions and misc. findings (findings that couldn't be categorized as New Charts, New Editions or Charts Withdrawn)
-         # Report missing charts on missing charts tab; can't use same process as above because of textbox identification
-        if new_editions:
-            message = "The following folders have new editions:"
-            utils.update_new_editions_tab(new_editions, current_yyyymmdd, self.new_editions_signals.new_editions_textbox, message)
-        # Report new charts on new charts tab
-        if misc_findings:
-            message = "The following folders have uncategorized findings that may indicate potential errors:"
-            utils.update_misc_findings_tab(misc_findings, current_yyyymmdd, self.errors_signals.errors_textbox, message)
-        
-        # for now; TODO add checkboxes so user can indicate errors are acceptable / not acceptable
-        # required signal before the master database is rebuilt using the current database
-        print(f'accept Misc. Results is {self.ui.acceptErrorsCheckBox.isChecked()}')
         
         # 7. add the ability to print the result as a pdf.
         # 8. once all has been verified and the user is happy, overwrite the master with the current.
@@ -190,8 +193,6 @@ class CHSDVDReaderApp(QMainWindow):
         utils.close_database(self.database_signals.create_database_textbox, master_database_conn, self.master_database_name)
         utils.close_database(self.run_checker_signals.run_checker_textbox, current_database_conn, self.current_database_name)
 
-        # Print a message to indicate that the checker has run
-        self.run_checker_signals.run_checker_textbox.emit('The Checker ran succesfully!')
         
 def main():
     app = QApplication(sys.argv)
