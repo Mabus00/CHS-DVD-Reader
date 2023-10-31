@@ -77,21 +77,25 @@ class FindDataMismatches():
                     master_content = master_row[2:]  # Get the content of columns 2-4
                     current_content = matching_current_row[2:]  # Get the content of columns 2-4 in current_value
 
-                    is_date = all(utils.is_valid_date(value) for value in master_content)
-                    if is_date:
+                    # The first two elements in the list are expected to be dates
+                    if "RM" in table_name:
                         master_content, current_content = zip(*[utils.convert_date_for_comparison(master, current)
-                                                                for master, current in zip(master_content, current_content)])
+                                                                for master, current in zip(master_content[:2], current_content[:2])])
+                    else:
+                        master_content, current_content = zip(*[utils.convert_date_for_comparison(master, current)
+                                                                for master, current in zip(master_content[1:3], current_content[1:3])])
                     # compare the edition information
                     if master_content[:3] != current_content[:3]:
                         # Check each field individually for inequality; ensuring that whatever doesn't match is greater (looking for errors)
                         if any(m != c and c > m for m, c in zip(master_content[:3], current_content[:3])):
                             found_new_edition.append(matching_current_row)
-                        else:
+                        
+                        if any(m != c and c < m for m, c in zip(master_content[:3], current_content[:3])):
                             misc_finding.append(matching_current_row)
 
-                    # checking the title to see if any changes
-                    if master_content[3] != current_content[3]:
-                        misc_finding.append(matching_current_row)
+                    # checking the title to see if any changes; commented out as it's not a required part of the report but could be added if needed.
+                    # if  master_content[3] != current_content[3]:
+                    #     misc_finding.append(matching_current_row)
 
             if found_new_edition:
                 new_editions.append((table_name, found_new_edition))
