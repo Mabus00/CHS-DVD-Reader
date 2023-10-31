@@ -47,6 +47,7 @@ class FindDataMismatches():
             temp_current_table_name = utils.insert_text(table_name, current_yyyymmdd, pos_to_insert=1)
 
             # Table exists in both databases; compare content
+            # note master_data and current_data will be a list of tuples, i.e., [(),(),()...]
             self.master_database_cursor.execute(f"SELECT * FROM {temp_master_table_name}")
             master_data = self.master_database_cursor.fetchall()
 
@@ -79,11 +80,10 @@ class FindDataMismatches():
 
                     # The first two elements in the list are expected to be dates
                     if "RM" in table_name:
-                        master_content, current_content = zip(*[utils.convert_date_for_comparison(master, current)
-                                                                for master, current in zip(master_content[0], current_content[0])])
+                        master_content[0], current_content[0] = utils.convert_date_for_comparison(master_content[0], current_content[0])
+
                     else:
-                        master_content, current_content = zip(*[utils.convert_date_for_comparison(master, current)
-                                                                for master, current in zip(master_content[1:3], current_content[1:3])])
+                        master_content[1:3], current_content[1:3] = utils.convert_date_for_comparison(master_content[1:3], current_content[1:3])
                     # compare the edition information
                     if master_content[:3] != current_content[:3]:
                         # Check each field individually for inequality; ensuring that whatever doesn't match is greater (looking for errors)
