@@ -80,7 +80,7 @@ class FindDataMismatches():
                     # The first two elements in the list are expected to be dates
                     if "RM" in table_name:
                         master_content, current_content = zip(*[utils.convert_date_for_comparison(master, current)
-                                                                for master, current in zip(master_content[:2], current_content[:2])])
+                                                                for master, current in zip(master_content[0], current_content[0])])
                     else:
                         master_content, current_content = zip(*[utils.convert_date_for_comparison(master, current)
                                                                 for master, current in zip(master_content[1:3], current_content[1:3])])
