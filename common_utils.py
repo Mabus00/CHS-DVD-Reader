@@ -260,7 +260,18 @@ def is_valid_date(date_str):
     except ValueError:
         return False
     
-def convert_date_for_comparison(master_input_date, current_input_date):
-    date_format = "%d-%b-%Y"
-    return datetime.strptime(master_input_date, date_format), datetime.strptime(current_input_date, date_format)
+def convert_to_yyyymmdd(date_str):
+    try:
+        date_object = datetime.strptime(date_str, "%d-%b-%Y")
+        return date_object.strftime("%Y%m%d")
+    except ValueError:
+        return None  # Handle invalid date strings gracefully
+
+def tuple_to_list(tup):
+    #Convert a tuple to a list.
+    return list(tup)
+
+def list_to_tuple(lst):
+    # Convert a list to a tuple.
+    return tuple(lst)
 

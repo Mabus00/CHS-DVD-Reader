@@ -7,8 +7,8 @@ The message generated will depend on which column the mismatch is found in.
 Raster table columns:
 0 Chart 
 1 File
-2 Edn Date
-3 Last NTM
+2 Edn Date (dd-Mmm-yyyy)
+3 Last NTM (yyyymmdd)
 4 Edn#
 5 Title
 
@@ -16,8 +16,8 @@ Vector table columns:
 0 Chart
 1 ENC
 2 EDTN.UPDN = Edition Number.Update Number
-3 ISDT = Issue Date
-4 UADT = Update Application Date
+3 ISDT = Issue Date (dd-Mmm-yyyy)
+4 UADT = Update Application Date (dd-Mmm-yyyy)
 5 Title
 
 '''
@@ -74,16 +74,22 @@ class FindDataMismatches():
                         break
 
                 # If a matching row is found, compare the content of the remaining columns
+                # reminder that were dealing with a lists of tuples, i.e., [(),(),()...] so need to convert to tuples to lists so we can convert dates to compare
                 if matching_current_row:
-                    master_content = master_row[2:]  # Get the content of columns 2-4
-                    current_content = matching_current_row[2:]  # Get the content of columns 2-4 in current_value
-
-                    # The first two elements in the list are expected to be dates
+                    master_content = utils.tuple_to_list(master_row[2:])  # Get the content of columns 2-4 in master_row
+                    current_content = utils.tuple_to_list(matching_current_row[2:])  # Get the content of columns 2-4 in current_value
+                    # The first two elements in the list are:
+                    # [0] -> Edn Date (dd-Mmm-yyyy)
+                    # [1] -> Last NTM (yyyymmdd)
                     if "RM" in table_name:
-                        master_content[0], current_content[0] = utils.convert_date_for_comparison(master_content[0], current_content[0])
-
+                        master_content[0] = utils.convert_to_yyyymmdd(master_content[0])
+                        current_content[0] = utils.convert_to_yyyymmdd(current_content[0])
                     else:
-                        master_content[1:3], current_content[1:3] = utils.convert_date_for_comparison(master_content[1:3], current_content[1:3])
+                        # The second and third elements in the list are:
+                        # [1] -> ISDT = Issue Date (dd-Mmm-yyyy)
+                        # [2] -> UADT = Update Application Date (dd-Mmm-yyyy)
+                        master_content[1:3] = [utils.convert_to_yyyymmdd(value) for value in master_content[1:3]]
+                        current_content[1:3] = [utils.convert_to_yyyymmdd(value) for value in current_content[1:3]]
                     # compare the edition information
                     if master_content[:3] != current_content[:3]:
                         # Check each field individually for inequality; ensuring that whatever doesn't match is greater (looking for errors)
