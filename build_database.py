@@ -37,20 +37,20 @@ class BuildDatabase():
         
         return rebuild_selected, path_selected
 
-    def generate_database(self, master_database_conn, master_database_cursor):
+    def generate_database(self, master_database_conn, master_database_cursor, database_name):
         # declare master database connection and cursor
         self.master_database_conn = master_database_conn
         self.master_database_cursor = master_database_cursor
 
         if self.input_data_path[:1] == "C": #  Case 1: the files are in a folder on the desktop
-            self.process_desktop_folder()
+            self.process_desktop_folder(database_name)
         else:# Case 2: files are on a DVD reader
-            self.process_dvd()
+            self.process_dvd(database_name)
         # Commit the changes at the end
         self.master_database_conn.commit()
-        self.create_database_textbox.emit("\nCHS Database Successfully Created!")
+        self.create_database_textbox.emit(f"\n{database_name} successfully created!")
 
-    def process_dvd(self):
+    def process_dvd(self, database_name):
         # default to two DVDs; one East and one West
         num_sources = 2
         for source_num in range(1, num_sources + 1): 
@@ -59,15 +59,15 @@ class BuildDatabase():
             if dvd_name:
                 folders = utils.list_folders(self.input_data_path)
                 if folders:
-                    self.create_database_textbox.emit(f"\Added '{dvd_name}' to database.")
+                    self.create_database_textbox.emit(f"\nAdded '{dvd_name}' to the {database_name}.")
                     # database data input path is self.input_data_path
-                    self.process_folders(folders, self.input_data_path, dvd_name)
+                    self.process_folders(folders, self.input_data_path, dvd_name, database_name)
                 else:
                     self.create_database_textbox.emit(f"\nNo folders found in '{dvd_name}'.")
             else:
                 self.create_database_textbox.emit(f"\nDVD not found at path '{self.input_data_path}'.")
 
-    def process_desktop_folder(self):
+    def process_desktop_folder(self, database_name):
         # Get the list of foldernames in the subject folder
         foldernames = os.listdir(self.input_data_path)
         # Check if two folders were found
@@ -77,7 +77,7 @@ class BuildDatabase():
                 desktop_folder_path = os.path.join(self.input_data_path, folder_name)
                 folders = utils.list_folders(desktop_folder_path)
                 if folders:
-                    self.create_database_textbox.emit(f"\nAdded '{desktop_folder_path}' to database.")
+                    self.create_database_textbox.emit(f"\nAdded '{desktop_folder_path}' to the {database_name}.")
                     self.process_folders(folders, desktop_folder_path, folder_name)
                 else:
                     self.create_database_textbox.emit(f"\no folders found in '{desktop_folder_path}'.")

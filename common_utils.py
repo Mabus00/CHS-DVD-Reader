@@ -225,7 +225,25 @@ def update_new_editions_tab(results, current_yyyymmdd, target_textbox, message):
                 formatted_data = f"{data[1]:<12} {data[2]:<7}   {data[5]} "
                 target_textbox.emit(formatted_data)
         target_textbox.emit("\n")
-        
+
+''' 
+Raster table columns:
+0 Chart 
+1 File
+2 Edn Date (dd-Mmm-yyyy)
+3 Last NTM (yyyymmdd)
+4 Edn#
+5 Title
+
+Vector table columns:
+0 Chart
+1 ENC
+2 EDTN.UPDN = Edition Number.Update Number
+3 ISDT = Issue Date (dd-Mmm-yyyy)
+4 UADT = Update Application Date (dd-Mmm-yyyy)
+5 Title
+
+'''
 def update_misc_findings_tab(results, current_yyyymmdd, target_textbox, message):
     # establish the type of misc_finding as the tab is used for different misc reports
     for result in results:
@@ -252,13 +270,6 @@ def update_misc_findings_tab(results, current_yyyymmdd, target_textbox, message)
                 combined_results += ", "
             combined_results += temp
             target_textbox.emit(f"{message} {combined_results} \n")
-
-def is_valid_date(date_str):
-    try:
-        datetime.strptime(date_str, "%d-%b-%Y")
-        return True
-    except ValueError:
-        return False
     
 def convert_to_yyyymmdd(date_str):
     try:
@@ -271,7 +282,4 @@ def tuple_to_list(tup):
     #Convert a tuple to a list.
     return list(tup)
 
-def list_to_tuple(lst):
-    # Convert a list to a tuple.
-    return tuple(lst)
 

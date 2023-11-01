@@ -38,6 +38,12 @@ class CHSDVDReaderApp(QMainWindow):
         # create list of text browsers so they can be cleared en masse
         self.text_browsers = [obj for name, obj in inspect.getmembers(self.ui) if isinstance(obj, QTextBrowser)]
 
+        # set database connections
+        self.master_database_conn = ""
+        self.master_database_cursor = ""
+        self.current_database_conn = ""
+        self.current_database_cursor = ""
+
         # set master database input path to nothing; user must select path manually 
         self.master_database_input_path = ""
         self.master_database_name = "chs_dvd.db"
@@ -68,6 +74,7 @@ class CHSDVDReaderApp(QMainWindow):
         # run checker tab
         self.ui.selectCheckerDataPathButton.clicked.connect(self.run_checker_signals.data_input_path_button.emit)
         self.ui.runCheckerButton.clicked.connect(self.run_checker_signals.run_checker_button.emit)
+        self.ui.buildNewMasterDatabaseButton.clicked.connect(self.run_checker_signals.build_new_master_database_button.emit)
         # create database tab
         self.ui.selectDataPathButton.clicked.connect(self.database_signals.database_input_path_button.emit)
         self.ui.buildDatabaseButton.clicked.connect(self.database_signals.build_database_button.emit)
@@ -76,7 +83,7 @@ class CHSDVDReaderApp(QMainWindow):
         # run checker tab
         self.run_checker_signals.data_input_path_button.connect(lambda: utils.open_file_explorer(self.ui.checker_data_input_path, self.current_database_input_path))
         self.run_checker_signals.run_checker_button.connect(self.run_checker)
-
+        self.run_checker_signals.build_new_master_database_button.connect(self.update_master_database)
         # create database tab
         self.database_signals.database_input_path_button.connect(lambda: utils.open_file_explorer(self.ui.database_input_path, self.master_database_input_path))
         self.database_signals.build_database_button.connect(self.build_database)
@@ -97,12 +104,12 @@ class CHSDVDReaderApp(QMainWindow):
         if all(self.create_db.pre_build_checks()):
             # establish database connections; operate under assumption that master_database won't be created each time widget is used
             # note that this can't be done earlier because pre-build-checks deletes existing databases, and this can't happen if a connection to the database has been opened
-            master_database_conn, master_database_cursor = utils.get_database_connection(self.master_database_name, self.database_signals.create_database_textbox)
-            self.create_db.generate_database(master_database_conn, master_database_cursor)
+            self.master_database_conn, self.master_database_cursor = utils.get_database_connection(self.master_database_name, self.database_signals.create_database_textbox)
+            self.create_db.generate_database(self.master_database_conn, self.master_database_cursor, 'Master Database')
         else:
             return
         # close the master database so it can be opened in run_checker (assumption is that create_database isn't always used)
-        utils.close_database(self.database_signals.create_database_textbox, master_database_conn, self.master_database_name)
+        utils.close_database(self.database_signals.create_database_textbox, self.master_database_conn, self.master_database_name)
 
     def run_checker(self):
         # clear all text boxes before running the checker
@@ -115,16 +122,16 @@ class CHSDVDReaderApp(QMainWindow):
         # confirm that pre-build checks are met before proceeding; checking whether to delete existing database and a valid path is provided
         if self.run_checker.pre_build_checks():
             # establish database connections; operate under assumption that master_database won't be created each time widget is used
-            master_database_conn, master_database_cursor = utils.get_database_connection(self.master_database_name, self.database_signals.create_database_textbox)
-            current_database_conn, current_database_cursor = utils.get_database_connection(self.current_database_name, self.database_signals.create_database_textbox)
+            self.master_database_conn, self.master_database_cursor = utils.get_database_connection(self.master_database_name, self.database_signals.create_database_textbox)
+            self.current_database_conn, self.current_database_cursor = utils.get_database_connection(self.current_database_name, self.database_signals.create_database_textbox)
 
             # instantiate generate_database and create the current month's database
             self.create_db = BuildDatabase(self.current_database_name, None, self.run_checker_signals.run_checker_textbox, self.ui.checker_data_input_path.text())
-            self.create_db.generate_database(current_database_conn, current_database_cursor)
+            self.create_db.generate_database(self.current_database_conn, self.current_database_cursor, 'Current Database')
 
             # compliance = East and West tables within each database have the same date and the new current database is at least one month older than the master database
             # required to proceed further
-            compliance = self.run_checker.confirm_database_compliance(master_database_conn, current_database_conn)
+            compliance = self.run_checker.confirm_database_compliance(self.master_database_conn, self.current_database_conn)
             # check compliance; databases are dated correctly and are at least one month apart
             if not compliance:
                 utils.show_warning_popup('You have error messages that need to be addressed.  See the Progress Report window.')
@@ -132,7 +139,7 @@ class CHSDVDReaderApp(QMainWindow):
                 # Compares the content of the master and current databases and finds new (i.e., not in master but in current) or missing (i.e., withdrawn)
                 # (i.e., in master but not in current) tables and reports the findings on the appropriate tabs.
                 # run this first so you can ignore missing tables in follow on code
-                self.compare_databases = CompareDatabases(master_database_cursor, current_database_cursor)
+                self.compare_databases = CompareDatabases(self.master_database_cursor, self.current_database_cursor)
                 # tables_missing_in_current represent tables that have been removed; tables_missing_in_master represent tables that have been added in current
                 # tables_master_temp and tables_current_temp have yyyymmdd removed; do this once and share with other modules
                 # master_yyyymmdd and current_yyyymmdd are the extracted yyyymmdd for each
@@ -152,7 +159,7 @@ class CHSDVDReaderApp(QMainWindow):
                 # Remove tables_missing_from_current from tables_master so table content matches; no need to check tables_missing_in_master because these are newly added
                 tables_master_temp = list(set(tables_master_temp) - set(tables_missing_in_current))
                 # creates instance of CompareChartNumbers
-                self.compare_databases = CompareChartNumbers(master_database_cursor, current_database_cursor)
+                self.compare_databases = CompareChartNumbers(self.master_database_cursor, self.current_database_cursor)
                 # compares master and current databases and report charts withdrawn and new charts
                 charts_withdrawn, new_charts = self.compare_databases.compare_chart_numbers(tables_master_temp, master_yyyymmdd, current_yyyymmdd)
                 # Report missing charts on missing charts tab; can't use same process as above because of textbox identification
@@ -165,7 +172,7 @@ class CHSDVDReaderApp(QMainWindow):
                     utils.update_new_charts_tab(new_charts, self.new_charts_signals.new_charts_textbox, message)
 
                 # instantiate FindDataMismatches
-                self.find_data_mismatches = FindDataMismatches(master_database_cursor, current_database_cursor)
+                self.find_data_mismatches = FindDataMismatches(self.master_database_cursor, self.current_database_cursor)
                 new_editions, misc_findings = self.find_data_mismatches.find_mismatches(tables_master_temp, master_yyyymmdd, current_yyyymmdd)
                 # report new_editions and misc. findings (findings that couldn't be categorized as New Charts, New Editions or Charts Withdrawn)
                 # Report missing charts on missing charts tab; can't use same process as above because of textbox identification
@@ -176,22 +183,25 @@ class CHSDVDReaderApp(QMainWindow):
                 if misc_findings:
                     message = "The following folders have uncategorized findings that may indicate potential errors:"
                     utils.update_misc_findings_tab(misc_findings, current_yyyymmdd, self.errors_signals.errors_textbox, message)
-                
-                # for now; TODO add checkboxes so user can indicate errors are acceptable / not acceptable
-                # required signal before the master database is rebuilt using the current database
-                print(f'accept Misc. Results is {self.ui.acceptErrorsCheckBox.isChecked()}')
-
+                    utils.show_warning_popup("Possible errors were noted. See the Misc. Results tab.")
+        
                 # Print a message to indicate that the checker has run
-                self.run_checker_signals.run_checker_textbox.emit('The Checker ran succesfully!')
+                self.run_checker_signals.run_checker_textbox.emit('\nThe Checker ran succesfully!')
         else:
             return
-        
-        # 7. add the ability to print the result as a pdf.
-        # 8. once all has been verified and the user is happy, overwrite the master with the current.
+
+    def update_master_database(self):
+
+        print('build new master dabase')
+
+        # for now; TODO add checkboxes so user can indicate errors are acceptable / not acceptable
+        # required signal before the master database is rebuilt using the current database
+        print(f'Accept Misc. Results is {self.ui.acceptErrorsCheckBox.isChecked()}')
+        print(f'Results reviewed and acceptable is {self.ui.acceptResultsCheckBox.isChecked()}')
 
         # close the databases
-        utils.close_database(self.database_signals.create_database_textbox, master_database_conn, self.master_database_name)
-        utils.close_database(self.run_checker_signals.run_checker_textbox, current_database_conn, self.current_database_name)
+        utils.close_database(self.database_signals.create_database_textbox, self.master_database_conn, self.master_database_name)
+        utils.close_database(self.run_checker_signals.run_checker_textbox, self.current_database_conn, self.current_database_name)
 
         
 def main():
