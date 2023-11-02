@@ -46,11 +46,11 @@ class CHSDVDReaderApp(QMainWindow):
 
         # set master database input path to nothing; user must select path manually 
         self.master_database_input_path = ""
-        self.master_database_name = "chs_dvd.db"
+        self.master_database_name = "master_database.db"
 
         # set current month database input path to nothing; user must select path manually 
         self.current_database_input_path = ""
-        self.current_database_name = "current_month.db"
+        self.current_database_name = "current_database.db"
 
         # Create an instance of RunCheckerSignals
         self.run_checker_signals = RunCheckerSignals()
@@ -184,7 +184,6 @@ class CHSDVDReaderApp(QMainWindow):
                     message = "The following folders have uncategorized findings that may indicate potential errors:"
                     utils.update_misc_findings_tab(misc_findings, current_yyyymmdd, self.errors_signals.errors_textbox, message)
                     utils.show_warning_popup("Possible errors were noted. See the Misc. Results tab.")
-        
                 # Print a message to indicate that the checker has run
                 self.run_checker_signals.run_checker_textbox.emit('\nThe Checker ran succesfully!')
         else:
@@ -194,6 +193,12 @@ class CHSDVDReaderApp(QMainWindow):
 
         print('build new master dabase')
 
+        if self.errors_signals.errors_textbox.document().isEmpty():
+            print('misc results textbox is empty')
+            self.ui.acceptErrorsCheckBox.setChecked(True)  # Check the checkbox
+        else:
+            print('misc results textbox is NOT empty')
+            self.ui.acceptErrorsCheckBox.setChecked(False)  # Uncheck the checkbox
         # for now; TODO add checkboxes so user can indicate errors are acceptable / not acceptable
         # required signal before the master database is rebuilt using the current database
         print(f'Accept Misc. Results is {self.ui.acceptErrorsCheckBox.isChecked()}')

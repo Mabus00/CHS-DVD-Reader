@@ -174,6 +174,7 @@ def get_first_table_yyyymmdd(prefix, database_conn):
 
 ''' compare_database_tables common functions '''
 def detect_column_changes(column_index, base_table, secondary_table, table_name):
+        print(f'table name = {table_name}')
         # base_table = primary table against which the secondary_table is being compared
         # reset encountered chart numbers
         encountered_chart_numbers = set()

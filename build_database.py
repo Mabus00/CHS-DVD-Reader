@@ -61,7 +61,7 @@ class BuildDatabase():
                 if folders:
                     self.create_database_textbox.emit(f"\nAdded '{dvd_name}' to the {database_name}.")
                     # database data input path is self.input_data_path
-                    self.process_folders(folders, self.input_data_path, dvd_name, database_name)
+                    self.process_folders(folders, self.input_data_path, dvd_name)
                 else:
                     self.create_database_textbox.emit(f"\nNo folders found in '{dvd_name}'.")
             else:

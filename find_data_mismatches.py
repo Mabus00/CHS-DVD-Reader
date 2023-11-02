@@ -4,11 +4,19 @@ in columns beyond column 1 (chart number).
 
 The message generated will depend on which column the mismatch is found in.
 
-Raster table columns:
+Raster table columns (old):
 0 Chart 
 1 File
 2 Edn Date (dd-Mmm-yyyy)
 3 Last NTM (yyyymmdd)
+4 Edn#
+5 Title
+
+Raster table columns (new):
+0 Chart 
+1 Edn Date (dd-Mmm-yyyy)
+2 Last NTM (yyyymmdd)
+3 Cleared To (yyyy-mm-dd)
 4 Edn#
 5 Title
 
