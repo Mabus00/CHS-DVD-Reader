@@ -190,15 +190,18 @@ class CHSDVDReaderApp(QMainWindow):
             return
 
     def update_master_database(self):
+        # ensure intial status in unchecked 
+        #self.ui.acceptResultsCheckBox.setChecked(False)
+        #self.ui.acceptErrorsCheckBox.setChecked(False)  # Uncheck the checkboxes
 
         print('build new master dabase')
 
-        if self.errors_signals.errors_textbox.document().isEmpty():
+        if self.ui.errorsTextBrowser.toPlainText().strip() == "":
             print('misc results textbox is empty')
             self.ui.acceptErrorsCheckBox.setChecked(True)  # Check the checkbox
+            self.ui.acceptResultsCheckBox.setChecked(True)  # Check the checkbox
         else:
             print('misc results textbox is NOT empty')
-            self.ui.acceptErrorsCheckBox.setChecked(False)  # Uncheck the checkbox
         # for now; TODO add checkboxes so user can indicate errors are acceptable / not acceptable
         # required signal before the master database is rebuilt using the current database
         print(f'Accept Misc. Results is {self.ui.acceptErrorsCheckBox.isChecked()}')
