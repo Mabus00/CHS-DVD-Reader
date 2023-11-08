@@ -32,7 +32,6 @@ Vector table columns:
 
 # Import necessary modules
 import common_utils as utils
-from datetime import datetime
 
 # Define the RunChecker class
 class FindDataMismatches():

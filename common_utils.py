@@ -213,10 +213,11 @@ def update_new_charts_tab(results, target_textbox, message):
         target_textbox.emit(chart_str + '\n')
 
 def update_new_editions_tab(results, current_yyyymmdd, target_textbox, message):
+    target_textbox.emit(f"{message}\n")
     for table_name, details in results:
         # add date to folder name
         temp = utils.insert_text(table_name, current_yyyymmdd, pos_to_insert=1)
-        target_textbox.emit(f"{message} {temp}:")
+        target_textbox.emit(f"{temp}:")
         if "RM" in table_name:
             for data in details:
                 formatted_data = f"{data[1]:<12} {data[4]:>7}   {data[5]}"
