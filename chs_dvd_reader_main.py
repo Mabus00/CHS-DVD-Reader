@@ -210,8 +210,9 @@ class CHSDVDReaderApp(QMainWindow):
                 print(f'Results reviewed and acceptable is {self.ui.acceptResultsCheckBox.isChecked()}')
                 # confirm with popup
                 confirmation = utils.yes_or_no_popup("Are you sure you want to overwrite the Master Database with the current CHS DVDs?")
-                if confirmation == 16384:
+                if confirmation == 16384: # pyQT code returned for yes
                     print(f'user says yes {confirmation}')
+                    utils.make_current_master_database()
                 else:
                     print(f'user says no {confirmation}')
             else:

@@ -282,3 +282,6 @@ def yes_or_no_popup(message):
     reply.setStandardButtons(QMessageBox.StandardButton.Yes | 
                         QMessageBox.StandardButton.No)
     return reply.exec()
+
+def make_current_master_database():
+    print('making current the new master database')
