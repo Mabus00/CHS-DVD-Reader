@@ -17,7 +17,7 @@ VIEW = chs_dvd_gui
 
 import sys
 import inspect
-from PyQt5.QtWidgets import QApplication, QMainWindow, QTextBrowser
+from PyQt5.QtWidgets import QApplication, QMainWindow, QTextBrowser, QMessageBox
 from chs_dvd_gui import Ui_MainWindow
 from custom_signals import CreateDatabaseSignals, RunCheckerSignals, NewChartsSignals, NewEditionsSignals, WithdrawnSignals, ErrorsSignals
 from build_database import BuildDatabase
@@ -197,19 +197,25 @@ class CHSDVDReaderApp(QMainWindow):
     def update_master_database(self):
         # first confirm the program has run successfully before allowing user to update the master_database
         if self.run_checker_successful:
-            # confirm errors are accepted and prompt user before making the current_database the master_database
+            # confirm errors are accepted
             if self.ui.errorsTextBrowser.toPlainText().strip() == "":
-                print('misc results textbox is empty')
+                # if no misc_results then nothing to confirm
                 self.ui.acceptErrorsCheckBox.setChecked(True)  # Check the acceptErrorsCheckBox (on misc_resutls tab)
-                self.ui.acceptResultsCheckBox.setChecked(True)  # Check the acceptResultsCheckBox (on run_checker tab)
+                #self.ui.acceptResultsCheckBox.setChecked(True)  # Check the acceptResultsCheckBox (on run_checker tab)
             else:
                 print('misc results textbox is NOT empty')
             # both acceptErrorsCheckBox and acceptResultsCheckBox must be checked before proceeding
             if self.ui.acceptErrorsCheckBox.isChecked() and self.ui.acceptResultsCheckBox.isChecked():
                 print(f'Accept Misc. Results is {self.ui.acceptErrorsCheckBox.isChecked()}')
                 print(f'Results reviewed and acceptable is {self.ui.acceptResultsCheckBox.isChecked()}')
+                # confirm with popup
+                confirmation = utils.yes_or_no_popup("Are you sure you want to overwrite the Master Database with the current CHS DVDs?")
+                if confirmation == 16384:
+                    print(f'user says yes {confirmation}')
+                else:
+                    print(f'user says no {confirmation}')
             else:
-                print('returning')
+                print('misc_results and/or run_checker results not accepted; returning')
                 return
 
             # close the databases

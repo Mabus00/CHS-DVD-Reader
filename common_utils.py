@@ -276,3 +276,9 @@ def tuple_to_list(tup):
     return list(tup)
 
 
+def yes_or_no_popup(message):
+    reply = QMessageBox()
+    reply.setText(message)
+    reply.setStandardButtons(QMessageBox.StandardButton.Yes | 
+                        QMessageBox.StandardButton.No)
+    return reply.exec()
