@@ -97,6 +97,9 @@ class CHSDVDReaderApp(QMainWindow):
         self.charts_withdrawn_signals.chart_withdrawn_textbox.connect(lambda message: utils.update_text_browser(self.ui.chartsWithdrawnTextBrowser, message))
         self.database_signals.create_database_textbox.connect(lambda message: utils.update_text_browser(self.ui.createDatabaseTextBrowser, message))
 
+        # initial state of run_checker ran successfully flag; needed to confirm the program was run before the master_database can be overwritten
+        self.run_checker_successful = False
+
     def build_database(self):
         # instantiate create_database and pass instance of database_name, etc...
         self.create_db = BuildDatabase(self.master_database_name, self.ui.rebuild_checkbox, self.database_signals.create_database_textbox, self.ui.database_input_path.text())
@@ -186,30 +189,35 @@ class CHSDVDReaderApp(QMainWindow):
                     utils.show_warning_popup("Possible errors were noted. See the Misc. Results tab.")
                 # Print a message to indicate that the checker has run
                 self.run_checker_signals.run_checker_textbox.emit('\nThe Checker ran succesfully!')
+                self.run_checker_successful = True
         else:
+            self.run_checker_successful = False
             return
 
     def update_master_database(self):
-        # ensure intial status in unchecked 
-        #self.ui.acceptResultsCheckBox.setChecked(False)
-        #self.ui.acceptErrorsCheckBox.setChecked(False)  # Uncheck the checkboxes
+        # first confirm the program has run successfully before allowing user to update the master_database
+        if self.run_checker_successful:
+            # confirm errors are accepted and prompt user before making the current_database the master_database
+            if self.ui.errorsTextBrowser.toPlainText().strip() == "":
+                print('misc results textbox is empty')
+                self.ui.acceptErrorsCheckBox.setChecked(True)  # Check the acceptErrorsCheckBox (on misc_resutls tab)
+                self.ui.acceptResultsCheckBox.setChecked(True)  # Check the acceptResultsCheckBox (on run_checker tab)
+            else:
+                print('misc results textbox is NOT empty')
+            # both acceptErrorsCheckBox and acceptResultsCheckBox must be checked before proceeding
+            if self.ui.acceptErrorsCheckBox.isChecked() and self.ui.acceptResultsCheckBox.isChecked():
+                print(f'Accept Misc. Results is {self.ui.acceptErrorsCheckBox.isChecked()}')
+                print(f'Results reviewed and acceptable is {self.ui.acceptResultsCheckBox.isChecked()}')
+            else:
+                print('returning')
+                return
 
-        print('build new master dabase')
-
-        if self.ui.errorsTextBrowser.toPlainText().strip() == "":
-            print('misc results textbox is empty')
-            self.ui.acceptErrorsCheckBox.setChecked(True)  # Check the checkbox
-            self.ui.acceptResultsCheckBox.setChecked(True)  # Check the checkbox
+            # close the databases
+            utils.close_database(self.database_signals.create_database_textbox, self.master_database_conn, self.master_database_name)
+            utils.close_database(self.run_checker_signals.run_checker_textbox, self.current_database_conn, self.current_database_name)
         else:
-            print('misc results textbox is NOT empty')
-        # for now; TODO add checkboxes so user can indicate errors are acceptable / not acceptable
-        # required signal before the master database is rebuilt using the current database
-        print(f'Accept Misc. Results is {self.ui.acceptErrorsCheckBox.isChecked()}')
-        print(f'Results reviewed and acceptable is {self.ui.acceptResultsCheckBox.isChecked()}')
-
-        # close the databases
-        utils.close_database(self.database_signals.create_database_textbox, self.master_database_conn, self.master_database_name)
-        utils.close_database(self.run_checker_signals.run_checker_textbox, self.current_database_conn, self.current_database_name)
+            print('run_checker hasnt run')
+            return
 
         
 def main():

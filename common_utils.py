@@ -174,34 +174,25 @@ def get_first_table_yyyymmdd(prefix, database_conn):
 
 ''' compare_database_tables common functions '''
 def detect_column_changes(column_index, base_table, secondary_table, table_name):
-        print(f'table name = {table_name}')
         # base_table = primary table against which the secondary_table is being compared
         # reset encountered chart numbers
         encountered_chart_numbers = set()
-
         # Create a set of chart numbers from current_data for faster lookup
         chart_numbers = set(row[column_index] for row in secondary_table)
-
         # Initialize a list to new charts and store missing chart numbers
         found_charts = []
-
         # Iterate through rows of master_data
         for i, row in enumerate(base_table):
-
-            # get master_data chart name for the current row; remember the master is master!
+            # get base_table chart name for the current row
             chart_number = row[column_index]
-
-            # Check if the chart name from master_data is in current_data; if not add to missing_charts list
+            # Check if the chart name from base_table is in secondary_table; if not add to missing_charts list
             if (chart_number not in chart_numbers) and (chart_number not in encountered_chart_numbers):
                 # Append the missing chart name to the list
                 found_charts.append(chart_number)
-            
-            # whether or not above condition fails add it to encountered_chart_numbers so we don't keep checking repeating master_chart_numbers
+            # whether or not above condition fails add it to encountered_chart_numbers so we don't keep checking repeating base_table cahrt numbers
             if chart_number not in encountered_chart_numbers:
                 # Add the chart name to the encountered_chart_names set
                 encountered_chart_numbers.add(chart_number)
-
-        # If there are missing charts for this table, add the table name and missing charts to the charts_withdrawn_result
         return (table_name, found_charts) if found_charts else None
 
 def update_new_charts_tab(results, target_textbox, message):
