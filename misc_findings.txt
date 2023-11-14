@@ -1,0 +1,3 @@
+The following folders have uncategorized findings that may indicate potential errors: EastDVD_20230825_RM_ATL01:
+400101.KAP      1088   GULF OF MAINE TO STRAIT OF BELLE ISLE / AU DÉTROIT DE BELLE ISLE
+

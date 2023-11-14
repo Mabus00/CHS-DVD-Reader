@@ -238,31 +238,38 @@ Vector table columns:
 
 '''
 def update_misc_findings_tab(results, current_yyyymmdd, target_textbox, message):
-    # establish the type of misc_finding as the tab is used for different misc reports
-    for result in results:
-        if isinstance(result, tuple): # tuple is for folder with full details
-            table_name, details = result
-            # add date to folder name
-            temp = utils.insert_text(table_name, current_yyyymmdd, pos_to_insert=1)
-            target_textbox.emit(f"{message} {temp}:")
-            if "RM" in table_name:
-                for data in details:
-                    formatted_data = f"{data[1]:<12} {data[4]:>7}   {data[5]}"
-                    target_textbox.emit(formatted_data)
+    # Opening a text file to store data
+    with open('misc_findings.txt', 'w') as file:
+        # Establish the type of misc_finding as the tab is used for different misc reports
+        for result in results:
+            if isinstance(result, tuple):  # tuple is for folder with full details
+                table_name, details = result
+                # Add date to folder name
+                temp = utils.insert_text(table_name, current_yyyymmdd, pos_to_insert=1)
+                file.write(f"{message} {temp}:\n")
+                if "RM" in table_name:
+                    for data in details:
+                        formatted_data = f"{data[1]:<12} {data[4]:>7}   {data[5]}\n"
+                        file.write(formatted_data)
+                else:
+                    for data in details:
+                        formatted_data = f"{data[1]:<12} {data[2]:<7}   {data[5]}\n"
+                        file.write(formatted_data)
+                file.write("\n")
             else:
-                for data in details:
-                    formatted_data = f"{data[1]:<12} {data[2]:<7}   {data[5]} "
-                    target_textbox.emit(formatted_data)
-            target_textbox.emit("\n")
-        else:
-            # tab report for any errors.
-            combined_results = "" 
-            temp = utils.insert_text(result, current_yyyymmdd, pos_to_insert=1)
-            if combined_results:
-                # If there are already results in the combined string, add a comma and space
-                combined_results += ", "
-            combined_results += temp
-            target_textbox.emit(f"{message} {combined_results} \n")
+                # Tab report for any errors.
+                combined_results = ""
+                temp = utils.insert_text(result, current_yyyymmdd, pos_to_insert=1)
+                if combined_results:
+                    # If there are already results in the combined string, add a comma and space
+                    combined_results += ", "
+                combined_results += temp
+                file.write(f"{message} {combined_results}\n")
+
+    # Reading the content from the file and sending it to target_textbox.emit()
+    with open('misc_findings.txt', 'r') as file:
+        content = file.read()
+        target_textbox.emit(content)
     
 def convert_to_yyyymmdd(date_str):
     try:
@@ -287,4 +294,3 @@ def rename_database(old_database_name, new_database_name):
     print('making current the new master database')
     # Replace 'current_database.db' and 'master_database.db' with your actual file names
     os.rename(old_database_name, new_database_name)
-    

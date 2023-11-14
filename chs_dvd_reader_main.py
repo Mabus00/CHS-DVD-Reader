@@ -17,6 +17,7 @@ VIEW = chs_dvd_gui
 
 import sys
 import inspect
+import os
 from PyQt5.QtWidgets import QApplication, QMainWindow, QTextBrowser
 from chs_dvd_gui import Ui_MainWindow
 from custom_signals import CreateDatabaseSignals, RunCheckerSignals, NewChartsSignals, NewEditionsSignals, WithdrawnSignals, ErrorsSignals
@@ -52,6 +53,9 @@ class CHSDVDReaderApp(QMainWindow):
         # set current month database input path to nothing; user must select path manually 
         self.current_database_input_path = ""
         self.current_database_name = "current_database.db"
+
+        # create reports list
+        self.reports = ["misc_findings.txt"]
 
         # Create an instance of RunCheckerSignals
         self.run_checker_signals = RunCheckerSignals()
@@ -121,6 +125,14 @@ class CHSDVDReaderApp(QMainWindow):
         # clear all text boxes before running the checker
         utils.clear_all_text_boxes(self.text_browsers)
 
+        # delete an existing .txt files; get a list of all files in the current directory
+        files = os.listdir()
+
+        # Loop through the files and delete those with a .txt extension
+        for file in files:
+            if file.endswith('.txt'):
+                os.remove(file)
+        
         # instantiate run_checker
         self.run_checker = RunChecker(self.current_database_name, self.run_checker_signals.run_checker_textbox, self.ui.checker_data_input_path.text())
         
@@ -232,6 +244,7 @@ class CHSDVDReaderApp(QMainWindow):
 
     def create_pdf_report(self):
         print('create_pdf_report')
+
         # establish database connections; operate under assumption that master_database won't be created each time widget is used
         self.master_database_conn, self.master_database_cursor = utils.get_database_connection(self.master_database_name, self.database_signals.create_database_textbox)
         self.current_database_conn, self.current_database_cursor = utils.get_database_connection(self.current_database_name, self.database_signals.create_database_textbox)
@@ -248,6 +261,10 @@ class CHSDVDReaderApp(QMainWindow):
         # Add content to the report
         self.create_pdf_report.add_title(100, 750, report_title)
         self.create_pdf_report.add_paragraph(100, 700, "This is the content of the report.")
+
+        for report in self.reports:
+            print(f'reports: {report}')
+
         
         # Save the report
         self.create_pdf_report.save_report()
