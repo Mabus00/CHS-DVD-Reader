@@ -193,6 +193,10 @@ class CHSDVDReaderApp(QMainWindow):
         else:
             self.run_checker_successful = False
             return
+        
+        # close the databases
+        utils.close_database(self.database_signals.create_database_textbox, self.master_database_conn, self.master_database_name)
+        utils.close_database(self.run_checker_signals.run_checker_textbox, self.current_database_conn, self.current_database_name)
 
     def update_master_database(self):
         # first confirm the program has run successfully before allowing user to update the master_database
@@ -212,16 +216,13 @@ class CHSDVDReaderApp(QMainWindow):
                 confirmation = utils.yes_or_no_popup("Are you sure you want to overwrite the Master Database with the current CHS DVDs?")
                 if confirmation == 16384: # pyQT code returned for yes
                     print(f'user says yes {confirmation}')
-                    utils.make_current_master_database()
+                    utils.delete_existing_database(self.master_database_name, self.run_checker_signals.run_checker_textbox)
+                    utils.rename_database(self.current_database_name, self.master_database_name)
                 else:
                     print(f'user says no {confirmation}')
             else:
                 print('misc_results and/or run_checker results not accepted; returning')
                 return
-
-            # close the databases
-            utils.close_database(self.database_signals.create_database_textbox, self.master_database_conn, self.master_database_name)
-            utils.close_database(self.run_checker_signals.run_checker_textbox, self.current_database_conn, self.current_database_name)
         else:
             print('run_checker hasnt run')
             return

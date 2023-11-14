@@ -283,5 +283,8 @@ def yes_or_no_popup(message):
                         QMessageBox.StandardButton.No)
     return reply.exec()
 
-def make_current_master_database():
+def rename_database(old_database_name, new_database_name):
     print('making current the new master database')
+    # Replace 'current_database.db' and 'master_database.db' with your actual file names
+    os.rename(old_database_name, new_database_name)
+    
