@@ -17,7 +17,7 @@ VIEW = chs_dvd_gui
 
 import sys
 import inspect
-from PyQt5.QtWidgets import QApplication, QMainWindow, QTextBrowser, QMessageBox
+from PyQt5.QtWidgets import QApplication, QMainWindow, QTextBrowser
 from chs_dvd_gui import Ui_MainWindow
 from custom_signals import CreateDatabaseSignals, RunCheckerSignals, NewChartsSignals, NewEditionsSignals, WithdrawnSignals, ErrorsSignals
 from build_database import BuildDatabase
@@ -26,6 +26,7 @@ from compare_databases import CompareDatabases
 from compare_chart_numbers import CompareChartNumbers
 from find_data_mismatches import FindDataMismatches
 import common_utils as utils
+from create_pdf_report import PDFReport
 
 class CHSDVDReaderApp(QMainWindow):
     def __init__(self):
@@ -75,6 +76,7 @@ class CHSDVDReaderApp(QMainWindow):
         self.ui.selectCheckerDataPathButton.clicked.connect(self.run_checker_signals.data_input_path_button.emit)
         self.ui.runCheckerButton.clicked.connect(self.run_checker_signals.run_checker_button.emit)
         self.ui.buildNewMasterDatabaseButton.clicked.connect(self.run_checker_signals.build_new_master_database_button.emit)
+        self.ui.createPDFReportButton.clicked.connect(self.run_checker_signals.create_pdf_report_button.emit)
         # create database tab
         self.ui.selectDataPathButton.clicked.connect(self.database_signals.database_input_path_button.emit)
         self.ui.buildDatabaseButton.clicked.connect(self.database_signals.build_database_button.emit)
@@ -84,6 +86,7 @@ class CHSDVDReaderApp(QMainWindow):
         self.run_checker_signals.data_input_path_button.connect(lambda: utils.open_file_explorer(self.ui.checker_data_input_path, self.current_database_input_path))
         self.run_checker_signals.run_checker_button.connect(self.run_checker)
         self.run_checker_signals.build_new_master_database_button.connect(self.update_master_database)
+        self.run_checker_signals.create_pdf_report_button.connect(self.create_pdf_report)
         # create database tab
         self.database_signals.database_input_path_button.connect(lambda: utils.open_file_explorer(self.ui.database_input_path, self.master_database_input_path))
         self.database_signals.build_database_button.connect(self.build_database)
@@ -227,7 +230,19 @@ class CHSDVDReaderApp(QMainWindow):
             print('run_checker hasnt run')
             return
 
+    def create_pdf_report(self):
+        print('create_pdf_report')
+        # instantiate pdf_report
+        self.create_pdf_report = PDFReport('example_report.pdf')
         
+        # Add content to the report
+        self.create_pdf_report.add_title(100, 750, "Report Title")
+        self.create_pdf_report.add_paragraph(100, 700, "This is the content of the report.")
+        
+        # Save the report
+        self.create_pdf_report.save_report()
+        
+
 def main():
     app = QApplication(sys.argv)
     window = CHSDVDReaderApp()

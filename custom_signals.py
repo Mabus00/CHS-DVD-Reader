@@ -14,9 +14,11 @@ class RunCheckerSignals(QObject):
     data_input_path_button = pyqtSignal()
     run_checker_button = pyqtSignal()
     run_checker_textbox = pyqtSignal(str)
-    # Custom signals specific to the "Run Checker" tab specifically building the new database from the current database
+    # Custom signals to replace new database from the current database
     accept_results_checkbox = pyqtSignal(bool)
     build_new_master_database_button = pyqtSignal()
+    # Custom siganl to create pdf report
+    create_pdf_report_button = pyqtSignal()
 
 class NewChartsSignals(QObject):
     # Custom signals specific to the "New Chart" tab
