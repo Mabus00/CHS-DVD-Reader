@@ -39,7 +39,7 @@ class CompareDatabases():
         tables_missing_in_current = set(tables_master_temp) - set(tables_current_temp)
         tables_missing_in_master = set(tables_current_temp) - set(tables_master_temp)
 
-        return tables_master_temp, tables_current_temp, tables_missing_in_master, tables_missing_in_current, master_yyyymmdd, current_yyyymmdd
+        return tables_master_temp, tables_missing_in_master, tables_missing_in_current, master_yyyymmdd, current_yyyymmdd
 
 # Main execution block (can be used for testing)
 if __name__ == "__main__":

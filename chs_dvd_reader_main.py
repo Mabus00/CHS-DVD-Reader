@@ -149,7 +149,7 @@ class CHSDVDReaderApp(QMainWindow):
                 # tables_missing_in_current represent tables that have been removed; tables_missing_in_master represent tables that have been added in current
                 # tables_master_temp and tables_current_temp have yyyymmdd removed; do this once and share with other modules
                 # master_yyyymmdd and current_yyyymmdd are the extracted yyyymmdd for each
-                tables_master_temp, tables_current_temp, tables_missing_in_master, tables_missing_in_current, master_yyyymmdd, current_yyyymmdd = self.compare_databases.compare_databases()
+                tables_master_temp, tables_missing_in_master, tables_missing_in_current, master_yyyymmdd, current_yyyymmdd = self.compare_databases.compare_databases()
                 # report withdrawn or new folders in current_database
                 if tables_missing_in_current or tables_missing_in_master:
                     utils.show_warning_popup("Possible errors were noted. See the Misc. Results tab.")
@@ -232,16 +232,29 @@ class CHSDVDReaderApp(QMainWindow):
 
     def create_pdf_report(self):
         print('create_pdf_report')
+        # establish database connections; operate under assumption that master_database won't be created each time widget is used
+        self.master_database_conn, self.master_database_cursor = utils.get_database_connection(self.master_database_name, self.database_signals.create_database_textbox)
+        self.current_database_conn, self.current_database_cursor = utils.get_database_connection(self.current_database_name, self.database_signals.create_database_textbox)
+
+        table_prefixes = ['EastDVD', 'WestDVD']
+        master_dates, current_dates = self.run_checker.get_databases_yyyymmdd(self.master_database_conn, self.current_database_conn, table_prefixes)
+
+        # set report title
+        report_title = f"{current_dates['EastDVD']}_CHS_DVD_Report"
+
         # instantiate pdf_report
-        self.create_pdf_report = PDFReport('example_report.pdf')
+        self.create_pdf_report = PDFReport(f"{report_title}.pdf")
         
         # Add content to the report
-        self.create_pdf_report.add_title(100, 750, "Report Title")
+        self.create_pdf_report.add_title(100, 750, report_title)
         self.create_pdf_report.add_paragraph(100, 700, "This is the content of the report.")
         
         # Save the report
         self.create_pdf_report.save_report()
         
+        # close the databases
+        utils.close_database(self.database_signals.create_database_textbox, self.master_database_conn, self.master_database_name)
+        utils.close_database(self.run_checker_signals.run_checker_textbox, self.current_database_conn, self.current_database_name)
 
 def main():
     app = QApplication(sys.argv)
