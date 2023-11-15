@@ -242,7 +242,7 @@ def get_column_headers(table_type, selected_cols):
     # return the selected column headers
     raster_table_columns = ["Chart", "File", "Edn Date", "Last NTM", "Edn#", "Title"]
 
-    vector_table_column = ["Chart", "ENC", "EDTN", "ISDT", "UADT", "Title"]
+    vector_table_columns = ["Chart", "ENC", "EDTN", "ISDT", "UADT", "Title"]
 
     # Select appropriate columns based on table_type
     if table_type == "raster":
@@ -266,15 +266,21 @@ def update_misc_findings_tab(results, current_yyyymmdd, target_textbox, message)
                 file.write(f"{message}\n{temp}:\n")
                 if "RM" in table_name:
                     col_indices = [1,4,5]
-                    col_headers = get_column_headers("raster", col_indices)
-                    header_line  = f"{col_headers[0]}\t\t{col_headers[1]}\t{col_headers[2]}\n"
-                    file.write(header_line )
+                    table_type = "raster"
+                    col_headers = get_column_headers(table_type, col_indices)
+                    header_line  = f"{col_headers[0].strip()}\t\t{col_headers[1].strip()}\t{col_headers[2].strip()}\n"
+                    file.write(header_line)
                     for data in details:
-                        formatted_data = f"{data[col_indices[0]]}\t{data[col_indices[1]]}\t{data[col_indices[2]]}\n" + '\n'
+                        formatted_data = f"{data[col_indices[0]].strip()}\t{data[col_indices[1]].strip()}\t{data[col_indices[2]].strip()}\n" + '\n'
                         file.write(formatted_data)
                 else:
+                    col_indices = [1,2,5]
+                    table_type = "vector"
+                    col_headers = get_column_headers(table_type, col_indices)
+                    header_line  = f"{col_headers[0].strip()}\t\t{col_headers[1].strip()}\t{col_headers[2].strip()}\n"
+                    file.write(header_line )
                     for data in details:
-                        formatted_data = f"{data[1]:<12} {data[2]:<7}   {data[5]}\n"
+                        formatted_data = f"{data[col_indices[0]].strip()}\t\t{data[col_indices[1]].strip()}\t{data[col_indices[2]].strip()}\n"
                         file.write(formatted_data)
                 file.write("\n")
             else:
