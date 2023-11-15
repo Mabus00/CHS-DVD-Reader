@@ -237,6 +237,23 @@ Vector table columns:
 5 Title
 
 '''
+
+def get_column_headers(table_type, selected_cols):
+    # return the selected column headers
+    raster_table_columns = ["Chart", "File", "Edn Date", "Last NTM", "Edn#", "Title"]
+
+    vector_table_column = ["Chart", "ENC", "EDTN", "ISDT", "UADT", "Title"]
+
+    # Select appropriate columns based on table_type
+    if table_type == "raster":
+        selected_columns = [raster_table_columns[idx] for idx in selected_cols if idx < len(raster_table_columns)]
+    elif table_type == "vector":
+        selected_columns = [vector_table_columns[idx] for idx in selected_cols if idx < len(vector_table_columns)]
+    else:
+        return []  # Return an empty list for an invalid table_type
+
+    return selected_columns
+
 def update_misc_findings_tab(results, current_yyyymmdd, target_textbox, message):
     # Opening a text file to store data
     with open('misc_findings.txt', 'w') as file:
@@ -246,10 +263,14 @@ def update_misc_findings_tab(results, current_yyyymmdd, target_textbox, message)
                 table_name, details = result
                 # Add date to folder name
                 temp = utils.insert_text(table_name, current_yyyymmdd, pos_to_insert=1)
-                file.write(f"{message} {temp}:\n")
+                file.write(f"{message}\n{temp}:\n")
                 if "RM" in table_name:
+                    col_indices = [1,4,5]
+                    col_headers = get_column_headers("raster", col_indices)
+                    header_line  = f"{col_headers[0]}\t\t{col_headers[1]}\t{col_headers[2]}\n"
+                    file.write(header_line )
                     for data in details:
-                        formatted_data = f"{data[1]:<12} {data[4]:>7}   {data[5]}\n"
+                        formatted_data = f"{data[col_indices[0]]}\t{data[col_indices[1]]}\t{data[col_indices[2]]}\n" + '\n'
                         file.write(formatted_data)
                 else:
                     for data in details:

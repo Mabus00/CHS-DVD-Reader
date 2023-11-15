@@ -125,7 +125,8 @@ class CHSDVDReaderApp(QMainWindow):
         # clear all text boxes before running the checker
         utils.clear_all_text_boxes(self.text_browsers)
 
-        # delete an existing .txt files; get a list of all files in the current directory
+        # delete existing .txt files; these files are used to fill tabs and create the pdf report
+        # first get a list of all files in the current directory
         files = os.listdir()
 
         # Loop through the files and delete those with a .txt extension
