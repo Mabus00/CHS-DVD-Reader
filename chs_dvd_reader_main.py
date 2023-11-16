@@ -125,10 +125,9 @@ class CHSDVDReaderApp(QMainWindow):
         # clear all text boxes before running the checker
         utils.clear_all_text_boxes(self.text_browsers)
 
-        # delete existing .txt files; these files are used to fill tabs and create the pdf report
+        # delete existing .txt files so they can be updated; these files are used to fill tabs and create the pdf report
         # first get a list of all files in the current directory
         files = os.listdir()
-
         # Loop through the files and delete those with a .txt extension
         for file in files:
             if file.endswith('.txt'):
@@ -137,7 +136,7 @@ class CHSDVDReaderApp(QMainWindow):
         # instantiate run_checker
         self.run_checker = RunChecker(self.current_database_name, self.run_checker_signals.run_checker_textbox, self.ui.checker_data_input_path.text())
         
-        # First Part - check for new editions and withdrawn charts
+        # THREE PARTS TO CHECKING
         # confirm that pre-build checks are met before proceeding; checking whether to delete existing database and a valid path is provided
         if self.run_checker.pre_build_checks():
             # establish database connections; operate under assumption that master_database won't be created each time widget is used
@@ -155,9 +154,9 @@ class CHSDVDReaderApp(QMainWindow):
             if not compliance:
                 utils.show_warning_popup('You have error messages that need to be addressed.  See the Progress Report window.')
             else:
-                # Compares the content of the master and current databases and finds new (i.e., not in master but in current) or missing (i.e., withdrawn)
-                # (i.e., in master but not in current) tables and reports the findings on the appropriate tabs.
-                # run this first so you can ignore missing tables in follow on code
+                # PART 1 OF 3 - compare the content of the master and current databases and report new (i.e., not in master but in current) or missing / withdrawn
+                # (i.e., in master but not in current) folders (tables) and reports the findings on the appropriate tabs.
+                # run this first so you can ignore missing tables in follow-on parts
                 self.compare_databases = CompareDatabases(self.master_database_cursor, self.current_database_cursor)
                 # tables_missing_in_current represent tables that have been removed; tables_missing_in_master represent tables that have been added in current
                 # tables_master_temp and tables_current_temp have yyyymmdd removed; do this once and share with other modules
@@ -170,16 +169,17 @@ class CHSDVDReaderApp(QMainWindow):
                         "missing_current": "Folders removed from this month's DVDs:",
                         "missing_master": "Folders added to this month's DVDs:",
                     }
+
                     for error_type, table_list in {"missing_current": tables_missing_in_current, "missing_master": tables_missing_in_master}.items():
                         if table_list:
                             message = error_messages[error_type]
                             utils.update_misc_findings_tab(table_list, current_yyyymmdd, self.errors_signals.errors_textbox, message)
 
+                # PART 2 OF 2 - compare master and current databases and report charts withdrawn and new charts
                 # Remove tables_missing_from_current from tables_master so table content matches; no need to check tables_missing_in_master because these are newly added
                 tables_master_temp = list(set(tables_master_temp) - set(tables_missing_in_current))
                 # creates instance of CompareChartNumbers
                 self.compare_databases = CompareChartNumbers(self.master_database_cursor, self.current_database_cursor)
-                # compares master and current databases and report charts withdrawn and new charts
                 charts_withdrawn, new_charts = self.compare_databases.compare_chart_numbers(tables_master_temp, master_yyyymmdd, current_yyyymmdd)
                 # Report missing charts on missing charts tab; can't use same process as above because of textbox identification
                 if charts_withdrawn:
@@ -190,6 +190,7 @@ class CHSDVDReaderApp(QMainWindow):
                     message = "New charts in current DVD folder"
                     utils.update_new_charts_tab(new_charts, self.new_charts_signals.new_charts_textbox, message)
 
+                # PART 3 OF 3 - find data mismatches
                 # instantiate FindDataMismatches
                 self.find_data_mismatches = FindDataMismatches(self.master_database_cursor, self.current_database_cursor)
                 new_editions, misc_findings = self.find_data_mismatches.find_mismatches(tables_master_temp, master_yyyymmdd, current_yyyymmdd)
@@ -254,7 +255,7 @@ class CHSDVDReaderApp(QMainWindow):
         master_dates, current_dates = self.run_checker.get_databases_yyyymmdd(self.master_database_conn, self.current_database_conn, table_prefixes)
 
         # set report title
-        report_title = f"{current_dates['EastDVD']}_CHS_DVD_Report"
+        report_title = f"{current_dates['EastDVD']} CHS DVD Report"
 
         # instantiate pdf_report
         self.create_pdf_report = PDFReport(f"{report_title}.pdf")

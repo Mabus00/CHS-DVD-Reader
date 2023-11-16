@@ -255,20 +255,23 @@ def get_column_headers(table_type, selected_cols):
     return selected_columns
 
 def update_misc_findings_tab(results, current_yyyymmdd, target_textbox, message):
-    # Opening a text file to store data
-    with open('misc_findings.txt', 'w') as file:
-        # Establish the type of misc_finding as the tab is used for different misc reports
-        for result in results:
-            if isinstance(result, tuple):  # tuple is for folder with full details
+    # Tab report for any errors.
+    combined_results = ""
+    # Establish the type of misc_finding as the tab is used for different misc reports
+    for result in results:
+        if isinstance(result, tuple): 
+            # tuple is for type 1 misc-report; contains folder details
+            # Opening a text file to store data
+            with open('misc_findings_type1.txt', 'w') as file:
                 table_name, details = result
                 # Add date to folder name
-                temp = utils.insert_text(table_name, current_yyyymmdd, pos_to_insert=1)
-                file.write(f"{message}\n{temp}:\n")
+                folder_name = utils.insert_text(table_name, current_yyyymmdd, pos_to_insert=1)
+                file.write(f"{message}\n{folder_name}:\n")
                 if "RM" in table_name:
-                    col_indices = [1,4,5]
+                    col_indices = [0,4,5]
                     table_type = "raster"
                     col_headers = get_column_headers(table_type, col_indices)
-                    header_line  = f"{col_headers[0].strip()}\t\t{col_headers[1].strip()}\t{col_headers[2].strip()}\n"
+                    header_line  = f"{col_headers[0].strip()}\t{col_headers[1].strip()}\t{col_headers[2].strip()}\n"
                     file.write(header_line)
                     for data in details:
                         formatted_data = f"{data[col_indices[0]].strip()}\t{data[col_indices[1]].strip()}\t{data[col_indices[2]].strip()}\n" + '\n'
@@ -282,21 +285,25 @@ def update_misc_findings_tab(results, current_yyyymmdd, target_textbox, message)
                     for data in details:
                         formatted_data = f"{data[col_indices[0]].strip()}\t\t{data[col_indices[1]].strip()}\t{data[col_indices[2]].strip()}\n"
                         file.write(formatted_data)
-                file.write("\n")
-            else:
-                # Tab report for any errors.
-                combined_results = ""
-                temp = utils.insert_text(result, current_yyyymmdd, pos_to_insert=1)
-                if combined_results:
-                    # If there are already results in the combined string, add a comma and space
-                    combined_results += ", "
-                combined_results += temp
-                file.write(f"{message} {combined_results}\n")
-
-    # Reading the content from the file and sending it to target_textbox.emit()
-    with open('misc_findings.txt', 'r') as file:
-        content = file.read()
-        target_textbox.emit(content)
+            # Reading the content from the file and sending it to target_textbox.emit()
+            with open('misc_findings_type1.txt', 'r') as file:
+                content = file.read()
+                target_textbox.emit(content)
+        else:
+            # type 2 misc-report; contains only folder name
+            # Opening a text file to store data
+            with open('misc_findings_type2.txt', 'w') as file:
+                if combined_results == "":
+                     combined_results += message + "\n"
+                # add folder name to combined_results
+                folder_name = utils.insert_text(result, current_yyyymmdd, pos_to_insert=1)
+                combined_results += folder_name + "\n"
+    
+    # combined_results dealt with differently because of formatting
+    if combined_results != "":
+        with open('misc_findings_type2.txt', 'w') as file:
+            file.write(f"{combined_results}\n")
+            target_textbox.emit(combined_results)
     
 def convert_to_yyyymmdd(date_str):
     try:
