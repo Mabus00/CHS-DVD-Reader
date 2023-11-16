@@ -256,7 +256,6 @@ def get_column_headers(table_type, selected_cols):
 
 def update_misc_findings_tab(results, current_yyyymmdd, target_textbox, message):
     # Tab report for any errors.
-    combined_results = ""
     formatted_data = ""
     # Establish the type of misc_finding as the tab is used for different misc reports
     for result in results:
@@ -285,28 +284,20 @@ def update_misc_findings_tab(results, current_yyyymmdd, target_textbox, message)
             for data in details:
                 temp = f"{data[col_indices[0]].strip()}\t{data[col_indices[1]].strip()}\t{data[col_indices[2]].strip()}\n"
                 formatted_data += temp + "\n"
-
         else:
             file_to_open = 'misc_findings_type2.txt'
             # type 2 misc-report; contains only folder name
             # Opening a text file to store data
-            if combined_results == "":
-                    combined_results += message + "\n"
+            if formatted_data == "":
+                    formatted_data += message + "\n"
             # add folder name to combined_results
             folder_name = utils.insert_text(result, current_yyyymmdd, pos_to_insert=1)
-            combined_results += folder_name + "\n"
+            formatted_data += folder_name + "\n"
     
-    # Reading the content from the file and sending it to target_textbox.emit()
-    if formatted_data != "":
-        with open(file_to_open, 'w') as file:
-            file.write(f"{formatted_data}\n")
-            target_textbox.emit(formatted_data)
-
-    # combined_results dealt with differently because of formatting
-    if combined_results != "":
-        with open(file_to_open, 'w') as file:
-            file.write(f"{combined_results}\n")
-            target_textbox.emit(combined_results)
+    # Writting to the selected file then sending formatted_data to target_textbox.emit()
+    with open(file_to_open, 'w') as file:
+        file.write(f"{formatted_data}\n")
+        target_textbox.emit(formatted_data)
     
 def convert_to_yyyymmdd(date_str):
     try:
