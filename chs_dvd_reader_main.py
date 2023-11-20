@@ -172,7 +172,7 @@ class CHSDVDReaderApp(QMainWindow):
                     for error_type, table_list in {"missing_current": tables_missing_in_current, "missing_master": tables_missing_in_master}.items():
                         if table_list:
                             message = error_messages[error_type]
-                            # type of report is type 2; non-tuple therefore use default file_to_open name for report purposes (default set in method)
+                            # type of report is type 2; non-tuple therefore use default file_to_open name for pdf report purposes (default set in method)
                             utils.update_selected_tab(table_list, current_yyyymmdd, self.errors_signals.errors_textbox, message)
 
                 # PART 2 OF 2 - compare master and current databases and report charts withdrawn and new charts
