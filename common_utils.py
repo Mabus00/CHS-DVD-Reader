@@ -251,15 +251,13 @@ def get_column_headers(table_type, selected_cols):
         return []  # Return an empty list for an invalid table_type
     return selected_columns
 
-def update_selected_tab(results, current_yyyymmdd, target_textbox, message):
-    # Tab report for any errors.
+def update_selected_tab(results, current_yyyymmdd, target_textbox, message, file_to_open = 'misc_findings_type2.txt'):
+    # Tab report for all reports. Type 1 is for detailed results (hence tuple) whereas Type 2 is simple results (non-tuple) (default)
     formatted_data = ""
-    # Establish the type of misc_finding as the tab is used for different misc reports
+    # Establish the type of misc_finding as the tab is used for different misc reports; use tuple
     for result in results:
         if isinstance(result, tuple): 
-            # tuple is for type 1 misc-report; contains folder details
-            # Opening a text file to store data
-            file_to_open = 'misc_findings_type1.txt'
+            # tuple indicates detailed results and is for type 1 report
             write_method = 'w'
             if formatted_data == "":
                 # add message which acts as section header
@@ -283,10 +281,9 @@ def update_selected_tab(results, current_yyyymmdd, target_textbox, message):
                 temp = f"{data[col_indices[0]].strip()}\t{data[col_indices[1]].strip()}\t{data[col_indices[2]].strip()}\n"
                 formatted_data += temp + "\n"
         else:
-            file_to_open = 'misc_findings_type2.txt'
+            # type 2 report is a simple report that contains non-tuple results
+            # write method is append because I want to track all type 2 reports in one document; there could be more than call to this method
             write_method = 'a'
-            # type 2 misc-report; contains only folder name
-            # Opening a text file to store data
             if formatted_data == "":
                     formatted_data += message + "\n"
             # add folder name to combined_results

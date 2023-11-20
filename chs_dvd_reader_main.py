@@ -172,6 +172,7 @@ class CHSDVDReaderApp(QMainWindow):
                     for error_type, table_list in {"missing_current": tables_missing_in_current, "missing_master": tables_missing_in_master}.items():
                         if table_list:
                             message = error_messages[error_type]
+                            # type of report is type 2; non-tuple therefore use default file_to_open name for report purposes (default set in method)
                             utils.update_selected_tab(table_list, current_yyyymmdd, self.errors_signals.errors_textbox, message)
 
                 # PART 2 OF 2 - compare master and current databases and report charts withdrawn and new charts
@@ -201,7 +202,9 @@ class CHSDVDReaderApp(QMainWindow):
                 # Report new charts on new charts tab
                 if misc_findings:
                     message = "The following folders have uncategorized findings that may indicate potential errors:"
-                    utils.update_selected_tab(misc_findings, current_yyyymmdd, self.errors_signals.errors_textbox, message)
+                    # type of report is type 1; tuple therefore provide a file_to_open name for report purposes
+                    file_to_open = 'misc_findings_type1.txt'
+                    utils.update_selected_tab(misc_findings, current_yyyymmdd, self.errors_signals.errors_textbox, message, file_to_open)
                     utils.show_warning_popup("Possible errors were noted. See the Misc. Results tab.")
                 # Print a message to indicate that the checker has run
                 self.run_checker_signals.run_checker_textbox.emit('\nThe Checker ran succesfully!')
