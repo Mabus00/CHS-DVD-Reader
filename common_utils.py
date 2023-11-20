@@ -251,7 +251,7 @@ def get_column_headers(table_type, selected_cols):
         return []  # Return an empty list for an invalid table_type
     return selected_columns
 
-def update_misc_findings_tab(results, current_yyyymmdd, target_textbox, message):
+def update_selected_tab(results, current_yyyymmdd, target_textbox, message):
     # Tab report for any errors.
     formatted_data = ""
     # Establish the type of misc_finding as the tab is used for different misc reports
@@ -260,6 +260,7 @@ def update_misc_findings_tab(results, current_yyyymmdd, target_textbox, message)
             # tuple is for type 1 misc-report; contains folder details
             # Opening a text file to store data
             file_to_open = 'misc_findings_type1.txt'
+            write_method = 'w'
             if formatted_data == "":
                 # add message which acts as section header
                 formatted_data += message + "\n"
@@ -283,6 +284,7 @@ def update_misc_findings_tab(results, current_yyyymmdd, target_textbox, message)
                 formatted_data += temp + "\n"
         else:
             file_to_open = 'misc_findings_type2.txt'
+            write_method = 'a'
             # type 2 misc-report; contains only folder name
             # Opening a text file to store data
             if formatted_data == "":
@@ -292,7 +294,7 @@ def update_misc_findings_tab(results, current_yyyymmdd, target_textbox, message)
             formatted_data += folder_name + "\n"
     
     # Writting to the selected file then sending formatted_data to target_textbox.emit()
-    with open(file_to_open, 'w') as file:
+    with open(file_to_open, write_method) as file:
         file.write(f"{formatted_data}\n")
         target_textbox.emit(formatted_data)
     
