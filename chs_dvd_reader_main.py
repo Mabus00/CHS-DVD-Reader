@@ -136,8 +136,8 @@ class CHSDVDReaderApp(QMainWindow):
         # instantiate run_checker
         self.run_checker = RunChecker(self.current_database_name, self.run_checker_signals.run_checker_textbox, self.ui.checker_data_input_path.text())
         
-        # THREE PARTS TO CHECKING
-        # confirm that pre-build checks are met before proceeding; checking whether to delete existing database and a valid path is provided
+        # THREE PARTS TO RUN CHECKING
+        # before starting confirm pre-build checks (checking whether to delete existing database and a valid path is provided) are met
         if self.run_checker.pre_build_checks():
             # establish database connections; operate under assumption that master_database won't be created each time widget is used
             self.master_database_conn, self.master_database_cursor = utils.get_database_connection(self.master_database_name, self.database_signals.create_database_textbox)
@@ -154,9 +154,9 @@ class CHSDVDReaderApp(QMainWindow):
             if not compliance:
                 utils.show_warning_popup('You have error messages that need to be addressed.  See the Progress Report window.')
             else:
-                # PART 1 OF 3 - compare the content of the master and current databases and report new (i.e., not in master but in current) or missing / withdrawn
-                # (i.e., in master but not in current) folders (tables) and reports the findings on the appropriate tabs.
-                # run this first so you can ignore missing tables in follow-on parts
+                # PART 1 OF 3 - compare the folder content of the master and current databases and report new (i.e., not in master but in current) or missing / withdrawn
+                # (i.e., in master but not in current) folders on the appropriate tabs.
+                # run this first so you can ignore missing tables in PART 2 and 3
                 self.compare_databases = CompareDatabases(self.master_database_cursor, self.current_database_cursor)
                 # tables_missing_in_current represent tables that have been removed; tables_missing_in_master represent tables that have been added in current
                 # tables_master_temp and tables_current_temp have yyyymmdd removed; do this once and share with other modules
@@ -169,7 +169,6 @@ class CHSDVDReaderApp(QMainWindow):
                         "missing_current": "Folders removed from this month's DVDs:",
                         "missing_master": "Folders added to this month's DVDs:",
                     }
-
                     for error_type, table_list in {"missing_current": tables_missing_in_current, "missing_master": tables_missing_in_master}.items():
                         if table_list:
                             message = error_messages[error_type]
@@ -178,9 +177,9 @@ class CHSDVDReaderApp(QMainWindow):
                 # PART 2 OF 2 - compare master and current databases and report charts withdrawn and new charts
                 # Remove tables_missing_from_current from tables_master so table content matches; no need to check tables_missing_in_master because these are newly added
                 tables_master_temp = list(set(tables_master_temp) - set(tables_missing_in_current))
-                # creates instance of CompareChartNumbers
-                self.compare_databases = CompareChartNumbers(self.master_database_cursor, self.current_database_cursor)
-                charts_withdrawn, new_charts = self.compare_databases.compare_chart_numbers(tables_master_temp, master_yyyymmdd, current_yyyymmdd)
+                # instantiate CompareChartNumbers
+                self.compare_chart_numbers = CompareChartNumbers(self.master_database_cursor, self.current_database_cursor)
+                charts_withdrawn, new_charts = self.compare_chart_numbers.compare_chart_numbers(tables_master_temp, master_yyyymmdd, current_yyyymmdd)
                 # Report missing charts on missing charts tab; can't use same process as above because of textbox identification
                 if charts_withdrawn:
                     message = "Charts missing in current DVD folder"

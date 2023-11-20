@@ -241,9 +241,7 @@ Vector table columns:
 def get_column_headers(table_type, selected_cols):
     # return the selected column headers
     raster_table_columns = ["Chart", "File", "Edn Date", "Last NTM", "Edn#", "Title"]
-
     vector_table_columns = ["Chart", "ENC", "EDTN", "ISDT", "UADT", "Title"]
-
     # Select appropriate columns based on table_type
     if table_type == "raster":
         selected_columns = [raster_table_columns[idx] for idx in selected_cols if idx < len(raster_table_columns)]
@@ -251,7 +249,6 @@ def get_column_headers(table_type, selected_cols):
         selected_columns = [vector_table_columns[idx] for idx in selected_cols if idx < len(vector_table_columns)]
     else:
         return []  # Return an empty list for an invalid table_type
-
     return selected_columns
 
 def update_misc_findings_tab(results, current_yyyymmdd, target_textbox, message):
