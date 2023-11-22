@@ -174,34 +174,27 @@ def get_first_table_yyyymmdd(prefix, database_conn):
 
 ''' compare_database_tables common functions '''
 def detect_column_changes(column_index, base_table, secondary_table, table_name):
+        # using the column_index to identify the comparator, detect changes in cell content (i.e., missing cell content)
         # base_table = primary table against which the secondary_table is being compared
-        # reset encountered chart numbers
-        encountered_chart_numbers = set()
-        # Create a set of chart numbers from current_data for faster lookup
-        chart_numbers = set(row[column_index] for row in secondary_table)
-        # Initialize a list to new charts and store missing chart numbers
-        found_charts = []
+        # reset encountered column content
+        encountered_column_content = set()
+        # Create a set of cell content from secondary_table for faster lookup
+        column_content = set(row[column_index] for row in secondary_table)
+        # Initialize a list to store the rows where missing cell content has been found
+        found_rows = []
         # Iterate through rows of master_data
         for i, row in enumerate(base_table):
-            # get base_table chart name for the current row
-            chart_number = row[column_index]
-            # Check if the chart name from base_table is in secondary_table; if not add to missing_charts list
-            if (chart_number not in chart_numbers) and (chart_number not in encountered_chart_numbers):
-                # Append the missing chart name to the list
-                found_charts.append(chart_number)
-            # whether or not above condition fails add it to encountered_chart_numbers so we don't keep checking repeating base_table cahrt numbers
-            if chart_number not in encountered_chart_numbers:
-                # Add the chart name to the encountered_chart_names set
-                encountered_chart_numbers.add(chart_number)
-        return (table_name, found_charts) if found_charts else None
-
-def update_new_charts_tab(results, target_textbox, message):
-    # tab reports for new and withdrawn charts
-    for table_name, charts in results:
-        target_textbox.emit(f"{message} {table_name}:")
-        # Concatenate the chart numbers with commas
-        chart_str = ', '.join(charts)
-        target_textbox.emit(chart_str + '\n')
+            # get base_table cell content for the current row
+            cell_content = row[column_index]
+            # Check if the cell content from base_table is in secondary_table
+            if (cell_content not in column_content) and (cell_content not in encountered_column_content):
+                # Append the row to the list
+                found_rows.append(row)
+            # whether or not above condition fails add it to encountered_column_content so we don't keep checking repeating cell content
+            if cell_content not in encountered_column_content:
+                # Add the cell content to the encountered_column_content set
+                encountered_column_content.add(cell_content)
+        return (table_name, found_rows) if found_rows else None
 
 def update_new_editions_tab(results, current_yyyymmdd, target_textbox, message):
     target_textbox.emit(f"{message}\n")
@@ -250,6 +243,14 @@ def get_column_headers(table_type, selected_cols):
     else:
         return []  # Return an empty list for an invalid table_type
     return selected_columns
+
+def update_new_charts_tab(results, target_textbox, message):
+    # tab reports for new and withdrawn charts
+    for table_name, charts in results:
+        target_textbox.emit(f"{message} {table_name}:")
+        # Concatenate the chart numbers with commas
+        chart_str = ', '.join(charts)
+        target_textbox.emit(chart_str + '\n')
 
 def update_selected_tab(results, current_yyyymmdd, target_textbox, message, file_to_open = 'misc_findings_type2.txt'):
     # Tab report for all reports. Type 1 is for detailed results (hence tuple) whereas Type 2 is simple results (non-tuple) (default)
