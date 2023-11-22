@@ -152,7 +152,6 @@ def insert_text(table_name, text, pos_to_insert):
     # Check if the specified part_to_replace is within the valid range
     if 0 <= pos_to_insert < len(parts) - 1:
         parts.insert(pos_to_insert, text)  # Replace the specified part with an empty string
-        
         # Filter out empty parts and join with underscores
         new_table_name = '_'.join(filter(None, parts))
     return new_table_name  # Join all parts with underscore
@@ -263,12 +262,13 @@ def update_selected_tab(results, current_yyyymmdd, target_textbox, message, file
             if formatted_data == "":
                 # add message which acts as section header
                 formatted_data += message + "\n"
-            table_name, details = result
+            folder_name, details = result
             # Add date to folder name
-            folder_name = utils.insert_text(table_name, current_yyyymmdd, pos_to_insert=1)
+            if current_yyyymmdd:
+                folder_name = utils.insert_text(folder_name, current_yyyymmdd, pos_to_insert=1)
             # add folder_name which acts as table header
             formatted_data += folder_name + "\n"
-            if "RM" in table_name:
+            if "RM" in folder_name:
                 col_indices = [0,4,5]
                 table_type = "raster"
             else:
@@ -288,7 +288,8 @@ def update_selected_tab(results, current_yyyymmdd, target_textbox, message, file
             if formatted_data == "":
                     formatted_data += message + "\n"
             # add folder name to combined_results
-            folder_name = utils.insert_text(result, current_yyyymmdd, pos_to_insert=1)
+            if current_yyyymmdd:
+                folder_name = utils.insert_text(result, current_yyyymmdd, pos_to_insert=1)
             formatted_data += folder_name + "\n"
     
     # Writting to the selected file then sending formatted_data to target_textbox.emit()

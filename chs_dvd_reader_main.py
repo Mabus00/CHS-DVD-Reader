@@ -184,11 +184,15 @@ class CHSDVDReaderApp(QMainWindow):
                 # Report missing charts on missing charts tab; can't use same process as above because of textbox identification
                 if charts_withdrawn:
                     message = "Charts missing in current DVD folder"
-                    utils.update_new_charts_tab(charts_withdrawn, self.charts_withdrawn_signals.chart_withdrawn_textbox, message)
+                    # type of report is type 1; tuple therefore provide a file_to_open name for report purposes
+                    file_to_open = 'charts_withdrawn.txt'
+                    utils.update_selected_tab(charts_withdrawn, 'None', self.errors_signals.errors_textbox, message, file_to_open)
                 # Report new charts on new charts tab
                 if new_charts:
                     message = "New charts in current DVD folder"
-                    utils.update_new_charts_tab(new_charts, self.new_charts_signals.new_charts_textbox, message)
+                    # type of report is type 1; tuple therefore provide a file_to_open name for report purposes
+                    file_to_open = 'new_charts.txt'
+                    utils.update_selected_tab(new_charts, 'None', self.errors_signals.errors_textbox, message, file_to_open)
 
                 # PART 3 OF 3 - find data mismatches
                 # instantiate FindDataMismatches
