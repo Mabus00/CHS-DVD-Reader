@@ -289,6 +289,11 @@ def main():
     app = QApplication(sys.argv)
     window = CHSDVDReaderApp()
     window.show()
+
+    # Get all text browsers from the UI and scroll them to the top
+    for browser in window.text_browsers:
+        browser.verticalScrollBar().minimum()
+
     sys.exit(app.exec_())
 
 if __name__ == "__main__":

@@ -1,9 +1,5 @@
 Charts missing in current DVD folder:
 
-EastDVD_20230825_V_ATL_B:
-ENC		EDTN	Title
-CA576022		1.003	Letete Passage, Letang Harbour and/et Blacks Harbour
-
 EastDVD_20230825_V_ATL_A:
 ENC		EDTN	Title
 CA379026		10.001	Iles de Mingan
@@ -44,6 +40,10 @@ CA579170		4.000	L'Anse-a-la-Cabane
 CA579220		4.000	Pointe-aux-Loups
 CA579254		1.001	New Richmond
 CA579260		2.001	Baie de la Tabatière
+
+EastDVD_20230825_V_ATL_B:
+ENC		EDTN	Title
+CA576022		1.003	Letete Passage, Letang Harbour and/et Blacks Harbour
 
 EastDVD_20230825_V_CEN_C:
 ENC		EDTN	Title
