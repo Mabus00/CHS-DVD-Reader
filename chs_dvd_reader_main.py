@@ -18,7 +18,8 @@ VIEW = chs_dvd_gui
 import sys
 import inspect
 import os
-from PyQt5.QtWidgets import QApplication, QMainWindow, QTextBrowser
+from PyQt5.QtWidgets import QApplication, QMainWindow, QTextEdit
+from PyQt5.QtGui import QFont
 from chs_dvd_gui import Ui_MainWindow
 from custom_signals import CreateDatabaseSignals, RunCheckerSignals, NewChartsSignals, NewEditionsSignals, WithdrawnSignals, ErrorsSignals
 from build_database import BuildDatabase
@@ -38,7 +39,10 @@ class CHSDVDReaderApp(QMainWindow):
         self.setWindowTitle("CHS DVD Reader")
 
         # create list of text browsers so they can be cleared en masse
-        self.text_browsers = [obj for name, obj in inspect.getmembers(self.ui) if isinstance(obj, QTextBrowser)]
+        self.text_browsers = [obj for name, obj in inspect.getmembers(self.ui) if isinstance(obj, QTextEdit)]
+
+        for browser in self.text_browsers:
+            browser.setFont(QFont("Arial", 12))
 
         # set database connections
         self.master_database_conn = ""
@@ -183,16 +187,16 @@ class CHSDVDReaderApp(QMainWindow):
                 charts_withdrawn, new_charts = self.compare_chart_numbers.compare_chart_numbers(tables_master_temp, master_yyyymmdd, current_yyyymmdd)
                 # Report missing charts on missing charts tab; can't use same process as above because of textbox identification
                 if charts_withdrawn:
-                    message = "Charts missing in current DVD folder"
+                    message = "Charts missing in current DVD folder:"
                     # type of report is type 1; tuple therefore provide a file_to_open name for report purposes
                     file_to_open = 'charts_withdrawn.txt'
-                    utils.update_selected_tab(charts_withdrawn, 'None', self.errors_signals.errors_textbox, message, file_to_open)
+                    utils.update_selected_tab(charts_withdrawn, None, self.charts_withdrawn_signals.chart_withdrawn_textbox, message, file_to_open)
                 # Report new charts on new charts tab
                 if new_charts:
-                    message = "New charts in current DVD folder"
+                    message = "New charts in current DVD folder:"
                     # type of report is type 1; tuple therefore provide a file_to_open name for report purposes
                     file_to_open = 'new_charts.txt'
-                    utils.update_selected_tab(new_charts, 'None', self.errors_signals.errors_textbox, message, file_to_open)
+                    utils.update_selected_tab(new_charts, None, self.new_charts_signals.new_charts_textbox, message, file_to_open)
 
                 # PART 3 OF 3 - find data mismatches
                 # instantiate FindDataMismatches

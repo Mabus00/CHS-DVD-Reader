@@ -1,6 +1,10 @@
 The following folders have uncategorized findings that may indicate potential errors:
-WestDVD_20230825_V_NOR_A
-ENC	EDTN	Title
-CA476684	1.000	McLelan Strait
 
+EastDVD_20230825_RM_ATL01:
+Chart		Edn#	Title
+4001		1088	GULF OF MAINE TO STRAIT OF BELLE ISLE / AU DÉTROIT DE BELLE ISLE
+
+WestDVD_20230825_V_NOR_A:
+ENC		EDTN	Title
+CA476684		2.002	McLelan Strait
 

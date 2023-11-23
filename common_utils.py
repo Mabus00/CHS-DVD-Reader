@@ -243,14 +243,6 @@ def get_column_headers(table_type, selected_cols):
         return []  # Return an empty list for an invalid table_type
     return selected_columns
 
-def update_new_charts_tab(results, target_textbox, message):
-    # tab reports for new and withdrawn charts
-    for table_name, charts in results:
-        target_textbox.emit(f"{message} {table_name}:")
-        # Concatenate the chart numbers with commas
-        chart_str = ', '.join(charts)
-        target_textbox.emit(chart_str + '\n')
-
 def update_selected_tab(results, current_yyyymmdd, target_textbox, message, file_to_open = 'misc_findings_type2.txt'):
     # Tab report for all reports. Type 1 is for detailed results (hence tuple) whereas Type 2 is simple results (non-tuple) (default)
     formatted_data = ""
@@ -264,10 +256,10 @@ def update_selected_tab(results, current_yyyymmdd, target_textbox, message, file
                 formatted_data += message + "\n"
             folder_name, details = result
             # Add date to folder name
-            if current_yyyymmdd:
+            if current_yyyymmdd is not None:
                 folder_name = utils.insert_text(folder_name, current_yyyymmdd, pos_to_insert=1)
             # add folder_name which acts as table header
-            formatted_data += folder_name + "\n"
+            formatted_data += "\n" + folder_name + ":"
             if "RM" in folder_name:
                 col_indices = [0,4,5]
                 table_type = "raster"
@@ -275,22 +267,24 @@ def update_selected_tab(results, current_yyyymmdd, target_textbox, message, file
                 col_indices = [1,2,5]
                 table_type = "vector"
             col_headers = get_column_headers(table_type, col_indices)
-            header_line  = f"{col_headers[0].strip()}\t{col_headers[1].strip()}\t{col_headers[2].strip()}"
+            header_line  = f"{col_headers[0].strip()}\t\t{col_headers[1].strip()}\t{col_headers[2].strip()}"
             # add column headers
-            formatted_data += header_line + "\n"
+            formatted_data += "\n" + header_line
             for data in details:
-                temp = f"{data[col_indices[0]].strip()}\t{data[col_indices[1]].strip()}\t{data[col_indices[2]].strip()}\n"
-                formatted_data += temp + "\n"
+                temp = f"{data[col_indices[0]].strip()}\t\t{data[col_indices[1]].strip()}\t{data[col_indices[2]].strip()}"
+                formatted_data += "\n" + temp
+            formatted_data += "\n" 
         else:
             # type 2 report is a simple report that contains non-tuple results
             # write method is append because I want to track all type 2 reports in one document; there could be more than call to this method
             write_method = 'a'
             if formatted_data == "":
-                    formatted_data += message + "\n"
+                    formatted_data += "\n" + message
             # add folder name to combined_results
-            if current_yyyymmdd:
+            if current_yyyymmdd is not None:
                 folder_name = utils.insert_text(result, current_yyyymmdd, pos_to_insert=1)
-            formatted_data += folder_name + "\n"
+            formatted_data += "\n" + folder_name
+            formatted_data += "\n" 
     
     # Writting to the selected file then sending formatted_data to target_textbox.emit()
     with open(file_to_open, write_method) as file:
