@@ -66,7 +66,7 @@
      </font>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>1</number>
     </property>
     <property name="documentMode">
      <bool>false</bool>
@@ -144,6 +144,14 @@
         <width>901</width>
         <height>311</height>
        </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Arial</family>
+        <pointsize>12</pointsize>
+        <weight>50</weight>
+        <bold>false</bold>
+       </font>
       </property>
      </widget>
      <widget class="QCheckBox" name="acceptResultsCheckBox">
@@ -238,6 +246,14 @@
         <height>591</height>
        </rect>
       </property>
+      <property name="font">
+       <font>
+        <family>Arial</family>
+        <pointsize>12</pointsize>
+        <weight>50</weight>
+        <bold>false</bold>
+       </font>
+      </property>
      </widget>
     </widget>
     <widget class="QWidget" name="new_editions">
@@ -266,6 +282,14 @@
         <height>591</height>
        </rect>
       </property>
+      <property name="font">
+       <font>
+        <family>Arial</family>
+        <pointsize>12</pointsize>
+        <weight>50</weight>
+        <bold>false</bold>
+       </font>
+      </property>
      </widget>
     </widget>
     <widget class="QWidget" name="withdrawals">
@@ -293,6 +317,14 @@
         <width>901</width>
         <height>591</height>
        </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Arial</family>
+        <pointsize>12</pointsize>
+        <weight>50</weight>
+        <bold>false</bold>
+       </font>
       </property>
      </widget>
     </widget>
@@ -334,6 +366,14 @@
         <width>901</width>
         <height>561</height>
        </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Arial</family>
+        <pointsize>12</pointsize>
+        <weight>50</weight>
+        <bold>false</bold>
+       </font>
       </property>
      </widget>
     </widget>
@@ -423,6 +463,14 @@
         <width>881</width>
         <height>251</height>
        </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Algerian</family>
+        <pointsize>12</pointsize>
+        <weight>50</weight>
+        <bold>false</bold>
+       </font>
       </property>
      </widget>
     </widget>
