@@ -244,7 +244,9 @@ def get_column_headers(table_type, selected_cols):
     return selected_columns
 
 def update_selected_tab(results, current_yyyymmdd, target_textbox, message, file_to_open = 'misc_findings_type2.txt'):
-    # Tab report for all reports. Type 1 is for detailed results (hence tuple) whereas Type 2 is simple results (non-tuple) (default)
+    # Report for all tabs / reports. Note there are small formatting adjustments (e.g., \t\t and \t\t\t) throughout to accomodate tab vs pdf report differences
+    # Doing this seemed to be the easiest way even though I don't like how it looks.
+    # Type 1 is for detailed results (hence tuple) whereas Type 2 is simple results (non-tuple) (default)
     formatted_data = ""
     # Establish the type of misc_finding as the tab is used for different misc reports; use tuple
     for result in results:
@@ -263,22 +265,27 @@ def update_selected_tab(results, current_yyyymmdd, target_textbox, message, file
             if "RM" in folder_name:
                 col_indices = [0,4,5]
                 table_type = "raster"
+                # set header row column tabs
                 tabs = "\t"
             else:
                 col_indices = [1,2,5]
                 table_type = "vector"
+                # set header row column tabs
                 tabs = "\t\t"
             col_headers = get_column_headers(table_type, col_indices)
             header_line  = f"{col_headers[0].strip()}{tabs}{col_headers[1].strip()}{tabs}{col_headers[2]}"
             # add column headers
             formatted_data += "\n" + header_line
             for data in details:
-                temp = f"{data[col_indices[0]].strip()}\t{data[col_indices[1]].strip()}\t{data[col_indices[2]]}"
+                if file_to_open == "charts_withdrawn.txt" and "RM" not in folder_name:
+                    temp = f"{data[col_indices[0]].strip()}\t\t{data[col_indices[1]].strip()}\t{data[col_indices[2]]}"
+                else:
+                    temp = f"{data[col_indices[0]].strip()}\t{data[col_indices[1]].strip()}\t{data[col_indices[2]]}"
                 formatted_data += "\n" + temp
             formatted_data += "\n"
         else:
             # type 2 report is a simple report that contains non-tuple results
-            # write method is append because I want to track all type 2 reports in one document; there could be more than call to this method
+            # write method is append because I want to track all type 2 reports in one document; there could be more than one call to this method
             write_method = 'a'
             if formatted_data == "":
                     formatted_data += "\n" + message
@@ -287,11 +294,14 @@ def update_selected_tab(results, current_yyyymmdd, target_textbox, message, file
                 folder_name = utils.insert_text(result, current_yyyymmdd, pos_to_insert=1)
             formatted_data += "\n" + folder_name
             formatted_data += "\n" 
+    
+    target_textbox.emit(formatted_data)
 
     # Writting to the selected file then sending formatted_data to target_textbox.emit()
     with open(file_to_open, write_method) as file:
+        # Adjust data before writing; small format adjustment for vector folder header
+        formatted_data = formatted_data.replace('\t\t', '\t\t\t')
         file.write(f"{formatted_data}\n")
-        target_textbox.emit(formatted_data)
     
 def convert_to_yyyymmdd(date_str):
     try:
