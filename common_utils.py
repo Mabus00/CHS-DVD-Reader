@@ -244,25 +244,26 @@ def get_column_headers(table_type, selected_cols):
     return selected_columns
 
 def update_selected_tab(results, current_yyyymmdd, target_textbox, message, file_to_open = 'misc_findings_type2.txt'):
-    # Report for all tabs / reports. Note there are small formatting adjustments (e.g., \t\t and \t\t\t) throughout to accomodate tab vs pdf report differences
-    # Doing this seemed to be the easiest way even though I don't like how it looks.
+    # Report for all tabs / pdf reports. Note there are small formatting adjustments (e.g., \t\t and \t\t\t) to accomodate tab vs pdf report differences
+    # Doing this seemed to be the easiest way even though I don't like how it looks. Other route would have been to create tables in pyQt or use HTML formatting
     # Type 1 is for detailed results (hence tuple) whereas Type 2 is simple results (non-tuple) (default)
     formatted_data = ""
-    # Establish the type of misc_finding as the tab is used for different misc reports; use tuple
+    # Establish the type of data; use tuple as delineator
     for result in results:
         if isinstance(result, tuple): 
             # tuple indicates detailed results and is for type 1 report
             write_method = 'w'
             if formatted_data == "":
                 # add message which acts as section header
-                formatted_data += message + "\n"
+                formatted_data += message
             folder_name, details = result
-            # Add date to folder name
+            # Add date to folder name if needed
             if current_yyyymmdd is not None:
                 folder_name = utils.insert_text(folder_name, current_yyyymmdd, pos_to_insert=1)
             # add folder_name which acts as table header
             formatted_data += "\n" + folder_name + ":"
             if "RM" in folder_name:
+                # only show these columns
                 col_indices = [0,4,5]
                 table_type = "raster"
                 # set header row column tabs
@@ -270,7 +271,7 @@ def update_selected_tab(results, current_yyyymmdd, target_textbox, message, file
             else:
                 col_indices = [1,2,5]
                 table_type = "vector"
-                # set header row column tabs
+                # set header row column tabs; needs an extra tab to line things up
                 tabs = "\t\t"
             col_headers = get_column_headers(table_type, col_indices)
             header_line  = f"{col_headers[0].strip()}{tabs}{col_headers[1].strip()}{tabs}{col_headers[2]}"
@@ -278,6 +279,7 @@ def update_selected_tab(results, current_yyyymmdd, target_textbox, message, file
             formatted_data += "\n" + header_line
             for data in details:
                 if file_to_open == "charts_withdrawn.txt" and "RM" not in folder_name:
+                    # another instance where an extra tab is needed because of ENC label character difference
                     temp = f"{data[col_indices[0]].strip()}\t\t{data[col_indices[1]].strip()}\t{data[col_indices[2]]}"
                 else:
                     temp = f"{data[col_indices[0]].strip()}\t{data[col_indices[1]].strip()}\t{data[col_indices[2]]}"
@@ -293,14 +295,19 @@ def update_selected_tab(results, current_yyyymmdd, target_textbox, message, file
             if current_yyyymmdd is not None:
                 folder_name = utils.insert_text(result, current_yyyymmdd, pos_to_insert=1)
             formatted_data += "\n" + folder_name
-            formatted_data += "\n" 
-    
+            formatted_data += "\n"
+
+    # sending formatted_data to target_textbox.emit()
     target_textbox.emit(formatted_data)
 
-    # Writting to the selected file then sending formatted_data to target_textbox.emit()
+    # Writting to the selected file
     with open(file_to_open, write_method) as file:
         # Adjust data before writing; small format adjustment for vector folder header
-        formatted_data = formatted_data.replace('\t\t', '\t\t\t')
+        if file_to_open == "charts_withdrawn.txt" and "V" in folder_name:
+            formatted_data = formatted_data.replace('\tEDTN', '\t\t\tEDTN')
+        else:
+            formatted_data = formatted_data.replace('\tEDTN', '\t\tEDTN')
+        formatted_data = formatted_data.replace('\t\tTitle', '\tTitle')
         file.write(f"{formatted_data}\n")
     
 def convert_to_yyyymmdd(date_str):
