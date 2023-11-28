@@ -249,6 +249,7 @@ def update_selected_tab(results, current_yyyymmdd, target_textbox, message, file
     # Type 1 is for detailed results (hence tuple) whereas Type 2 is simple results (non-tuple) (default)
     formatted_data = ""
     # Establish the type of data; use tuple as delineator
+    # this first part formats for display in gui tabs
     for result in results:
         if isinstance(result, tuple): 
             # tuple indicates detailed results and is for type 1 report
@@ -301,6 +302,7 @@ def update_selected_tab(results, current_yyyymmdd, target_textbox, message, file
     target_textbox.emit(formatted_data)
 
     # Writting to the selected file
+    # this second part adds a bit more formatting in preparation for pdf report generation
     with open(file_to_open, write_method) as file:
         # Adjust data before writing; small format adjustment for vector folder header
         if file_to_open == "charts_withdrawn.txt" and "V" in folder_name:
