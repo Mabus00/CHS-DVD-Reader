@@ -206,7 +206,8 @@ class CHSDVDReaderApp(QMainWindow):
                 # Report missing charts on missing charts tab; can't use same process as above because of textbox identification
                 if new_editions:
                     message = "The following folders have new editions:"
-                    utils.update_new_editions_tab(new_editions, current_yyyymmdd, self.new_editions_signals.new_editions_textbox, message)
+                    file_to_open = 'new_editions.txt'
+                    utils.update_selected_tab(new_editions, current_yyyymmdd, self.new_editions_signals.new_editions_textbox, message, file_to_open)
                 # Report new charts on new charts tab
                 if misc_findings:
                     message = "The following folders have uncategorized findings that may indicate potential errors:"
