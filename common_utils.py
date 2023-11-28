@@ -243,28 +243,6 @@ def get_column_headers(table_type, selected_cols):
         return []  # Return an empty list for an invalid table_type
     return selected_columns
 
-def convert_to_html(title, col_headers, data):
-    # Start building the HTML string
-    html = f"<h2>{title}</h2>\n<table border='1'>\n"
-
-    # Create the header row
-    html += "<tr>"
-    for header in col_headers:
-        html += f"<th>{header}</th>"
-    html += "</tr>\n"
-
-    # Add data rows
-    for row in data:
-        html += "<tr>"
-        for column in row.split('\t'):
-            html += f"<td>{column}</td>"
-        html += "</tr>\n"
-
-    # Close the table tag
-    html += "</table>"
-    
-    return html
-
 def update_selected_tab(results, current_yyyymmdd, target_textbox, message, file_to_open = 'misc_findings_type2.txt'):
     # Tab report for all reports. Type 1 is for detailed results (hence tuple) whereas Type 2 is simple results (non-tuple) (default)
     formatted_data = ""
@@ -285,15 +263,17 @@ def update_selected_tab(results, current_yyyymmdd, target_textbox, message, file
             if "RM" in folder_name:
                 col_indices = [0,4,5]
                 table_type = "raster"
+                tabs = "\t"
             else:
                 col_indices = [1,2,5]
                 table_type = "vector"
+                tabs = "\t\t"
             col_headers = get_column_headers(table_type, col_indices)
-            header_line  = f"{col_headers[0].ljust(12)}\t{col_headers[1].ljust(8)}\t{col_headers[2]}"
+            header_line  = f"{col_headers[0].strip()}{tabs}{col_headers[1].strip()}{tabs}{col_headers[2]}"
             # add column headers
             formatted_data += "\n" + header_line
             for data in details:
-                temp = f"{data[col_indices[0]].ljust(12)}\t{data[col_indices[1]].ljust(8)}\t{data[col_indices[2]]}"
+                temp = f"{data[col_indices[0]].strip()}\t{data[col_indices[1]].strip()}\t{data[col_indices[2]]}"
                 formatted_data += "\n" + temp
             formatted_data += "\n"
         else:
