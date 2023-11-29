@@ -1,5 +1,5 @@
 The following folders have uncategorized findings that may indicate potential errors:
 WestDVD_20230825_V_NOR_A:
-ENC			EDTN	Title
-CA476684	1.000	McLelan Strait
+ENC		EDTN	Title
+CA476684		1.000	McLelan Strait
 

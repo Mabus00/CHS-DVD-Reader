@@ -41,9 +41,6 @@ class CHSDVDReaderApp(QMainWindow):
         # create list of text browsers so they can be cleared en masse
         self.text_browsers = [obj for name, obj in inspect.getmembers(self.ui) if isinstance(obj, QTextEdit)]
 
-        # for browser in self.text_browsers:
-        #     browser.setFont(QFont("Arial", 12))
-
         # set database connections
         self.master_database_conn = ""
         self.master_database_cursor = ""

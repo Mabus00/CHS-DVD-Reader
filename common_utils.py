@@ -195,22 +195,6 @@ def detect_column_changes(column_index, base_table, secondary_table, table_name)
                 encountered_column_content.add(cell_content)
         return (table_name, found_rows) if found_rows else None
 
-def update_new_editions_tab(results, current_yyyymmdd, target_textbox, message):
-    target_textbox.emit(f"{message}\n")
-    for table_name, details in results:
-        # add date to folder name
-        temp = utils.insert_text(table_name, current_yyyymmdd, pos_to_insert=1)
-        target_textbox.emit(f"{temp}:")
-        if "RM" in table_name:
-            for data in details:
-                formatted_data = f"{data[1]:<12} {data[4]:>7}   {data[5]}"
-                target_textbox.emit(formatted_data)
-        else:
-            for data in details:
-                formatted_data = f"{data[1]:<12} {data[2]:<7}   {data[5]} "
-                target_textbox.emit(formatted_data)
-        target_textbox.emit("\n")
-
 ''' 
 Raster table columns:
 0 Chart 
@@ -263,6 +247,7 @@ def update_selected_tab(results, current_yyyymmdd, target_textbox, message, file
                 folder_name = utils.insert_text(folder_name, current_yyyymmdd, pos_to_insert=1)
             # add folder_name which acts as table header
             formatted_data += "\n" + folder_name + ":"
+            # get column headers; not all are used
             if "RM" in folder_name:
                 # only show these columns
                 col_indices = [0,4,5]
@@ -278,11 +263,10 @@ def update_selected_tab(results, current_yyyymmdd, target_textbox, message, file
                 header_line  = f"{col_headers[0].strip()}\t\t{col_headers[1].strip()}\t{col_headers[2]}"
             # add column headers
             formatted_data += "\n" + header_line
+
             for data in details:
-                if file_to_open == "charts_withdrawn.txt" and "RM" not in folder_name:
+                if file_to_open != "new_charts.txt" and "_V_" in folder_name:
                     # another instance where an extra tab is needed because of ENC label character difference
-                    temp = f"{data[col_indices[0]].strip()}\t\t{data[col_indices[1]].strip()}\t{data[col_indices[2]]}"
-                elif file_to_open == "new_editions.txt" and "RM" not in folder_name:
                     temp = f"{data[col_indices[0]].strip()}\t\t{data[col_indices[1]].strip()}\t{data[col_indices[2]]}"
                 else:
                     temp = f"{data[col_indices[0]].strip()}\t{data[col_indices[1]].strip()}\t{data[col_indices[2]]}"
@@ -306,14 +290,11 @@ def update_selected_tab(results, current_yyyymmdd, target_textbox, message, file
     # Writting to the selected file
     # this second part adds a bit more formatting in preparation for pdf report generation
     with open(file_to_open, write_method) as file:
-        # Adjust data before writing; small format adjustment for vector folder header
-        if file_to_open == "charts_withdrawn.txt" and "V" in folder_name:
+         # Adjust data before writing; small format adjustment for vector folder header
+        if (file_to_open == "charts_withdrawn.txt" or file_to_open == "new_editions.txt"):
             formatted_data = formatted_data.replace('\tEDTN', '\t\t\tEDTN')
-        elif file_to_open == "new_editions.txt" and "V" in folder_name:
-            formatted_data = formatted_data.replace('\tEDTN', '\t\t\tEDTN')
-        else:
+        elif file_to_open == "new_charts.txt": # new_charts
             formatted_data = formatted_data.replace('\tEDTN', '\t\tEDTN')
-        formatted_data = formatted_data.replace('\t\tTitle', '\tTitle')
         file.write(f"{formatted_data}\n")
     
 def convert_to_yyyymmdd(date_str):
@@ -326,7 +307,6 @@ def convert_to_yyyymmdd(date_str):
 def tuple_to_list(tup):
     #Convert a tuple to a list.
     return list(tup)
-
 
 def yes_or_no_popup(message):
     reply = QMessageBox()
