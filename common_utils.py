@@ -263,7 +263,7 @@ def generate_reports(results, current_yyyymmdd, target_textbox, message, file_to
                 header_line  = f"{col_headers[0].strip()}\t\t{col_headers[1].strip()}\t{col_headers[2]}"
             # add column headers
             formatted_data += "\n" + header_line
-
+            # format data
             for data in details:
                 if file_to_open != "new_charts.txt" and "_V_" in folder_name:
                     # another instance where an extra tab is needed because of ENC label character difference
@@ -283,10 +283,8 @@ def generate_reports(results, current_yyyymmdd, target_textbox, message, file_to
                 folder_name = utils.insert_text(result, current_yyyymmdd, pos_to_insert=1)
             formatted_data += "\n" + folder_name
             formatted_data += "\n"
-
     # sending formatted_data to target_textbox.emit()
     target_textbox.emit(formatted_data)
-
     # Writting to the selected file; note by this point the formatted_data is complete for the type of report being generated
     # this second part adds a bit more formatting to the column headers in preparation for pdf report generation
     with open(file_to_open, write_method, encoding='utf-8') as file:

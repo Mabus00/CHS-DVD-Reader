@@ -55,9 +55,6 @@ class CHSDVDReaderApp(QMainWindow):
         self.current_database_input_path = ""
         self.current_database_name = "current_database.db"
 
-        # create reports list
-        self.reports = ["misc_findings.txt"]
-
         # Create an instance of RunCheckerSignals
         self.run_checker_signals = RunCheckerSignals()
 
@@ -269,13 +266,27 @@ class CHSDVDReaderApp(QMainWindow):
         self.create_pdf_report = PDFReport(f"{report_title}.pdf")
         
         # Add content to the report
-        self.create_pdf_report.add_title(100, 750, report_title)
-        self.create_pdf_report.add_paragraph(100, 700, "This is the content of the report.")
+        self.create_pdf_report.add_title(report_title)
 
-        for report in self.reports:
-            print(f'reports: {report}')
+        # Get the current working directory
+        directory = os.getcwd()
 
-        
+        # Get a list of all files in the current directory
+        files = os.listdir(directory)
+
+        # Filter only the .txt files
+        txt_files = [file for file in files if file.endswith('.txt')]
+
+        for file in txt_files:
+            file_path = os.path.join(directory, file)
+
+            # Open each .txt file and read its content
+            with open(file_path, 'r') as txt_file:
+                content = txt_file.read()
+
+            # Add the content as a table to the PDF report
+            self.create_pdf_report.add_table(content)
+
         # Save the report
         self.create_pdf_report.save_report()
         
