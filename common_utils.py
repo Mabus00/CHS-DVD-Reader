@@ -227,7 +227,7 @@ def get_column_headers(table_type, selected_cols):
         return []  # Return an empty list for an invalid table_type
     return selected_columns
 
-def update_selected_tab(results, current_yyyymmdd, target_textbox, message, file_to_open = 'misc_findings_type2.txt'):
+def generate_reports(results, current_yyyymmdd, target_textbox, message, file_to_open = 'misc_findings_type2.txt'):
     # Report for all tabs / pdf reports. Note there are small formatting adjustments (e.g., \t\t and \t\t\t) to accomodate tab vs pdf report differences
     # Doing this seemed to be the easiest way even though I don't like how it looks. Other route would have been to create tables in pyQt or use HTML formatting
     # Type 1 is for detailed results (hence tuple) whereas Type 2 is simple results (non-tuple) (default)
@@ -287,10 +287,9 @@ def update_selected_tab(results, current_yyyymmdd, target_textbox, message, file
     # sending formatted_data to target_textbox.emit()
     target_textbox.emit(formatted_data)
 
-    # Writting to the selected file
-    # this second part adds a bit more formatting in preparation for pdf report generation
-    with open(file_to_open, write_method) as file:
-         # Adjust data before writing; small format adjustment for vector folder header
+    # Writting to the selected file; note by this point the formatted_data is complete for the type of report being generated
+    # this second part adds a bit more formatting to the column headers in preparation for pdf report generation
+    with open(file_to_open, write_method, encoding='utf-8') as file:
         if (file_to_open == "charts_withdrawn.txt" or file_to_open == "new_editions.txt"):
             formatted_data = formatted_data.replace('\tEDTN', '\t\t\tEDTN')
         elif file_to_open == "new_charts.txt": # new_charts

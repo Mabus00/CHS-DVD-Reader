@@ -174,7 +174,7 @@ class CHSDVDReaderApp(QMainWindow):
                         if table_list:
                             message = error_messages[error_type]
                             # type of report is type 2; non-tuple therefore use default file_to_open name for pdf report purposes (default set in method)
-                            utils.update_selected_tab(table_list, current_yyyymmdd, self.errors_signals.errors_textbox, message)
+                            utils.generate_reports(table_list, current_yyyymmdd, self.errors_signals.errors_textbox, message)
 
                 # PART 2 OF 2 - compare master and current databases and report charts withdrawn and new charts
                 # Remove tables_missing_from_current from tables_master so table content matches; no need to check tables_missing_in_master because these are newly added
@@ -187,13 +187,13 @@ class CHSDVDReaderApp(QMainWindow):
                     message = "Charts missing in current DVD folder:"
                     # type of report is type 1; tuple therefore provide a file_to_open name for report purposes
                     file_to_open = 'charts_withdrawn.txt'
-                    utils.update_selected_tab(charts_withdrawn, None, self.charts_withdrawn_signals.chart_withdrawn_textbox, message, file_to_open)
+                    utils.generate_reports(charts_withdrawn, None, self.charts_withdrawn_signals.chart_withdrawn_textbox, message, file_to_open)
                 # Report new charts on new charts tab
                 if new_charts:
                     message = "New charts in current DVD folder:"
                     # type of report is type 1; tuple therefore provide a file_to_open name for report purposes
                     file_to_open = 'new_charts.txt'
-                    utils.update_selected_tab(new_charts, None, self.new_charts_signals.new_charts_textbox, message, file_to_open)
+                    utils.generate_reports(new_charts, None, self.new_charts_signals.new_charts_textbox, message, file_to_open)
 
                 # PART 3 OF 3 - find data mismatches
                 # instantiate FindDataMismatches
@@ -204,13 +204,13 @@ class CHSDVDReaderApp(QMainWindow):
                 if new_editions:
                     message = "The following folders have new editions:"
                     file_to_open = 'new_editions.txt'
-                    utils.update_selected_tab(new_editions, current_yyyymmdd, self.new_editions_signals.new_editions_textbox, message, file_to_open)
+                    utils.generate_reports(new_editions, current_yyyymmdd, self.new_editions_signals.new_editions_textbox, message, file_to_open)
                 # Report new charts on new charts tab
                 if misc_findings:
                     message = "The following folders have uncategorized findings that may indicate potential errors:"
                     # type of report is type 1; tuple therefore provide a file_to_open name for report purposes
                     file_to_open = 'misc_findings_type1.txt'
-                    utils.update_selected_tab(misc_findings, current_yyyymmdd, self.errors_signals.errors_textbox, message, file_to_open)
+                    utils.generate_reports(misc_findings, current_yyyymmdd, self.errors_signals.errors_textbox, message, file_to_open)
                     utils.show_warning_popup("Possible errors were noted. See the Misc. Results tab.")
                 # Print a message to indicate that the checker has run
                 self.run_checker_signals.run_checker_textbox.emit('\nThe Checker ran succesfully!')
