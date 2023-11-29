@@ -268,19 +268,21 @@ def update_selected_tab(results, current_yyyymmdd, target_textbox, message, file
                 col_indices = [0,4,5]
                 table_type = "raster"
                 # set header row column tabs
-                tabs = "\t"
+                col_headers = get_column_headers(table_type, col_indices)
+                header_line  = f"{col_headers[0].strip()}\t{col_headers[1].strip()}\t{col_headers[2]}"
             else:
                 col_indices = [1,2,5]
                 table_type = "vector"
                 # set header row column tabs; needs an extra tab to line things up
-                tabs = "\t\t"
-            col_headers = get_column_headers(table_type, col_indices)
-            header_line  = f"{col_headers[0].strip()}{tabs}{col_headers[1].strip()}{tabs}{col_headers[2]}"
+                col_headers = get_column_headers(table_type, col_indices)
+                header_line  = f"{col_headers[0].strip()}\t\t{col_headers[1].strip()}\t{col_headers[2]}"
             # add column headers
             formatted_data += "\n" + header_line
             for data in details:
                 if file_to_open == "charts_withdrawn.txt" and "RM" not in folder_name:
                     # another instance where an extra tab is needed because of ENC label character difference
+                    temp = f"{data[col_indices[0]].strip()}\t\t{data[col_indices[1]].strip()}\t{data[col_indices[2]]}"
+                elif file_to_open == "new_editions.txt" and "RM" not in folder_name:
                     temp = f"{data[col_indices[0]].strip()}\t\t{data[col_indices[1]].strip()}\t{data[col_indices[2]]}"
                 else:
                     temp = f"{data[col_indices[0]].strip()}\t{data[col_indices[1]].strip()}\t{data[col_indices[2]]}"
@@ -306,6 +308,8 @@ def update_selected_tab(results, current_yyyymmdd, target_textbox, message, file
     with open(file_to_open, write_method) as file:
         # Adjust data before writing; small format adjustment for vector folder header
         if file_to_open == "charts_withdrawn.txt" and "V" in folder_name:
+            formatted_data = formatted_data.replace('\tEDTN', '\t\t\tEDTN')
+        elif file_to_open == "new_editions.txt" and "V" in folder_name:
             formatted_data = formatted_data.replace('\tEDTN', '\t\t\tEDTN')
         else:
             formatted_data = formatted_data.replace('\tEDTN', '\t\tEDTN')
