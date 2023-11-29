@@ -18,6 +18,7 @@ VIEW = chs_dvd_gui
 import sys
 import inspect
 import os
+import textwrap
 from PyQt5.QtWidgets import QApplication, QMainWindow, QTextEdit
 from PyQt5.QtGui import QFont
 from chs_dvd_gui import Ui_MainWindow
@@ -281,7 +282,7 @@ class CHSDVDReaderApp(QMainWindow):
             file_path = os.path.join(directory, file)
 
             # Open each .txt file and read its content
-            with open(file_path, 'r') as txt_file:
+            with open(file_path, 'r', encoding='utf-8') as txt_file:
                 content = txt_file.read()
 
             # Add the content as a table to the PDF report

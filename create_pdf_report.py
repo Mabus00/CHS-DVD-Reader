@@ -28,13 +28,19 @@ class PDFReport:
     def add_table(self, content):
         """
         Add a table to the PDF using tab-separated content.
+        Adjust the table width to fit the specified page width.
         """
-        # Split the content into rows and columns
-        rows = [line.split('\t') for line in content.split('\n') if line.strip()]
+        # Split the content by tabs (\t) or multiple tabs (\t\t, \t\t\t, etc.)
+        rows = [row.split('\t') for row in content.splitlines()]
         num_cols = len(rows[0])
 
-        # Create a Table object
-        table = Table(rows)
+        page_width = 612
+        # Calculate the width for each column to fit the page width
+        col_width = page_width / num_cols
+        col_widths = [col_width] * num_cols
+
+        # Create a Table object with adjusted column widths
+        table = Table(rows, colWidths=col_widths)
 
         # Define table styles
         table_style = TableStyle([
