@@ -265,7 +265,6 @@ class CHSDVDReaderApp(QMainWindow):
 
         # Get the current working directory
         directory = os.getcwd()
-
         path = os.path.join(directory, f"{report_title}.pdf")   
 
         # instantiate pdf_report
