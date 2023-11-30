@@ -1,46 +1,32 @@
 from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Table, TableStyle
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib import colors
+from reportlab.pdfgen import canvas
+from reportlab.platypus import Table, TableStyle, Paragraph
 
 class PDFReport:
-    def __init__(self, file_name):
-        """
-        Initialize the PDFReport with the file name and an empty elements list.
-        """
-        self.file_name = file_name
+    def __init__(self, path):
+        # Initialize the PDFReport with the file path and an empty elements list.
+        self.path = path
         self.elements = []
 
     def add_title(self, title):
-        """
-        Add a title to the PDF.
-        """
+        # Add a title to the PDF.
         styles = getSampleStyleSheet()
         self.elements.append(Paragraph(title, styles['Title']))
 
     def add_paragraph(self, content):
-        """
-        Add a paragraph to the PDF.
-        """
+        # Add a paragraph to the PDF.
         styles = getSampleStyleSheet()
         self.elements.append(Paragraph(content, styles['Normal']))
 
     def add_table(self, content):
-        """
-        Add a table to the PDF using tab-separated content.
-        Adjust the table width to fit the specified page width.
-        """
+        # Add a table to the PDF using tab-separated content.
         # Split the content by tabs (\t) or multiple tabs (\t\t, \t\t\t, etc.)
         rows = [row.split('\t') for row in content.splitlines()]
-        num_cols = len(rows[0])
 
-        page_width = 612
-        # Calculate the width for each column to fit the page width
-        col_width = page_width / num_cols
-        col_widths = [col_width] * num_cols
-
-        # Create a Table object with adjusted column widths
-        table = Table(rows, colWidths=col_widths)
+        # Create a Table object
+        table = Table(rows)
 
         # Define table styles
         table_style = TableStyle([
@@ -57,10 +43,26 @@ class PDFReport:
         self.elements.append(table)
 
     def save_report(self):
-        """
-        Save the PDF report with the added elements.
-        """
-        pdf = SimpleDocTemplate(self.file_name, pagesize=letter)
-        pdf.build(self.elements)
+        # Save the PDF report with the added elements using ReportLab canvas.
 
+        # Create a canvas object
+        c = canvas.Canvas(self.path, pagesize=letter)
 
+        # Set the starting y-position for drawing elements
+        y = 750
+
+        for element in self.elements:
+            # Draw each element on the canvas
+            if isinstance(element, Paragraph):
+                # Draw Paragraph elements
+                element.wrapOn(c, 500, 50)  # Set width and height limits for the paragraph
+                element.drawOn(c, 50, y)
+                y -= 20  # Adjust y-position after each paragraph
+            elif isinstance(element, Table):
+                # Draw Table elements
+                table_width, table_height = element.wrap(0, 0)  # Get table dimensions
+                element.drawOn(c, 50, y - table_height)
+                y -= table_height + 20  # Adjust y-position after the table
+
+        # Save the canvas
+        c.save()

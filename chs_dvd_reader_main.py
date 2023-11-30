@@ -263,14 +263,16 @@ class CHSDVDReaderApp(QMainWindow):
         # set report title
         report_title = f"{current_dates['EastDVD']} CHS DVD Report"
 
+        # Get the current working directory
+        directory = os.getcwd()
+
+        path = os.path.join(directory, f"{report_title}.pdf")   
+
         # instantiate pdf_report
-        self.create_pdf_report = PDFReport(f"{report_title}.pdf")
+        self.create_pdf_report = PDFReport(path)
         
         # Add content to the report
         self.create_pdf_report.add_title(report_title)
-
-        # Get the current working directory
-        directory = os.getcwd()
 
         # Get a list of all files in the current directory
         files = os.listdir(directory)
