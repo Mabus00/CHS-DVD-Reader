@@ -288,10 +288,7 @@ def generate_reports(results, current_yyyymmdd, target_textbox, message, file_to
     # Writting to the selected file; note by this point the formatted_data is complete for the type of report being generated
     # this second part adds a bit more formatting to the column headers in preparation for pdf report generation
     with open(file_to_open, write_method, encoding='utf-8') as file:
-        if (file_to_open == "charts_withdrawn.txt" or file_to_open == "new_editions.txt"):
-            formatted_data = formatted_data.replace('\tEDTN', '\t\t\tEDTN')
-        elif file_to_open == "new_charts.txt": # new_charts
-            formatted_data = formatted_data.replace('\tEDTN', '\t\tEDTN')
+        formatted_data = formatted_data.replace('\t\t', '\t')
         file.write(f"{formatted_data}\n")
     
 def convert_to_yyyymmdd(date_str):
