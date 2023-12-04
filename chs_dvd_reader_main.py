@@ -263,20 +263,20 @@ class CHSDVDReaderApp(QMainWindow):
         # set report title
         report_title = f"{current_dates['EastDVD']} CHS DVD Report"
 
-        # Get the current working directory
+        # establish the working directory
         directory = os.getcwd()
         path = os.path.join(directory, f"{report_title}.pdf")   
 
         # instantiate pdf_report
         self.create_pdf_report = PDFReport(path)
         
-        # Add content to the report
+        # Add title to the report
         self.create_pdf_report.add_title(report_title)
 
         # Get a list of all files in the current directory
         files = os.listdir(directory)
 
-        # Filter only the .txt files
+        # Filter only the .txt files; these represent the results of running the DVD checker
         txt_files = [file for file in files if file.endswith('.txt')]
 
         for file in txt_files:
