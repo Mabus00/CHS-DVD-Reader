@@ -33,16 +33,20 @@ class PDFReport:
         for folder in folders[1:]:
             # Table title (Folder Name)
             folder_title = folder[0]
-            self.add_paragraph(folder_title)
+            #self.add_paragraph(folder_title)
 
             # Table column headers
             column_headers = folder[1].split('\t')
-
             # Table data for the folder
-            folder_table_data = [row.split('\t') for row in folder[2:]]
+            folder_table_data = [column_headers]  # Add the column headers
+            folder_table_data.extend([row.split('\t') for row in folder[2:]])  # Finally, add the data rows
 
             # Construct the table for the folder
-            table = Table([column_headers] + folder_table_data, hAlign='LEFT')
+            table_data = [[folder_title]]  # Include folder_title in the merged top row
+            table_data.extend(folder_table_data)  # Extend with the data
+
+            table = Table(table_data, hAlign='LEFT')
+
 
             table_style = TableStyle([
                 ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
@@ -50,6 +54,7 @@ class PDFReport:
                 ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
                 ('GRID', (0, 0), (-1, -1), 1, colors.black),
                 ('WORDWRAP', (0, 2), (-1, -1), 1),  # Enable word wrap for the third column
+                ('SPAN', (0, 0), (-1, 0)),  # Merge cells for the first row
             ])
             table.setStyle(table_style)
             
