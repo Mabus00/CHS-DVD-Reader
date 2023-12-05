@@ -1,5 +1,5 @@
 from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib import colors
 
@@ -45,21 +45,25 @@ class PDFReport:
             table_data = [[folder_title]]  # Include folder_title in the merged top row
             table_data.extend(folder_table_data)  # Extend with the data
 
-            table = Table(table_data, hAlign='LEFT')
-
+            table = Table(table_data, hAlign='LEFT', repeatRows=2)
 
             table_style = TableStyle([
-                ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
+                ('BACKGROUND', (0, 0), (-1, 0), colors.gray),  # First row shading
+                ('BACKGROUND', (0, 1), (-1, 1), colors.lightgrey),       # Second row shading
                 ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
                 ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
                 ('GRID', (0, 0), (-1, -1), 1, colors.black),
-                ('WORDWRAP', (0, 2), (-1, -1), 1),  # Enable word wrap for the third column
+                ('WORDWRAP', (2, 0), (2, -1), 1),  # Enable word wrap for the third column
                 ('SPAN', (0, 0), (-1, 0)),  # Merge cells for the first row
             ])
+
             table.setStyle(table_style)
             
             self.elements.append(table)
             self.elements.append(Spacer(1, 12))  # Add space after each table
+
+        if len(self.elements) > 0:  # Check if there are any elements added
+            self.elements.append(PageBreak())
 
     def save_report(self):
         pdf_report = SimpleDocTemplate(self.path, pagesize=letter, leftMargin=30)
