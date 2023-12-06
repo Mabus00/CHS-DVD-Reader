@@ -1,12 +1,14 @@
 from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak
+from reportlab.platypus import SimpleDocTemplate, PageTemplate, Frame, Table, TableStyle, Paragraph, Spacer, PageBreak
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib import colors
+from reportlab.lib.units import inch
 
 class PDFReport:
     def __init__(self, path):
         self.path = path
         self.elements = []
+        self.page_count = 0  # Initialize page count
 
     def add_title(self, title_text):
         styles = getSampleStyleSheet()
@@ -66,5 +68,22 @@ class PDFReport:
             self.elements.append(PageBreak())
 
     def save_report(self):
-        pdf_report = SimpleDocTemplate(self.path, pagesize=letter, leftMargin=30)
-        pdf_report.build(self.elements)
+        doc = SimpleDocTemplate(self.path, pagesize=letter)
+
+        # Create a page template for adding page numbers
+        frame = Frame(doc.leftMargin, doc.bottomMargin, doc.width, doc.height, id='normal')
+        template = PageTemplate(id='test', frames=frame,
+                                onPage=lambda canvas, doc: self.add_page_number(canvas, doc))
+        doc.addPageTemplates([template])
+
+        # Add your elements
+        self.page_count = 0  # Reset page count
+        doc.build(self.elements, onFirstPage=lambda canvas, doc: self.add_page_number(canvas, doc),
+                  onLaterPages=lambda canvas, doc: self.add_page_number(canvas, doc, total_pages=True))
+
+    def add_page_number(self, canvas, doc, total_pages=False):
+        self.page_count += 1
+        page_num = canvas.getPageNumber()
+        text = "Page %s of %s" % (page_num if not total_pages else self.page_count, self.page_count)
+        canvas.setFont("Helvetica", 9)
+        canvas.drawString(inch, 0.75 * inch, text)
