@@ -85,8 +85,6 @@ class PDFReport:
 
         # Create a new PDF with page numbers added
         c = canvas.Canvas(output_pdf)
-        sample_style_sheet = getSampleStyleSheet()
-        style = sample_style_sheet["Normal"]
         for i in range(total_pages):
             c.saveState()
             c.setFont("Helvetica", 9)
@@ -112,3 +110,7 @@ class PDFReport:
 
         # Clean up the temporary PDF
         os.remove(output_pdf)
+
+# Main execution block (can be used for testing)
+if __name__ == "__main__":
+    pass
