@@ -1,14 +1,16 @@
 from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, PageTemplate, Frame, Table, TableStyle, Paragraph, Spacer, PageBreak
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib import colors
 from reportlab.lib.units import inch
+from reportlab.pdfgen import canvas
+from PyPDF2 import PdfReader, PdfWriter
+import os
 
 class PDFReport:
     def __init__(self, path):
         self.path = path
         self.elements = []
-        self.page_count = 0  # Initialize page count
 
     def add_title(self, title_text):
         styles = getSampleStyleSheet()
@@ -68,22 +70,45 @@ class PDFReport:
             self.elements.append(PageBreak())
 
     def save_report(self):
-        doc = SimpleDocTemplate(self.path, pagesize=letter)
+        pdf_report = SimpleDocTemplate(self.path, pagesize=letter)
+        pdf_report.build(self.elements)
+        self.add_page_numbers()
 
-        # Create a page template for adding page numbers
-        frame = Frame(doc.leftMargin, doc.bottomMargin, doc.width, doc.height, id='normal')
-        template = PageTemplate(id='test', frames=frame,
-                                onPage=lambda canvas, doc: self.add_page_number(canvas, doc))
-        doc.addPageTemplates([template])
+    def add_page_numbers(self):
+        input_pdf = self.path
+        output_pdf = "temp.pdf"
 
-        # Add your elements
-        self.page_count = 0  # Reset page count
-        doc.build(self.elements, onFirstPage=lambda canvas, doc: self.add_page_number(canvas, doc),
-                  onLaterPages=lambda canvas, doc: self.add_page_number(canvas, doc, total_pages=True))
+        # Read the input PDF and get the total number of pages
+        with open(input_pdf, "rb") as file:
+            reader = PdfReader(file)
+            total_pages = len(reader.pages)
 
-    def add_page_number(self, canvas, doc, total_pages=False):
-        self.page_count += 1
-        page_num = canvas.getPageNumber()
-        text = "Page %s of %s" % (page_num if not total_pages else self.page_count, self.page_count)
-        canvas.setFont("Helvetica", 9)
-        canvas.drawString(inch, 0.75 * inch, text)
+        # Create a new PDF with page numbers added
+        c = canvas.Canvas(output_pdf)
+        sample_style_sheet = getSampleStyleSheet()
+        style = sample_style_sheet["Normal"]
+        for i in range(total_pages):
+            c.saveState()
+            c.setFont("Helvetica", 9)
+            c.drawString(inch, 0.75 * inch, f"Page {i + 1} of {total_pages}")
+            c.restoreState()
+            c.showPage()
+
+        c.save()
+
+        # Merge the original PDF with the one containing page numbers
+        merger = PdfWriter()
+        original_pdf = PdfReader(input_pdf)
+        temp_pdf = PdfReader(output_pdf)
+
+        for pageNum in range(total_pages):
+            page = original_pdf.pages[pageNum]
+            overlay = temp_pdf.pages[pageNum]
+            page.merge_page(overlay)
+            merger.add_page(page)
+
+        with open(self.path, "wb") as file:
+            merger.write(file)
+
+        # Clean up the temporary PDF
+        os.remove(output_pdf)
