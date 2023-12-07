@@ -42,6 +42,15 @@ class CHSDVDReaderApp(QMainWindow):
         # create list of text browsers so they can be cleared en masse
         self.text_browsers = [obj for name, obj in inspect.getmembers(self.ui) if isinstance(obj, QTextEdit)]
 
+        # create an ordered list of txt files so I can prioritize selection for the pdf report
+        self.report_txt_files = [
+            "misc_findings_type1.txt",
+            "misc_findings_type2.txt",
+            "new_editions.txt",
+            "new_charts.txt",
+            "charts_withdrawn.txt"
+        ]
+
         # set database connections
         self.master_database_conn = ""
         self.master_database_cursor = ""
@@ -279,7 +288,13 @@ class CHSDVDReaderApp(QMainWindow):
         # Filter only the .txt files; these represent the results of running the DVD checker
         txt_files = [file for file in files if file.endswith('.txt')]
 
-        for file in txt_files:
+        # Create a dictionary to map file names to their positions in the ordered list
+        file_positions = {file_name: self.report_txt_files.index(file_name) if file_name in self.report_txt_files else None for file_name in txt_files}
+
+        # Sort files based on their positions in the ordered list
+        sorted_files = sorted(txt_files, key=lambda x: file_positions.get(x, float('inf')))
+
+        for file in sorted_files:
             file_path = os.path.join(directory, file)
 
             # Open each .txt file and read its content
