@@ -246,7 +246,7 @@ def generate_reports(results, current_yyyymmdd, target_textbox, message, file_to
             if current_yyyymmdd is not None:
                 folder_name = utils.insert_text(folder_name, current_yyyymmdd, pos_to_insert=1)
             # add folder_name which acts as table header
-            formatted_data += "\n" + folder_name + ":"
+            formatted_data += "\n" + folder_name
             # get column headers; not all are used
             if "RM" in folder_name:
                 # only show these columns
@@ -271,25 +271,25 @@ def generate_reports(results, current_yyyymmdd, target_textbox, message, file_to
                 else:
                     temp = f"{data[col_indices[0]].strip()}\t{data[col_indices[1]].strip()}\t{data[col_indices[2]]}"
                 formatted_data += "\n" + temp
-            formatted_data += "\n"
+            formatted_data += "\n"    
         else:
             # type 2 report is a simple report that contains non-tuple results
             # write method is append because I want to track all type 2 reports in one document; there could be more than one call to this method
             write_method = 'a'
             if formatted_data == "":
-                    formatted_data += "\n" + message
+                    formatted_data += message
             # add folder name to combined_results
             if current_yyyymmdd is not None:
                 folder_name = utils.insert_text(result, current_yyyymmdd, pos_to_insert=1)
-            formatted_data += "\n" + folder_name
-            formatted_data += "\n"
+            formatted_data += "\n" +  folder_name
+            formatted_data += "\n" 
     # sending formatted_data to target_textbox.emit()
     target_textbox.emit(formatted_data)
     # Writting to the selected file; note by this point the formatted_data is complete for the type of report being generated
     # this second part adds a bit more formatting to the column headers in preparation for pdf report generation
     with open(file_to_open, write_method, encoding='utf-8') as file:
         formatted_data = formatted_data.replace('\t\t', '\t')
-        file.write(f"{formatted_data}\n")
+        file.write(f"{formatted_data}")
     
 def convert_to_yyyymmdd(date_str):
     try:
