@@ -7,3 +7,8 @@ WestDVD_20230825_V_NOR_A:
 ENC	EDTN	Title
 CA476684	2.002	McLelan Strait
 
+
+
+Folders removed from this month's DVDs:
+EastDVD_20230825_RM_CEN03
+
