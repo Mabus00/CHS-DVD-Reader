@@ -20,17 +20,35 @@ class PDFReport(BaseDocTemplate):
         # set template for document
         template = PageTemplate('normal', [Frame(1.5*cm, 1.5*cm, 15*cm, 25*cm, id='F1')])
         self.addPageTemplates(template)
+
         # set styles for document
         self.styles = [
             PS(fontSize=20, name='Title', spaceAfter=20, leading=12),
             PS(fontSize=14, name='Normal', spaceAfter=5, leading=12),
         ]
+
+        self.toc = TableOfContents()
+
         # set styles for toc
         self.toc = TableOfContents()
         self.toc.levelStyles = [
             PS(fontName='Times-Bold', fontSize=20, name='TOCHeading1', leftIndent=20, firstLineIndent=-20, spaceBefore=10, leading=16),
             PS(fontSize=18, name='TOCHeading2', leftIndent=40, firstLineIndent=-20, spaceBefore=5, leading=12),
         ]
+
+    # def afterFlowable(self, flowable):
+    #     "Registers TOC entries."
+    #     if flowable.__class__.__name__ == 'Paragraph':
+    #         text = flowable.getPlainText()
+    #         style = flowable.style.name
+    #         if style == 'Heading1':
+    #             self.notify('TOCEntry', (0, text, self.page))
+    #         if style == 'Heading2':
+    #             self.notify('TOCEntry', (1, text, self.page))
+
+    def add_toc(self, title):
+        self.elements.append(self.toc)
+        self.elements.append(Paragraph(title, self.toc.levelStyles[0]))
 
     def add_title(self, title_text):
         title = Paragraph(title_text, self.styles[0])

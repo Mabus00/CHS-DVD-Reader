@@ -276,9 +276,12 @@ class CHSDVDReaderApp(QMainWindow):
 
         # instantiate pdf_report
         self.create_pdf_report = PDFReport(path)
-        
+
         # Add title to the report
         self.create_pdf_report.add_title(report_title)
+
+        # Add toc to the report
+        self.create_pdf_report.add_toc('Table of Contents')
 
         # Get a list of all files in the current directory
         files = os.listdir(directory)
