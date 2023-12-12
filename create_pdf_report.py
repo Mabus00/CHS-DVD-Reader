@@ -1,10 +1,11 @@
 from reportlab.lib.pagesizes import letter
 from  reportlab.platypus.doctemplate import PageTemplate, BaseDocTemplate
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.platypus import Table, TableStyle, Paragraph, Spacer
 from  reportlab.platypus.frames import Frame
-from reportlab.lib.styles import getSampleStyleSheet
+from  reportlab.platypus.tableofcontents import TableOfContents
+from reportlab.lib.styles import ParagraphStyle as PS
 from reportlab.lib import colors
-from reportlab.lib.units import inch, cm
+from reportlab.lib.units import cm
 from reportlab.pdfgen import canvas
 from PyPDF2 import PdfReader, PdfWriter
 import os
@@ -13,22 +14,30 @@ class PDFReport(BaseDocTemplate):
     def __init__(self, path, **kw):
         self.path = path
         self.elements = []
-
+        # define document page template
         self.allowSplitting = 0
-        BaseDocTemplate.__init__(self, self.path, **kw)
-        template = PageTemplate('normal', [Frame(2.5*cm, 2.5*cm, 15*cm, 25*cm, id='F1')])
+        super().__init__(self.path, **kw)
+        # set template for document
+        template = PageTemplate('normal', [Frame(1.5*cm, 1.5*cm, 15*cm, 25*cm, id='F1')])
         self.addPageTemplates(template)
+        # set styles for document
+        self.styles = [
+            PS(fontSize=20, name='Title', spaceAfter=20, leading=12),
+            PS(fontSize=14, name='Normal', spaceAfter=5, leading=12),
+        ]
+        # set styles for toc
+        self.toc = TableOfContents()
+        self.toc.levelStyles = [
+            PS(fontName='Times-Bold', fontSize=20, name='TOCHeading1', leftIndent=20, firstLineIndent=-20, spaceBefore=10, leading=16),
+            PS(fontSize=18, name='TOCHeading2', leftIndent=40, firstLineIndent=-20, spaceBefore=5, leading=12),
+        ]
 
     def add_title(self, title_text):
-        styles = getSampleStyleSheet()
-        title_style = styles['Title']
-        title = Paragraph(title_text, title_style)
+        title = Paragraph(title_text, self.styles[0])
         self.elements.append(title)
 
     def add_paragraph(self, content):
-        styles = getSampleStyleSheet()
-        normal_style = styles['Normal']
-        paragraph = Paragraph(content, normal_style)
+        paragraph = Paragraph(content,self.styles[1])
         self.elements.append(paragraph)
         self.elements.append(Spacer(1, 12))  # Add space after the paragraph
 
@@ -80,7 +89,7 @@ class PDFReport(BaseDocTemplate):
         #     self.elements.append(PageBreak())
 
     def save_report(self):
-        pdf_report = SimpleDocTemplate(self.path, pagesize=letter)
+        pdf_report = PDFReport(self.path, pagesize=letter)
         pdf_report.build(self.elements)
         self.add_page_numbers()
 
@@ -98,7 +107,7 @@ class PDFReport(BaseDocTemplate):
         for i in range(total_pages):
             c.saveState()
             c.setFont("Helvetica", 9)
-            c.drawString(inch, 0.75 * inch, f"Page {i + 1} of {total_pages}")
+            c.drawString(1.7 * cm, 1.2 * cm, f"Page {i + 1} of {total_pages}")
             c.restoreState()
             c.showPage()
 

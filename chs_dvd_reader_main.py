@@ -18,9 +18,7 @@ VIEW = chs_dvd_gui
 import sys
 import inspect
 import os
-import textwrap
 from PyQt5.QtWidgets import QApplication, QMainWindow, QTextEdit
-from PyQt5.QtGui import QFont
 from chs_dvd_gui import Ui_MainWindow
 from custom_signals import CreateDatabaseSignals, RunCheckerSignals, NewChartsSignals, NewEditionsSignals, WithdrawnSignals, ErrorsSignals
 from build_database import BuildDatabase
