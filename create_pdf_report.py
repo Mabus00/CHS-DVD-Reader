@@ -1,16 +1,23 @@
 from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak
+from  reportlab.platypus.doctemplate import PageTemplate, BaseDocTemplate
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from  reportlab.platypus.frames import Frame
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib import colors
-from reportlab.lib.units import inch
+from reportlab.lib.units import inch, cm
 from reportlab.pdfgen import canvas
 from PyPDF2 import PdfReader, PdfWriter
 import os
 
-class PDFReport:
-    def __init__(self, path):
+class PDFReport(BaseDocTemplate):
+    def __init__(self, path, **kw):
         self.path = path
         self.elements = []
+
+        self.allowSplitting = 0
+        BaseDocTemplate.__init__(self, self.path, **kw)
+        template = PageTemplate('normal', [Frame(2.5*cm, 2.5*cm, 15*cm, 25*cm, id='F1')])
+        self.addPageTemplates(template)
 
     def add_title(self, title_text):
         styles = getSampleStyleSheet()
