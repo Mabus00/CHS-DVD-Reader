@@ -27,27 +27,30 @@ class PDFReport:
 
     def add_table(self, content):
 
+        table_data = []
+
         # Separate content into folders
         folders = [list(filter(None, folder.split('\n'))) for folder in content.split('\n\n') if folder.strip()]
 
          # Add the message before the table
         message = folders[0][0]
         self.add_paragraph(message)
+        folders[0] = folders[0][1:]
 
-        for folder in folders[1:]:
+        for folder in folders:
             # Table title (Folder Name)
             folder_title = folder[0]
-            #self.add_paragraph(folder_title)
 
-            # Table column headers
-            column_headers = folder[1].split('\t')
-            # Table data for the folder
-            folder_table_data = [column_headers]  # Add the column headers
-            folder_table_data.extend([row.split('\t') for row in folder[2:]])  # Finally, add the data rows
-
-            # Construct the table for the folder
+            # Commence construction of table for the folder
             table_data = [[folder_title]]  # Include folder_title in the merged top row
-            table_data.extend(folder_table_data)  # Extend with the data
+
+            if len(folder) > 1 and '\t' in folder[1]: # if there's more rows and the rows have columns; as opposed to single row messages (if more rows)
+                # Table column headers
+                column_headers = folder[1].split('\t')
+                # Table data for the folder
+                folder_table_data = [column_headers]  # Add the column headers
+                folder_table_data.extend([row.split('\t') for row in folder[2:]])  # Finally, add the data rows
+                table_data.extend(folder_table_data)  # Extend with the data
 
             table = Table(table_data, hAlign='LEFT', repeatRows=2)
 
@@ -66,8 +69,8 @@ class PDFReport:
             self.elements.append(table)
             self.elements.append(Spacer(1, 12))  # Add space after each table
 
-        if len(self.elements) > 0:  # Check if there are any elements added
-            self.elements.append(PageBreak())
+        # if len(self.elements) > 0:  # Check if there are any elements added
+        #     self.elements.append(PageBreak())
 
     def save_report(self):
         pdf_report = SimpleDocTemplate(self.path, pagesize=letter)

@@ -295,12 +295,12 @@ class CHSDVDReaderApp(QMainWindow):
         sorted_files = sorted(txt_files, key=lambda x: file_positions.get(x, float('inf')))
 
         # Check if both misc_findings_type1.txt and misc_findings_type2.txt exist
-        file1_path = os.path.join(directory, "misc_findings_type1.txt")
-        file2_path = os.path.join(directory, "misc_findings_type2.txt")
+        # file1_path = os.path.join(directory, "misc_findings_type1.txt")
+        # file2_path = os.path.join(directory, "misc_findings_type2.txt")
 
-        if os.path.exists(file1_path) and os.path.exists(file2_path):
-            file1_path = utils.merge_files(file1_path, file2_path)
-            sorted_files.remove(os.path.basename(file2_path))
+        # if os.path.exists(file1_path) and os.path.exists(file2_path):
+        #     file1_path = utils.merge_files(file1_path, file2_path)
+        #     sorted_files.remove(os.path.basename(file2_path))
 
         for file in sorted_files:
             file_path = os.path.join(directory, file)
