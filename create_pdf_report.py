@@ -1,6 +1,6 @@
 from reportlab.lib.pagesizes import letter
 from  reportlab.platypus.doctemplate import PageTemplate, BaseDocTemplate
-from reportlab.platypus import Table, TableStyle, Paragraph, Spacer
+from reportlab.platypus import Table, TableStyle, Paragraph, Spacer, PageBreak
 from  reportlab.platypus.frames import Frame
 from  reportlab.platypus.tableofcontents import TableOfContents
 from reportlab.lib.styles import ParagraphStyle as PS
@@ -36,26 +36,27 @@ class PDFReport(BaseDocTemplate):
             PS(fontSize=18, name='TOCHeading2', leftIndent=40, firstLineIndent=-20, spaceBefore=5, leading=12),
         ]
 
-    # def afterFlowable(self, flowable):
-    #     "Registers TOC entries."
-    #     if flowable.__class__.__name__ == 'Paragraph':
-    #         text = flowable.getPlainText()
-    #         style = flowable.style.name
-    #         if style == 'Heading1':
-    #             self.notify('TOCEntry', (0, text, self.page))
-    #         if style == 'Heading2':
-    #             self.notify('TOCEntry', (1, text, self.page))
+    def afterFlowable(self, flowable):
+        "Registers TOC entries."
+        if isinstance(flowable, Paragraph):
+            text = flowable.getPlainText()
+            style = flowable.style.name
+            if style == 'Title':  # Modify this according to your actual heading style name
+                self.addEntry(text, self.page)
 
-    def add_toc(self, title):
+
+    def add_toc(self, toc_title):
         self.elements.append(self.toc)
-        self.elements.append(Paragraph(title, self.toc.levelStyles[0]))
+        self.elements.append(Paragraph(toc_title, self.toc.levelStyles[0]))
+
+        self.elements.append(PageBreak())
 
     def add_title(self, title_text):
         title = Paragraph(title_text, self.styles[0])
         self.elements.append(title)
 
     def add_paragraph(self, content):
-        paragraph = Paragraph(content,self.styles[1])
+        paragraph = Paragraph(content, self.styles[1])
         self.elements.append(paragraph)
         self.elements.append(Spacer(1, 12))  # Add space after the paragraph
 
