@@ -42,8 +42,10 @@ class PDFReport(BaseDocTemplate):
             text = flowable.getPlainText()
             style = flowable.style.name
             if style == 'Title':  # Modify this according to your actual heading style name
-                self.addEntry(text, self.page)
+                self.toc.addEntry(text, self.page)
 
+    def addEntry(self, entry, pageNum):
+        self.elements.append((entry, pageNum))
 
     def add_toc(self, toc_title):
         self.elements.append(self.toc)
