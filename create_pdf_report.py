@@ -32,25 +32,27 @@ class PDFReport(BaseDocTemplate):
         # set styles for toc
         self.toc = TableOfContents()
         self.toc.levelStyles = [
-            PS(fontName='Times-Bold', fontSize=20, name='TOCHeading1', leftIndent=20, firstLineIndent=-20, spaceBefore=10, leading=16),
-            PS(fontSize=18, name='TOCHeading2', leftIndent=40, firstLineIndent=-20, spaceBefore=5, leading=12),
+            PS(fontName='Times-Bold', fontSize=20, name='TOCHeading1', spaceBefore=10, leading=16),
+            PS(fontSize=18, name='TOCHeading2', spaceBefore=5, leading=12),
         ]
 
+        # append toc to document
+        #self.elements.append(self.toc)
+
     def afterFlowable(self, flowable):
-        "Registers TOC entries."
+        print("""Registers TOC entries.""")
         if isinstance(flowable, Paragraph):
             text = flowable.getPlainText()
             style = flowable.style.name
-            if style == 'Title':  # Modify this according to your actual heading style name
-                self.toc.addEntry(text, self.page)
-
-    def addEntry(self, entry, pageNum):
-        self.elements.append((entry, pageNum))
+            # Add entries to TOC based on styles
+            if style == 'TOCHeading1':
+                self.notify('TOCEntry', (0, text, self.page))
+            elif style == 'TOCHeading2':
+                self.notify('TOCEntry', (1, text, self.page))
 
     def add_toc(self, toc_title):
+        self.elements.append(Paragraph(toc_title, self.styles[1]))
         self.elements.append(self.toc)
-        self.elements.append(Paragraph(toc_title, self.toc.levelStyles[0]))
-
         self.elements.append(PageBreak())
 
     def add_title(self, title_text):
@@ -58,7 +60,7 @@ class PDFReport(BaseDocTemplate):
         self.elements.append(title)
 
     def add_paragraph(self, content):
-        paragraph = Paragraph(content, self.styles[1])
+        paragraph = Paragraph(content, self.toc.levelStyles[0])
         self.elements.append(paragraph)
         self.elements.append(Spacer(1, 12))  # Add space after the paragraph
 
@@ -69,7 +71,7 @@ class PDFReport(BaseDocTemplate):
         # Separate content into folders
         folders = [list(filter(None, folder.split('\n'))) for folder in content.split('\n\n') if folder.strip()]
 
-         # Add the message before the table
+        # Add the message before the table
         message = folders[0][0]
         self.add_paragraph(message)
         folders[0] = folders[0][1:]
@@ -77,10 +79,9 @@ class PDFReport(BaseDocTemplate):
         for folder in folders:
             # Table title (Folder Name)
             folder_title = folder[0]
-
+            #self.elements.append(folder_title) # Example: Adding a table entry in TOC
             # Commence construction of table for the folder
             table_data = [[folder_title]]  # Include folder_title in the merged top row
-
             if len(folder) > 1 and '\t' in folder[1]: # if there's more rows and the rows have columns; as opposed to single row messages (if more rows)
                 # Table column headers
                 column_headers = folder[1].split('\t')
@@ -111,7 +112,7 @@ class PDFReport(BaseDocTemplate):
 
     def save_report(self):
         pdf_report = PDFReport(self.path, pagesize=letter)
-        pdf_report.build(self.elements)
+        pdf_report.multiBuild(self.elements)
         self.add_page_numbers()
 
     def add_page_numbers(self):
