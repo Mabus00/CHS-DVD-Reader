@@ -172,8 +172,8 @@ class CHSDVDReaderApp(QMainWindow):
                 if tables_missing_in_current or tables_missing_in_master:
                     utils.show_warning_popup("Possible errors were noted. See the Misc. Results tab.")
                     error_messages = {
-                        "missing_current": "Folders removed from this month's DVDs:",
-                        "missing_master": "Folders added to this month's DVDs:",
+                        "missing_current": "Folders Removed",
+                        "missing_master": "Folders Added",
                     }
                     for error_type, table_list in {"missing_current": tables_missing_in_current, "missing_master": tables_missing_in_master}.items():
                         if table_list:
@@ -189,13 +189,13 @@ class CHSDVDReaderApp(QMainWindow):
                 charts_withdrawn, new_charts = self.compare_chart_numbers.compare_chart_numbers(tables_master_temp, master_yyyymmdd, current_yyyymmdd)
                 # Report missing charts on missing charts tab; can't use same process as above because of textbox identification
                 if charts_withdrawn:
-                    message = "Charts missing in current DVD folder:"
+                    message = "Withdrawn Charts"
                     # type of report is type 1; tuple therefore provide a file_to_open name for report purposes
                     file_to_open = 'charts_withdrawn.txt'
                     utils.generate_reports(charts_withdrawn, None, self.charts_withdrawn_signals.chart_withdrawn_textbox, message, file_to_open)
                 # Report new charts on new charts tab
                 if new_charts:
-                    message = "New charts in current DVD folder:"
+                    message = "New Charts"
                     # type of report is type 1; tuple therefore provide a file_to_open name for report purposes
                     file_to_open = 'new_charts.txt'
                     utils.generate_reports(new_charts, None, self.new_charts_signals.new_charts_textbox, message, file_to_open)
@@ -207,12 +207,12 @@ class CHSDVDReaderApp(QMainWindow):
                 # report new_editions and misc. findings (findings that couldn't be categorized as New Charts, New Editions or Charts Withdrawn)
                 # Report missing charts on missing charts tab; can't use same process as above because of textbox identification
                 if new_editions:
-                    message = "The following folders have new editions:"
+                    message = "New Editions"
                     file_to_open = 'new_editions.txt'
                     utils.generate_reports(new_editions, current_yyyymmdd, self.new_editions_signals.new_editions_textbox, message, file_to_open)
                 # Report new charts on new charts tab
                 if misc_findings:
-                    message = "The following folders have uncategorized findings that may indicate potential errors:"
+                    message = "Uncategorized Findings"
                     # type of report is type 1; tuple therefore provide a file_to_open name for report purposes
                     file_to_open = 'misc_findings_type1.txt'
                     utils.generate_reports(misc_findings, current_yyyymmdd, self.errors_signals.errors_textbox, message, file_to_open)

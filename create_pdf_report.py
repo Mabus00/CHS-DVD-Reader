@@ -8,6 +8,7 @@ from reportlab.lib import colors
 from reportlab.lib.units import cm
 from reportlab.pdfgen import canvas
 from PyPDF2 import PdfReader, PdfWriter
+from hashlib import sha1
 import os
 
 class PDFReport(BaseDocTemplate):
@@ -23,8 +24,8 @@ class PDFReport(BaseDocTemplate):
 
         # set styles for document
         self.styles = [
-            PS(fontSize=20, name='Title', spaceAfter=20, leading=12),
-            PS(fontSize=14, name='Normal', spaceAfter=5, leading=12),
+            PS(fontSize=20, name='Title', spaceAfter=30, leading=12),
+            PS(fontSize=14, name='Normal', spaceAfter=10, leading=12),
         ]
 
         self.toc = TableOfContents()
@@ -46,9 +47,26 @@ class PDFReport(BaseDocTemplate):
             style = flowable.style.name
             # Add entries to TOC based on styles
             if style == 'TOCHeading1':
-                self.notify('TOCEntry', (0, text, self.page))
+                level = 0  # Define the level level for TOC entry
             elif style == 'TOCHeading2':
-                self.notify('TOCEntry', (1, text, self.page))
+                level = 1  # Define the level level for TOC entry
+            else:
+                level = None  # If it's not a TOC heading, it won't be added to TOC
+            E = [level, text, self.page]
+            if level is not None:
+                anchor = getattr(flowable, '_bookmarkName', None)  # Get the anchor point
+                E.append(anchor)
+                self.notify('TOCEntry', tuple(E))
+
+    # turn toc headings into hyperlinks
+    def doHeading(self, text, style):
+        #create bookmarkname
+        bn = sha1((text + style.name).encode()).hexdigest()
+        #modify paragraph text to include an anchor point with name bn
+        heading = Paragraph(text + '<a name="%s"/>' % bn, style)
+        #store the bookmark name on the flowable so afterFlowable can see this
+        heading._bookmarkName = bn
+        self.elements.append(heading)
 
     def add_toc(self, toc_title):
         self.elements.append(Paragraph(toc_title, self.styles[1]))
@@ -60,8 +78,7 @@ class PDFReport(BaseDocTemplate):
         self.elements.append(title)
 
     def add_paragraph(self, content):
-        paragraph = Paragraph(content, self.toc.levelStyles[0])
-        self.elements.append(paragraph)
+        self.doHeading(content, self.toc.levelStyles[0])
         self.elements.append(Spacer(1, 12))  # Add space after the paragraph
 
     def add_table(self, content):
@@ -118,12 +135,10 @@ class PDFReport(BaseDocTemplate):
     def add_page_numbers(self):
         input_pdf = self.path
         output_pdf = "temp.pdf"
-
         # Read the input PDF and get the total number of pages
         with open(input_pdf, "rb") as file:
             reader = PdfReader(file)
             total_pages = len(reader.pages)
-
         # Create a new PDF with page numbers added
         c = canvas.Canvas(output_pdf)
         for i in range(total_pages):
@@ -132,23 +147,18 @@ class PDFReport(BaseDocTemplate):
             c.drawString(1.7 * cm, 1.2 * cm, f"Page {i + 1} of {total_pages}")
             c.restoreState()
             c.showPage()
-
         c.save()
-
         # Merge the original PDF with the one containing page numbers
         merger = PdfWriter()
         original_pdf = PdfReader(input_pdf)
         temp_pdf = PdfReader(output_pdf)
-
         for pageNum in range(total_pages):
             page = original_pdf.pages[pageNum]
             overlay = temp_pdf.pages[pageNum]
-            page.merge_page(overlay)
-            merger.add_page(page)
-
+            overlay.merge_page(page)
+            merger.add_page(overlay)
         with open(self.path, "wb") as file:
             merger.write(file)
-
         # Clean up the temporary PDF
         os.remove(output_pdf)
 
