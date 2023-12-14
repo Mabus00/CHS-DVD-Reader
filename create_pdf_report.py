@@ -135,10 +135,12 @@ class PDFReport(BaseDocTemplate):
     def add_page_numbers(self):
         input_pdf = self.path
         output_pdf = "temp.pdf"
+
         # Read the input PDF and get the total number of pages
         with open(input_pdf, "rb") as file:
             reader = PdfReader(file)
             total_pages = len(reader.pages)
+
         # Create a new PDF with page numbers added
         c = canvas.Canvas(output_pdf)
         for i in range(total_pages):
@@ -147,18 +149,23 @@ class PDFReport(BaseDocTemplate):
             c.drawString(1.7 * cm, 1.2 * cm, f"Page {i + 1} of {total_pages}")
             c.restoreState()
             c.showPage()
+
         c.save()
+
         # Merge the original PDF with the one containing page numbers
         merger = PdfWriter()
         original_pdf = PdfReader(input_pdf)
         temp_pdf = PdfReader(output_pdf)
+
         for pageNum in range(total_pages):
             page = original_pdf.pages[pageNum]
             overlay = temp_pdf.pages[pageNum]
-            overlay.merge_page(page)
-            merger.add_page(overlay)
+            page.merge_page(overlay)
+            merger.add_page(page)
+
         with open(self.path, "wb") as file:
             merger.write(file)
+
         # Clean up the temporary PDF
         os.remove(output_pdf)
 
