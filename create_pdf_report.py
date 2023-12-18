@@ -1,15 +1,16 @@
 from reportlab.lib.pagesizes import letter
-from  reportlab.platypus.doctemplate import PageTemplate, BaseDocTemplate
+from reportlab.platypus.doctemplate import PageTemplate, BaseDocTemplate
 from reportlab.platypus import Table, TableStyle, Paragraph, Spacer, PageBreak
-from  reportlab.platypus.frames import Frame
-from  reportlab.platypus.tableofcontents import TableOfContents
+from reportlab.platypus.frames import Frame
+from reportlab.platypus.tableofcontents import TableOfContents
 from reportlab.lib.styles import ParagraphStyle as PS
 from reportlab.lib import colors
 from reportlab.lib.units import cm
 from reportlab.pdfgen import canvas
-from PyPDF2 import PdfReader, PdfWriter
+from PyPDF2 import PdfReader, PdfWriter, Transformation
 from hashlib import sha1
 import os
+import io
 
 class PDFReport(BaseDocTemplate):
     def __init__(self, path, **kw):
@@ -136,38 +137,52 @@ class PDFReport(BaseDocTemplate):
         input_pdf = self.path
         output_pdf = "temp.pdf"
 
-        # Read the input PDF and get the total number of pages
-        with open(input_pdf, "rb") as file:
-            reader = PdfReader(file)
-            total_pages = len(reader.pages)
+        original_pdf = PdfReader(open(input_pdf, "rb"))
+        total_pages = len(original_pdf.pages)
 
-        # Create a new PDF with page numbers added
-        c = canvas.Canvas(output_pdf)
-        for i in range(total_pages):
-            c.saveState()
-            c.setFont("Helvetica", 9)
-            c.drawString(1.7 * cm, 1.2 * cm, f"Page {i + 1} of {total_pages}")
-            c.restoreState()
-            c.showPage()
+        # Create a new PDF with only the footer ribbon and page numbers
+        footer_pdf = PdfWriter()
 
-        c.save()
+        page_width = original_pdf.pages[0].mediabox[2]
+        page_height = original_pdf.pages[0].mediabox[3]
 
-        # Merge the original PDF with the one containing page numbers
-        merger = PdfWriter()
-        original_pdf = PdfReader(input_pdf)
-        temp_pdf = PdfReader(output_pdf)
+        ribbon_height = 30  # Modify as needed
+        ribbon_y_position = 20  # Adjust as required
 
         for pageNum in range(total_pages):
+            packet = io.BytesIO()
+            can = canvas.Canvas(packet, pagesize=letter)
+
+            # Draw a rectangle to act as a footer ribbon
+            can.setFillColorRGB(0, 0, 0)  # Set the color
+            can.rect(0, ribbon_y_position, page_width, ribbon_height, fill=True)
+
+            # Add page number text
+            text = f"Page {pageNum + 1} of {total_pages}"
+            can.setFillColorRGB(1, 1, 1)  # Set text color
+            can.drawString(10, ribbon_y_position + 10, text)  # Adjust position and styling as needed
+
+            can.save()
+            packet.seek(0)
+
+            new_pdf = PdfReader(packet)
+            footer_page = new_pdf.pages[0]
+
+            footer_pdf.add_page(footer_page)
+
+        # Merge the original PDF with the footer PDF
+        merged_pdf = PdfWriter()
+        for pageNum in range(total_pages):
             page = original_pdf.pages[pageNum]
-            overlay = temp_pdf.pages[pageNum]
-            page.merge_page(overlay)
-            merger.add_page(page)
+            page.merge_page(footer_pdf.pages[pageNum])
 
-        with open(self.path, "wb") as file:
-            merger.write(file)
+            merged_pdf.add_page(page)
 
+        # Save the merged PDF with footer
+        with open(output_pdf, 'wb') as file:
+            merged_pdf.write(file)
         # Clean up the temporary PDF
-        os.remove(output_pdf)
+        #os.remove(output_pdf)
 
 # Main execution block (can be used for testing)
 if __name__ == "__main__":
