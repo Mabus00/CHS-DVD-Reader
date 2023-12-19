@@ -32,17 +32,15 @@ class PDFReport(BaseDocTemplate):
         self.toc = TableOfContents()
         self.toc.levelStyles = [
             PS(fontName='Times-Bold', fontSize=20, name='TOCHeading1', spaceBefore=10, leading=16),
-            PS(fontSize=12, name='TOCHeading2', spaceBefore=5, leading=12, leftIndent=20),
+            PS(fontSize=12, name='TOCHeading2', spaceBefore=5, leading=12, leftIndent=10),
         ]
         # set style for tables
         self.table_style = TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.gray),  # First row shading
-            ('BACKGROUND', (0, 1), (-1, 1), colors.lightgrey),       # Second row shading
+            ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),  # First row shading
             ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
             ('GRID', (0, 0), (-1, -1), 1, colors.black),
             ('WORDWRAP', (2, 0), (2, -1), 1),  # Enable word wrap for the third column
-            ('SPAN', (0, 0), (-1, 0)),  # Merge cells for the first row
         ])
 
     def afterFlowable(self, flowable):
@@ -94,7 +92,6 @@ class PDFReport(BaseDocTemplate):
         self.elements.append(Spacer(1, 12))  # Add space after the paragraph
 
     def add_table(self, content):
-        table_data = []
         # Separate content into folders
         folders = [list(filter(None, folder.split('\n'))) for folder in content.split('\n\n') if folder.strip()]
         # first line in all folders contains the message and the first folder title
@@ -105,12 +102,13 @@ class PDFReport(BaseDocTemplate):
         folders[0] = folders[0][1:]
         # process folder content
         for folder in folders:
+            table_data = []
             # Table title (Folder Name)
             folder_title = folder[0]
             self.doHeading(folder_title, self.toc.levelStyles[1])
             self.elements.append(Spacer(1, 12))  # Add space after each table
             # Commence construction of table for the folder
-            table_data = [[folder_title]]  # Include folder_title in the merged top row
+            #table_data = [[folder_title]]  # Include folder_title in the merged top row
             if len(folder) > 1 and '\t' in folder[1]: # if there's more rows and the rows have columns; as opposed to single row messages (if more rows)
                 # Table column headers
                 column_headers = folder[1].split('\t')
@@ -118,7 +116,7 @@ class PDFReport(BaseDocTemplate):
                 folder_table_data = [column_headers]  # Add the column headers
                 folder_table_data.extend([row.split('\t') for row in folder[2:]])  # Finally, add the data rows
                 table_data.extend(folder_table_data)  # Extend with the data
-                table = Table(table_data, hAlign='LEFT', repeatRows=2)
+                table = Table(table_data, hAlign='LEFT', repeatRows=1)
                 table.setStyle(self.table_style)            
                 self.elements.append(table)
                 self.elements.append(Spacer(1, 12))  # Add space after each table
