@@ -3,6 +3,7 @@ from reportlab.platypus.doctemplate import PageTemplate, BaseDocTemplate
 from reportlab.platypus import Table, TableStyle, Paragraph, Spacer, PageBreak
 from reportlab.platypus.frames import Frame
 from reportlab.platypus.tableofcontents import TableOfContents
+from reportlab.pdfgen import canvas
 from reportlab.lib.styles import ParagraphStyle as PS
 from reportlab.lib import colors
 from reportlab.lib.units import cm
@@ -12,6 +13,10 @@ class PDFReport(BaseDocTemplate):
     def __init__(self, path, **kw):
         self.path = path
         self.elements = []
+
+        # Create a canvas object
+        self.canv = canvas.Canvas(path, pagesize=letter)
+
         # define document page template
         self.allowSplitting = 0
         super().__init__(self.path, **kw)
@@ -74,11 +79,11 @@ class PDFReport(BaseDocTemplate):
         self.elements.append(PageBreak())
 
     def footer(self, canvas, doc):
-        canvas.saveState()
-        canvas.setFont('Times-Roman', 9)
-        page_num = canvas.getPageNumber()
-        canvas.drawString(1.5 * cm, 0.75 * cm, f"Page {page_num}")
-        canvas.restoreState()
+        self.canv.saveState()
+        self.canv.setFont('Times-Roman', 9)
+        page_num = self.canv.getPageNumber()
+        self.canv.drawString(1.5 * cm, 0.75 * cm, f"Page {page_num}")
+        self.canv.restoreState()
 
     def add_title(self, title_text):
         title = Paragraph(title_text, self.styles[0])
@@ -92,11 +97,11 @@ class PDFReport(BaseDocTemplate):
         table_data = []
         # Separate content into folders
         folders = [list(filter(None, folder.split('\n'))) for folder in content.split('\n\n') if folder.strip()]
+        # first line in all folders contains the message and the first folder title
         # Extract message and print before the table
         message = folders[0][0]
         self.add_paragraph(message)
-        # first line in all folders contains the message and the first folder title; now that message has been used move the folder title into the message position
-        # only needs to be done once for all folders
+        # now that message has been used move the folder title into the message position to match remainder of folder structure; only needs to be done once for all folders
         folders[0] = folders[0][1:]
         # process folder content
         for folder in folders:
