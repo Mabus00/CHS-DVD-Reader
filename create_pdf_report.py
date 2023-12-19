@@ -62,9 +62,9 @@ class PDFReport(BaseDocTemplate):
                 self.notify('TOCEntry', tuple(E))
 
     # turn toc headings into hyperlinks
-    def doHeading(self, text, style):
+    def doHeading(self, text, style, message = ""):
         #create bookmarkname
-        bn = sha1((text + style.name).encode()).hexdigest()
+        bn = sha1((message + text + style.name).encode()).hexdigest()
         #modify paragraph text to include an anchor point with name bn
         heading = Paragraph(text + '<a name="%s"/>' % bn, style)
         #store the bookmark name on the flowable so afterFlowable can see this
@@ -105,7 +105,7 @@ class PDFReport(BaseDocTemplate):
             table_data = []
             # Table title (Folder Name)
             folder_title = folder[0]
-            self.doHeading(folder_title, self.toc.levelStyles[1])
+            self.doHeading(folder_title, self.toc.levelStyles[1], message)
             self.elements.append(Spacer(1, 12))  # Add space after each table
             # Commence construction of table for the folder
             #table_data = [[folder_title]]  # Include folder_title in the merged top row
