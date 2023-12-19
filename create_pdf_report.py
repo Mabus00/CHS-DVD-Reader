@@ -30,6 +30,9 @@ class PDFReport(BaseDocTemplate):
         ]
         # set styles for toc
         self.toc = TableOfContents()
+        # Initialize the toc_anchor attribute
+        self.toc_anchor = "toc_anchor"
+
         self.toc.levelStyles = [
             PS(fontName='Times-Bold', fontSize=20, name='TOCHeading1', spaceBefore=10, leading=16),
             PS(fontSize=12, name='TOCHeading2', spaceBefore=5, leading=12, leftIndent=10),
@@ -72,7 +75,13 @@ class PDFReport(BaseDocTemplate):
         self.elements.append(heading)
 
     def add_toc(self, toc_title):
-        self.elements.append(Paragraph(toc_title, self.styles[1]))
+        
+        # Adding the TOC title
+        toc_title_paragraph = Paragraph(toc_title, self.styles[1])
+        toc_title_paragraph._bookmarkName = self.toc_anchor
+        self.elements.append(toc_title_paragraph)
+        
+        # Adding the Table of Contents
         self.elements.append(self.toc)
         self.elements.append(PageBreak())
 
@@ -81,6 +90,23 @@ class PDFReport(BaseDocTemplate):
         self.canv.setFont('Times-Roman', 9)
         page_num = self.canv.getPageNumber()
         self.canv.drawString(1.5 * cm, 0.75 * cm, f"Page {page_num}")
+
+        link_x, link_y = 14 * cm, 0.75 * cm  # Adjust x-coordinate for right side of the footer
+        link_text = "Return to Table of Contents"
+
+        # Create a hyperlink to the Table of Contents anchor on every page
+        self.canv.linkURL(
+            f'{self.path}#%s' % self.toc_anchor,
+            (link_x, link_y - 10, link_x + 6 * cm, link_y + 0.5 * cm),  # Adjusted coordinates and size of the hyperlink box
+            relative=1,
+            thickness=1,
+            color=colors.blue,
+            underline=1,
+            highlightMode="invert",
+            uri=True,
+            action=None,
+        )
+        self.canv.drawString(link_x, link_y, link_text)
         self.canv.restoreState()
 
     def add_title(self, title_text):
