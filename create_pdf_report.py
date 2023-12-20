@@ -30,8 +30,6 @@ class PDFReport(BaseDocTemplate):
         ]
         # set styles for toc
         self.toc = TableOfContents()
-        # Initialize the toc_anchor attribute
-        self.toc_anchor = "toc_anchor"
 
         self.toc.levelStyles = [
             PS(fontName='Times-Bold', fontSize=20, name='TOCHeading1', spaceBefore=10, leading=16),
@@ -69,18 +67,15 @@ class PDFReport(BaseDocTemplate):
         #create bookmarkname
         bn = sha1((message + text + style.name).encode()).hexdigest()
         #modify paragraph text to include an anchor point with name bn
-        heading = Paragraph(text + '<a name="%s"/>' % bn, style)
+        heading = Paragraph(f'<a name="{bn}"/>{text}', style)
         #store the bookmark name on the flowable so afterFlowable can see this
         heading._bookmarkName = bn
         self.elements.append(heading)
 
     def add_toc(self, toc_title):
-        
         # Adding the TOC title
         toc_title_paragraph = Paragraph(toc_title, self.styles[1])
-        toc_title_paragraph._bookmarkName = self.toc_anchor
         self.elements.append(toc_title_paragraph)
-        
         # Adding the Table of Contents
         self.elements.append(self.toc)
         self.elements.append(PageBreak())
@@ -90,23 +85,6 @@ class PDFReport(BaseDocTemplate):
         self.canv.setFont('Times-Roman', 9)
         page_num = self.canv.getPageNumber()
         self.canv.drawString(1.5 * cm, 0.75 * cm, f"Page {page_num}")
-
-        link_x, link_y = 14 * cm, 0.75 * cm  # Adjust x-coordinate for right side of the footer
-        link_text = "Return to Table of Contents"
-
-        # Create a hyperlink to the Table of Contents anchor on every page
-        self.canv.linkURL(
-            f'{self.path}#%s' % self.toc_anchor,
-            (link_x, link_y - 10, link_x + 6 * cm, link_y + 0.5 * cm),  # Adjusted coordinates and size of the hyperlink box
-            relative=1,
-            thickness=1,
-            color=colors.blue,
-            underline=1,
-            highlightMode="invert",
-            uri=True,
-            action=None,
-        )
-        self.canv.drawString(link_x, link_y, link_text)
         self.canv.restoreState()
 
     def add_title(self, title_text):
@@ -146,8 +124,6 @@ class PDFReport(BaseDocTemplate):
                 table.setStyle(self.table_style)            
                 self.elements.append(table)
                 self.elements.append(Spacer(1, 12))  # Add space after each table
-            else:
-                self.add_paragraph("\n".join(folder))  # Treat single line as a paragraph
 
     def save_report(self):
         pdf_report = PDFReport(self.path, pagesize=letter)
