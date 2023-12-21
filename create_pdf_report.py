@@ -21,13 +21,19 @@ class PDFReport(BaseDocTemplate):
         self.allowSplitting = 0
         super().__init__(self.path, **kw)
         # set template for document
-        template = PageTemplate('normal', [Frame(1.5*cm, 1.5*cm, 15*cm, 25*cm, id='F1')], onPageEnd = self.footer)
+        # Add header and footer to the PageTemplate
+        header_frame = Frame(1.5*cm, 25*cm, 15*cm, 1.5*cm, id='header_frame')
+        footer_frame = Frame(1.5*cm, 1.5*cm, 15*cm, 25*cm, id='footer_frame')
+        template = PageTemplate('normal', [header_frame, footer_frame], onPage= self.header, onPageEnd=self.footer)
         self.addPageTemplates(template)
+
         # set styles for document
         self.styles = [
             PS(fontSize=20, name='Title', spaceAfter=30, leading=12),
             PS(fontSize=14, name='Normal', spaceAfter=10, leading=12),
+            PS(fontSize=10, name='Header', spaceAfter=10, leading=12),
         ]
+
         # set styles for toc
         self.toc = TableOfContents()
 
@@ -35,6 +41,7 @@ class PDFReport(BaseDocTemplate):
             PS(fontName='Times-Bold', fontSize=20, name='TOCHeading1', spaceBefore=10, leading=16),
             PS(fontSize=12, name='TOCHeading2', spaceBefore=5, leading=12, leftIndent=10),
         ]
+        
         # set style for tables
         self.table_style = TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),  # First row shading
@@ -67,7 +74,7 @@ class PDFReport(BaseDocTemplate):
         #create bookmarkname
         bn = sha1((message + text + style.name).encode()).hexdigest()
         #modify paragraph text to include an anchor point with name bn
-        heading = Paragraph(f'<a name="{bn}"/>{text}', style)
+        heading = Paragraph(text + '<a name="%s"/>' % bn, style)
         #store the bookmark name on the flowable so afterFlowable can see this
         heading._bookmarkName = bn
         self.elements.append(heading)
@@ -79,6 +86,14 @@ class PDFReport(BaseDocTemplate):
         # Adding the Table of Contents
         self.elements.append(self.toc)
         self.elements.append(PageBreak())
+
+    def header(self, canvas, doc):
+        self.canv.saveState()
+        self.canv.setFont('Times-Roman', 9)
+        header_text = 'This is a header'  # Replace with your desired header content
+        w, h = self.canv.stringWidth(header_text, 'Times-Roman', 9), self.canv.getFont().size
+        self.canv.drawString(doc.width - w + doc.rightMargin, doc.height + doc.topMargin - h, header_text)
+        self.canv.restoreState()
 
     def footer(self, canvas, doc):
         self.canv.saveState()
@@ -124,6 +139,8 @@ class PDFReport(BaseDocTemplate):
                 table.setStyle(self.table_style)            
                 self.elements.append(table)
                 self.elements.append(Spacer(1, 12))  # Add space after each table
+            else:
+                self.add_paragraph("\n".join(folder))  # Treat single line as a paragraph
 
     def save_report(self):
         pdf_report = PDFReport(self.path, pagesize=letter)
