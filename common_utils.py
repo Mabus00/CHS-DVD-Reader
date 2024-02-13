@@ -82,8 +82,10 @@ def list_folders(folder_path):
 
 # Function to get a list of .txt files in a folder
 def get_txt_files(folder_path):
-    txt_files = [file for file in os.listdir(folder_path) if file.endswith('.txt')]
-    return txt_files
+    files = [f for f in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, f))]
+    file_name, file_extension = os.path.splitext(files[0])
+    separator = 't' if file_extension == '.txt' else ','
+    return files, separator
     
 # Function to get the DVD name using the disk path; retries introduced because USB connected DVD readers can lag
 def get_dvd_name(input_data_path, max_retries=5, retry_interval=1):
@@ -115,9 +117,9 @@ def get_dvd_name(input_data_path, max_retries=5, retry_interval=1):
     return None
 
 # Function to create a table with column names from a text file
-def create_table(table_name, txt_file_path, cursor):
+def create_table(table_name, txt_file_path, cursor, separator):
     with open(txt_file_path, 'r', errors='ignore') as txt_file:
-        column_names = txt_file.readline().strip().split('\t')
+        column_names = txt_file.readline().strip().split('\\' + separator)
         sanitized_column_names = [name.replace(".", "").strip() for name in column_names]
         quoted_column_names = [f'"{name}"' for name in sanitized_column_names]
         column_names_sql = ', '.join(quoted_column_names)
@@ -125,15 +127,15 @@ def create_table(table_name, txt_file_path, cursor):
         cursor.execute(create_table_sql)
 
 # Function to insert data into a table from a text file
-def insert_data(table_name, txt_file_path, cursor):
+def insert_data(table_name, txt_file_path, cursor, separator):
     with open(txt_file_path, 'r', errors='ignore') as txt_file:
         next(txt_file)  # Skip the first line (column names)
-        next(txt_file)  # Skip the second line
+        _ = next(txt_file) if separator == 't' else None  # Skip the second line for tab-separated files
         for line in txt_file:
             line = line.strip()
             if not line:  # Stop processing if the line is blank
                 break
-            data = line.split('\t')
+            data = line.split('\\' + separator)
             placeholders = ', '.join(['?'] * len(data))
             insert_sql = f"INSERT INTO {table_name} VALUES ({placeholders})"
             cursor.execute(insert_sql, data)

@@ -96,12 +96,12 @@ class BuildDatabase():
     def process_folder(self, folder, folder_path, source_name):
         table_name = f"{source_name}_{folder.replace('-', '_')}"
         sub_folder_path = os.path.join(folder_path, folder)
-        txt_files = utils.get_txt_files(sub_folder_path)
+        txt_files, separator = utils.get_txt_files(sub_folder_path)
         if txt_files:
             for txt_file in txt_files:
                 txt_file_path = os.path.join(sub_folder_path, txt_file)
-                utils.create_table(table_name, txt_file_path, self.master_database_cursor)  # Create the table
-                utils.insert_data(table_name, txt_file_path, self.master_database_cursor)    # Insert data into the table
+                utils.create_table(table_name, txt_file_path, self.master_database_cursor, separator)  # Create the table
+                utils.insert_data(table_name, txt_file_path, self.master_database_cursor, separator)    # Insert data into the table
         else:
             self.create_database_textbox.emit("\nNo .txt files in this folder.")
    
