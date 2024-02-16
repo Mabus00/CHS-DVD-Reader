@@ -10,7 +10,6 @@ import subprocess
 import time
 from datetime import datetime
 import common_utils as utils
-import pandas as pd
 
 ''' common functions used by more than one model / module'''
 def open_file_explorer(parent, input_path):
@@ -86,7 +85,7 @@ def get_txt_files(folder_path):
     txt_files = [file for file in os.listdir(folder_path) if file.endswith('.txt')]
     return txt_files
 
-# Function to get a list of .txt files in a folder
+# Function to get a list of .csv files in a folder
 def get_csv_files(folder_path):
     csv_files = [file for file in os.listdir(folder_path) if file.endswith('.csv')]
     return csv_files
