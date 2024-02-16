@@ -10,6 +10,7 @@ import subprocess
 import time
 from datetime import datetime
 import common_utils as utils
+import pandas as pd
 
 ''' common functions used by more than one model / module'''
 def open_file_explorer(parent, input_path):
@@ -84,7 +85,12 @@ def list_folders(folder_path):
 def get_txt_files(folder_path):
     txt_files = [file for file in os.listdir(folder_path) if file.endswith('.txt')]
     return txt_files
-    
+
+# Function to get a list of .txt files in a folder
+def get_csv_files(folder_path):
+    csv_files = [file for file in os.listdir(folder_path) if file.endswith('.csv')]
+    return csv_files
+
 # Function to get the DVD name using the disk path; retries introduced because USB connected DVD readers can lag
 def get_dvd_name(input_data_path, max_retries=5, retry_interval=1):
     retry_count = 0
