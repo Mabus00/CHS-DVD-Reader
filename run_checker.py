@@ -93,7 +93,7 @@ class RunChecker():
         # Compare the EastDVD tables separately for both master and current databases
         master_date = datetime.strptime(master_dates.get('EastDVD'), '%Y%m%d')
         current_date = datetime.strptime(current_dates.get('EastDVD'), '%Y%m%d')
-        if current_date.month > master_date.month:
+        if current_date > master_date:
             self.run_checker_textbox.emit("\nCurrent East & West DVD dates are a month or more later than the Master Database dates.")
             month_result = True
         else:

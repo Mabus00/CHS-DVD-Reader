@@ -85,11 +85,6 @@ def get_files(folder_path, file_extension):
     files = [file for file in os.listdir(folder_path) if file.endswith(f".{file_extension}")]
     return files
 
-# Function to get a list of .csv files in a folder
-def get_csv_files(folder_path):
-    csv_files = [file for file in os.listdir(folder_path) if file.endswith('.csv')]
-    return csv_files
-
 # Function to get the DVD name using the disk path; retries introduced because USB connected DVD readers can lag
 def get_dvd_name(input_data_path, max_retries=5, retry_interval=1):
     retry_count = 0
