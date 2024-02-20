@@ -128,7 +128,7 @@ def create_table(table_name, file_path, cursor, file_extension):
     create_table_sql = f"CREATE TABLE IF NOT EXISTS {table_name} ({column_names_sql})"
     cursor.execute(create_table_sql)
 
-# Function to insert data into a table from a text file
+# Function to insert data into a table from a .txt or .csv file
 def insert_data(table_name, file_path, cursor, file_extension):
     try:
         if file_extension == 'txt':
@@ -149,7 +149,7 @@ def insert_data(table_name, file_path, cursor, file_extension):
                 # Skip the first two lines (column names and extra line if needed)
                 next(csv_reader)  
                 for row in csv_reader:
-                    if row:  # Check if the row is not empty
+                    if row:  # Check if the row is not empty; there seems to be an empty row at the end of the data
                         # Process the non-empty row
                         data = row
                         placeholders = ', '.join(['?'] * len(data))
@@ -157,6 +157,7 @@ def insert_data(table_name, file_path, cursor, file_extension):
                         cursor.execute(insert_sql, data)
         else:
             raise ValueError("Unsupported file extension.")
+    # following is to capture errors if and when they occur
     except sqlite3.OperationalError as e:
         print(f"SQLite operational error: {e}")
     except Exception as e:
