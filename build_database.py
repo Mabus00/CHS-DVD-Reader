@@ -104,17 +104,12 @@ class BuildDatabase():
                 # get the extension so file can be read correctly
                 file_extension = file_name.split('.')[-1].lower()
                 files = utils.get_files(sub_folder_path, file_extension)
-                if file_extension == "csv":
+                if file_extension == "csv" or file_extension == "txt":
                     # it's understood there's only one file; method is written so it can apply if there are >1 files
-                    for csv_file in files:
-                        csv_file_path = os.path.join(sub_folder_path, csv_file)
-                        print(csv_file_path)
-                elif file_extension == "txt":          
-                    # it's understood there's only one file; method is written so it can apply if there are >1 files
-                    for txt_file in files:
-                        txt_file_path = os.path.join(sub_folder_path, txt_file)
-                        utils.create_table(table_name, txt_file_path, self.master_database_cursor)  # Create the table
-                        utils.insert_data(table_name, txt_file_path, self.master_database_cursor)    # Insert data into the table
+                    for file in files:
+                        file_path = os.path.join(sub_folder_path, file)
+                        utils.create_table(table_name, file_path, self.master_database_cursor, file_extension)  # Create the table
+                        utils.insert_data(table_name, file_path, self.master_database_cursor, file_extension)    # Insert data into the table
                 elif file_extension == "":
                     self.create_database_textbox.emit("\nNo .txt or .csv files in this folder.")
    

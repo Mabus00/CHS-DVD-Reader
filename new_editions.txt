@@ -1,4 +1,12 @@
 New Editions
+WestDVD_20240202_V_PAC_A
+ENC	EDTN	Title
+CA470003	6.008	Haro Strait, Boundary Pass and/et Satellite Channel
+CA570567	7.006	Approaches to/Approches a Sidney
+CA570015	9.006	Fraser River/Fleuve Fraser, Sand Heads to/a Douglas Island AB
+CA370203	6.012	Approaches to/Approches a Juan de Fuca Strait
+CA471195	1.001	CA471195
+
 EastDVD_20240202_V_ATL_C
 ENC	EDTN	Title
 CA576304	7.007	Port aux Basques and Approaches
@@ -16,22 +24,22 @@ CA24URFB	1.001	CA24URFB
 CA262Q8A	2.000	CA262Q8A
 CA279Q8B	2.000	CA279Q8B
 
-EastDVD_20240202_V_CEN_B
+EastDVD_20240202_V_ATL_B
 ENC	EDTN	Title
-CA573008	7.003	Toronto Harbour
-
-EastDVD_20240202_V_ATL_A
-ENC	EDTN	Title
+CA476035	5.011	Passamaquoddy Bay and St. Croix River
+CA576002	7.008	Halifax Harbour - Black Point to/a Point Pleasant
+CA376109	9.000	Country Island to/a Barren Island
+CA476009	11.002	Approaches to/Approches au Halifax Harbour
+CA376032	3.001	Traffic Zone into Halifax
 CA376167	8.000	Cape Smoky to St.Paul Island
-CA376187	8.003	Baie des Chaleurs / Chaleur Bay
-CA576267	2.004	Quai / Wharf Petit-Rocher
+CA376303	7.001	Guyon Island to Flint Island
+CA476199	6.002	Mahone Bay
+CA576860	1.001	Deep Cove
+CA22EP1A	1.001	CA22EP1A
+CA22EQ8A	1.001	CA22EQ8A
 CA23MP1B	1.001	CA23MP1B
 CA23MQ8B	1.002	CA23MQ8B
 CA23MRFA	1.001	CA23MRFA
-CA24UP1A	1.002	Overview4800N06800W
-CA24URFB	1.001	CA24URFB
-CA45FRFA	2.000	Transit5000N06000W
-CA45RRRA	2.000	Transit5100N05900W
 
 EastDVD_20240202_V_CEN_C
 ENC	EDTN	Title
@@ -54,13 +62,22 @@ CA373092	6.007	Lake Huron/Lac Huron (Southern Portion/Partie sud)
 CA473297	4.002	Midland to Giants Tomb
 CA373070	7.003	Passage Island to/a Thunder Bay
 
-WestDVD_20240202_V_PAC_A
+EastDVD_20240202_V_ATL_A
 ENC	EDTN	Title
-CA470003	6.008	Haro Strait, Boundary Pass and/et Satellite Channel
-CA570567	7.006	Approaches to/Approches a Sidney
-CA570015	9.006	Fraser River/Fleuve Fraser, Sand Heads to/a Douglas Island AB
-CA370203	6.012	Approaches to/Approches a Juan de Fuca Strait
-CA471195	1.001	CA471195
+CA376167	8.000	Cape Smoky to St.Paul Island
+CA376187	8.003	Baie des Chaleurs / Chaleur Bay
+CA576267	2.004	Quai / Wharf Petit-Rocher
+CA23MP1B	1.001	CA23MP1B
+CA23MQ8B	1.002	CA23MQ8B
+CA23MRFA	1.001	CA23MRFA
+CA24UP1A	1.002	Overview4800N06800W
+CA24URFB	1.001	CA24URFB
+CA45FRFA	2.000	Transit5000N06000W
+CA45RRRA	2.000	Transit5100N05900W
+
+EastDVD_20240202_V_CEN_B
+ENC	EDTN	Title
+CA573008	7.003	Toronto Harbour
 
 WestDVD_20240202_V_PAC_B
 ENC	EDTN	Title
@@ -83,20 +100,3 @@ CA471134	1.001	CA471134
 CA471137	1.001	CA471137
 CA571073	1.002	CA571073
 CA571081	1.003	CA571081
-
-EastDVD_20240202_V_ATL_B
-ENC	EDTN	Title
-CA476035	5.011	Passamaquoddy Bay and St. Croix River
-CA576002	7.008	Halifax Harbour - Black Point to/a Point Pleasant
-CA376109	9.000	Country Island to/a Barren Island
-CA476009	11.002	Approaches to/Approches au Halifax Harbour
-CA376032	3.001	Traffic Zone into Halifax
-CA376167	8.000	Cape Smoky to St.Paul Island
-CA376303	7.001	Guyon Island to Flint Island
-CA476199	6.002	Mahone Bay
-CA576860	1.001	Deep Cove
-CA22EP1A	1.001	CA22EP1A
-CA22EQ8A	1.001	CA22EQ8A
-CA23MP1B	1.001	CA23MP1B
-CA23MQ8B	1.002	CA23MQ8B
-CA23MRFA	1.001	CA23MRFA

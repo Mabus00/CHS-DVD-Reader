@@ -10,6 +10,7 @@ import subprocess
 import time
 from datetime import datetime
 import common_utils as utils
+import csv
 
 ''' common functions used by more than one model / module'''
 def open_file_explorer(parent, input_path):
@@ -80,7 +81,7 @@ def list_folders(folder_path):
     else:
         return []
 
-# Function to get a list of .txt files in a folder
+# Function to get a list of .txt or .csv files in a folder
 def get_files(folder_path, file_extension):
     files = [file for file in os.listdir(folder_path) if file.endswith(f".{file_extension}")]
     return files
@@ -88,7 +89,6 @@ def get_files(folder_path, file_extension):
 # Function to get the DVD name using the disk path; retries introduced because USB connected DVD readers can lag
 def get_dvd_name(input_data_path, max_retries=5, retry_interval=1):
     retry_count = 0
-    
     while retry_count < max_retries:
         try:
             # Attempt to retrieve DVD name
@@ -104,39 +104,63 @@ def get_dvd_name(input_data_path, max_retries=5, retry_interval=1):
             print(f"Error while getting DVD name (Attempt {retry_count + 1}): {e}")
         except Exception as e:
             # Handle other exceptions, if any
-            print(f"An unexpected error occurred (Attempt {retry_count + 1}): {e}")
-        
+            print(f"An unexpected error occurred (Attempt {retry_count + 1}): {e}") 
         # Wait for a specified interval before retrying
         time.sleep(retry_interval)
         retry_count += 1
-    
     # Return None if the maximum number of retries is reached
     print("Maximum number of retries reached. DVD name not found.")
     return None
 
 # Function to create a table with column names from a text file
-def create_table(table_name, txt_file_path, cursor):
-    with open(txt_file_path, 'r', errors='ignore') as txt_file:
-        column_names = txt_file.readline().strip().split('\t')
-        sanitized_column_names = [name.replace(".", "").strip() for name in column_names]
-        quoted_column_names = [f'"{name}"' for name in sanitized_column_names]
-        column_names_sql = ', '.join(quoted_column_names)
-        create_table_sql = f"CREATE TABLE IF NOT EXISTS {table_name} ({column_names_sql})"
-        cursor.execute(create_table_sql)
+def create_table(table_name, file_path, cursor, file_extension):
+    if file_extension == 'txt':
+        with open(file_path, 'r', errors='ignore') as txt_file:
+            column_names = txt_file.readline().strip().split('\t')
+    else:
+        with open(file_path, 'r', newline='', encoding='utf-8') as csv_file:
+            csv_reader = csv.reader(csv_file)
+            # Read the first row to get column names
+            column_names = next(csv_reader)
+    sanitized_column_names = [name.replace(".", "").strip() for name in column_names]
+    quoted_column_names = [f'"{name}"' for name in sanitized_column_names]
+    column_names_sql = ', '.join(quoted_column_names)
+    create_table_sql = f"CREATE TABLE IF NOT EXISTS {table_name} ({column_names_sql})"
+    cursor.execute(create_table_sql)
 
 # Function to insert data into a table from a text file
-def insert_data(table_name, txt_file_path, cursor):
-    with open(txt_file_path, 'r', errors='ignore') as txt_file:
-        next(txt_file)  # Skip the first line (column names)
-        next(txt_file)  # Skip the second line
-        for line in txt_file:
-            line = line.strip()
-            if not line:  # Stop processing if the line is blank
-                break
-            data = line.split('\t')
-            placeholders = ', '.join(['?'] * len(data))
-            insert_sql = f"INSERT INTO {table_name} VALUES ({placeholders})"
-            cursor.execute(insert_sql, data)
+def insert_data(table_name, file_path, cursor, file_extension):
+    try:
+        if file_extension == 'txt':
+            with open(file_path, 'r', errors='ignore') as txt_file:
+                next(txt_file)  # Skip the first line (column names)
+                next(txt_file)  # Skip the second line
+                for line in txt_file:
+                    line = line.strip()
+                    if not line:  # Stop processing if the line is blank
+                        break
+                    data = line.split('\t')
+                    placeholders = ', '.join(['?'] * len(data))
+                    insert_sql = f"INSERT INTO {table_name} VALUES ({placeholders})"
+                    cursor.execute(insert_sql, data)
+        elif file_extension == 'csv':
+            with open(file_path, 'r', newline='', encoding='utf-8') as csv_file:
+                csv_reader = csv.reader(csv_file, delimiter=',')
+                # Skip the first two lines (column names and extra line if needed)
+                next(csv_reader)  
+                for row in csv_reader:
+                    if row:  # Check if the row is not empty
+                        # Process the non-empty row
+                        data = row
+                        placeholders = ', '.join(['?'] * len(data))
+                        insert_sql = f"INSERT INTO {table_name} VALUES ({placeholders})"
+                        cursor.execute(insert_sql, data)
+        else:
+            raise ValueError("Unsupported file extension.")
+    except sqlite3.OperationalError as e:
+        print(f"SQLite operational error: {e}")
+    except Exception as e:
+        print(f"Error inserting data: {e}")
 
 ''' Run Checker common functions '''
 
@@ -199,9 +223,9 @@ def detect_column_changes(column_index, base_table, secondary_table, table_name)
 Raster table columns:
 0 Chart 
 1 File
-2 Edn Date (dd-Mmm-yyyy)
+2 Edition Date (yyyymmdd)
 3 Last NTM (yyyymmdd)
-4 Edn#
+4 Raster Edition
 5 Title
 
 Vector table columns:
@@ -216,7 +240,7 @@ Vector table columns:
 
 def get_column_headers(table_type, selected_cols):
     # return the selected column headers
-    raster_table_columns = ["Chart", "File", "Edn Date", "Last NTM", "Edn#", "Title"]
+    raster_table_columns = ["Chart", "File", "Edition Date", "Last NTM", "Raster Edition", "Title"]
     vector_table_columns = ["Chart", "ENC", "EDTN", "ISDT", "UADT", "Title"]
     # Select appropriate columns based on table_type
     if table_type == "raster":
