@@ -81,9 +81,9 @@ def list_folders(folder_path):
         return []
 
 # Function to get a list of .txt files in a folder
-def get_txt_files(folder_path):
-    txt_files = [file for file in os.listdir(folder_path) if file.endswith('.txt')]
-    return txt_files
+def get_files(folder_path, file_extension):
+    files = [file for file in os.listdir(folder_path) if file.endswith(f".{file_extension}")]
+    return files
 
 # Function to get a list of .csv files in a folder
 def get_csv_files(folder_path):
