@@ -4,23 +4,15 @@ in columns beyond column 1 (chart number).
 
 The message generated will depend on which column the mismatch is found in.
 
-Raster table columns (old):
+Raster table columns (.csv):
 0 Chart 
 1 File
-2 Edn Date (dd-Mmm-yyyy)
+2 Edition Date (yyyymmdd)
 3 Last NTM (yyyymmdd)
-4 Edn#
+4 Raster Edition
 5 Title
 
-Raster table columns (new):
-0 Chart 
-1 Edn Date (dd-Mmm-yyyy)
-2 Last NTM (yyyymmdd)
-3 Cleared To (yyyy-mm-dd)
-4 Edn#
-5 Title
-
-Vector table columns:
+Vector table columns (.txt):
 0 Chart
 1 ENC
 2 EDTN.UPDN = Edition Number.Update Number
@@ -33,10 +25,10 @@ Vector table columns:
 # Import necessary modules
 import common_utils as utils
 
-# Define the RunChecker class
+# Define the FindDataMismatches class
 class FindDataMismatches():
 
-    # Constructor for initializing the CompareEditions object
+    # Constructor for initializing
     def __init__(self, master_database_cursor, current_database_cursor):
 
         # Establish database cursors

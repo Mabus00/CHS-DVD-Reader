@@ -43,7 +43,7 @@ class PDFReport(BaseDocTemplate):
             ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
             ('GRID', (0, 0), (-1, -1), 1, colors.black),
-            ('WORDWRAP', (2, 0), (2, -1), 1),  # Enable word wrap for the third column
+            ('WORDWRAP', (0, 0), (-1, -1), 1),  # Enable word wrap for the third column
         ])
 
     def afterFlowable(self, flowable):
@@ -122,8 +122,15 @@ class PDFReport(BaseDocTemplate):
                 folder_table_data = [column_headers]  # Add the column headers
                 folder_table_data.extend([row.split('\t') for row in folder[2:]])  # Finally, add the data rows
                 table_data.extend(folder_table_data)  # Extend with the data
-                table = Table(table_data, hAlign='LEFT', repeatRows=1)
-                table.setStyle(self.table_style)            
+
+                # Width of letter-sized paper minus margins and paddings
+                available_width = letter[0] - 72  # Subtracting 72 points as a margin
+                # Adjusting column widths as needed
+                # You can adjust the factors below as per your requirement
+                col_widths = [available_width * 0.3, available_width * 0.1, available_width * 0.5]
+
+
+                table = Table(table_data, colWidths=col_widths, hAlign='LEFT', style=self.table_style, repeatRows=1)           
                 self.elements.append(table)
                 self.elements.append(Spacer(1, 12))  # Add space after each table
             else:
