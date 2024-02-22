@@ -111,10 +111,10 @@ class PDFReport(BaseDocTemplate):
             table_data = []
             # Table title (Folder Name)
             folder_title = folder[0]
-            #self.doHeading(folder_title, self.toc.levelStyles[1], message)
+            self.doHeading(folder_title, self.toc.levelStyles[1], message)
             self.elements.append(Spacer(1, 12))  # Add space after each table
             # Commence construction of table for the folder
-            #table_data = [[folder_title]]  # Include folder_title in the merged top row
+            table_data = [[folder_title]]  # Include folder_title in the merged top row
             if len(folder) > 1 and '\t' in folder[1]: # if there's more rows and the rows have columns; as opposed to single row messages (if more rows)
                 # Table column headers
                 column_headers = folder[1].split('\t')
