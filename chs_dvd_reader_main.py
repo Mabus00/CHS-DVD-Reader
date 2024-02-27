@@ -172,8 +172,8 @@ class CHSDVDReaderApp(QMainWindow):
                 if tables_missing_in_current or tables_missing_in_master:
                     utils.show_warning_popup("Possible errors were noted. See the Misc. Results tab.")
                     error_messages = {
-                        "missing_current": "Folders Removed",
-                        "missing_master": "Folders Added",
+                        "missing_current": "Folders Removed:",
+                        "missing_master": "Folders Added:",
                     }
                     for error_type, table_list in {"missing_current": tables_missing_in_current, "missing_master": tables_missing_in_master}.items():
                         if table_list:
