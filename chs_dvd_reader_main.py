@@ -42,11 +42,11 @@ class CHSDVDReaderApp(QMainWindow):
 
         # create an ordered list of txt files so I can prioritize selection for the pdf report
         self.report_txt_files = [
-            "misc_findings_type1.txt",
-            "misc_findings_type2.txt",
-            "new_editions.txt",
-            "new_charts.txt",
-            "charts_withdrawn.txt"
+            "misc_findings_type1.csv",
+            "misc_findings_type2.csv",
+            "new_editions.csv",
+            "new_charts.csv",
+            "charts_withdrawn.csv"
         ]
 
         # set database connections
