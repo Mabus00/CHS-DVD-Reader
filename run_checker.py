@@ -90,10 +90,7 @@ class RunChecker():
         # compare the yyyymmdd prefix from THE FIRST TABLE of the EastDVD in each database and ensure the current database is at least a month older than the master database
         # only using EastDVD because the compare_tables_east_west_dates check comfirmed they're the same
         month_result = False
-        # Compare the EastDVD tables separately for both master and current databases
-        master_date = datetime.strptime(master_dates.get('EastDVD'), '%Y%m%d')
-        current_date = datetime.strptime(current_dates.get('EastDVD'), '%Y%m%d')
-        if current_date > master_date:
+        if current_dates['EastDVD'] > master_dates['EastDVD'] :
             self.run_checker_textbox.emit("\nCurrent East & West DVD dates are a month or more later than the Master Database dates.")
             month_result = True
         else:

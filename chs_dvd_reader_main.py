@@ -183,7 +183,7 @@ class CHSDVDReaderApp(QMainWindow):
 
                 # PART 2 OF 2 - compare master and current databases and report charts withdrawn and new charts
                 # Remove tables_missing_from_current from tables_master so table content matches; no need to check tables_missing_in_master because these are newly added
-                tables_master_temp = list(set(tables_master_temp) - set(tables_missing_in_current))
+                tables_master_temp = [table for table in tables_master_temp if table not in tables_missing_in_current]
                 # instantiate CompareChartNumbers
                 self.compare_chart_numbers = CompareChartNumbers(self.master_database_cursor, self.current_database_cursor)
                 charts_withdrawn, new_charts = self.compare_chart_numbers.compare_chart_numbers(tables_master_temp, master_yyyymmdd, current_yyyymmdd)
