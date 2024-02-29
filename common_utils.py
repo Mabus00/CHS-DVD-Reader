@@ -252,39 +252,15 @@ def get_column_headers(table_type, selected_cols):
         return []  # Return an empty list for an invalid table_type
     return selected_columns
 
-def generate_reports(results, current_yyyymmdd, target_textbox, message, file_to_open = 'misc_findings_type2.txt'):
+def generate_reports(results, current_yyyymmdd, target_textbox, message, file_to_open = 'misc_findings_type2.csv'):
     # Report for all tabs / pdf reports. Note there are small formatting adjustments (e.g., \t\t and \t\t\t) to accomodate tab vs pdf report differences
     # Doing this seemed to be the easiest way even though I don't like how it looks. Other route would have been to create tables in pyQt or use HTML formatting
     # Type 1 is for detailed results (hence tuple) whereas Type 2 is simple results (non-tuple) (default)
     formatted_data = ""
-
-
-
     # Establish the type of data; use tuple as delineator
     # this first part formats for display in gui tabs
     for result in results:
-        if len(result) == 1:
-            # type 2 report uses append method because I want to track all type 2 reports in one document; there could be more than one call to this method
-            write_method = 'a'
-            if formatted_data == "":
-                    formatted_data += message
-            # add folder name to combined_results
-            if current_yyyymmdd is not None:
-                folder_name = utils.insert_text(result[0], current_yyyymmdd, pos_to_insert=1)
-            formatted_data += "\n" +  folder_name
-            formatted_data += "\n" 
-
-            # Define the file path where you want to save the CSV file
-            csv_file_path = 'misc_findings_type2.csv'
-
-            # Write data to the CSV file
-            with open(csv_file_path, 'w', newline='') as csv_file:
-                writer = csv.writer(csv_file)
-                # Write each table name as a separate row in the CSV file
-                writer.writerow([message])
-                writer.writerows(results)
-                
-        else:
+        if isinstance(result, tuple):
             write_method = 'w'
             if formatted_data == "":
                 # add message which acts as section header
@@ -319,16 +295,32 @@ def generate_reports(results, current_yyyymmdd, target_textbox, message, file_to
                 else:
                     temp = f"{data[col_indices[0]].strip()}\t{data[col_indices[1]].strip()}\t{data[col_indices[2]]}"
                 formatted_data += "\n" + temp
-            formatted_data += "\n"    
-           
+            formatted_data += "\n"
+        else:
+           # type 2 report uses append method because I want to track all type 2 reports in one document; there could be more than one call to this method
+            write_method = 'a'
+            if formatted_data == "":
+                    formatted_data += message
+            # add folder name to combined_results
+            if current_yyyymmdd is not None:
+                folder_name = utils.insert_text(result, current_yyyymmdd, pos_to_insert=1)
+            formatted_data += "\n" +  folder_name
+            formatted_data += "\n" 
+                
     # sending formatted_data to target_textbox.emit()
     target_textbox.emit(formatted_data)
+
     # Writting to the selected file; note by this point the formatted_data is complete for the type of report being generated
     # this second part adds a bit more formatting to the column headers in preparation for pdf report generation
-    with open(file_to_open, write_method, encoding='utf-8') as file:
-        formatted_data = formatted_data.replace('\t\t', '\t')
-        file.write(f"{formatted_data}")
-    
+    # Write data to the CSV file
+    with open(file_to_open, write_method, newline='') as csv_file:
+        writer = csv.writer(csv_file)
+        # Write each table name as a separate row in the CSV file
+        writer.writerow([message])
+        # Write each entry of the results list on a separate line
+        for entry in results:
+            writer.writerow(entry)
+
 def convert_to_yyyymmdd(date_str):
     try:
         date_object = datetime.strptime(date_str, "%d-%b-%Y")
