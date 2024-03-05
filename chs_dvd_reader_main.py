@@ -41,7 +41,7 @@ class CHSDVDReaderApp(QMainWindow):
         self.text_browsers = [obj for name, obj in inspect.getmembers(self.ui) if isinstance(obj, QTextEdit)]
 
         # create an ordered list of txt files so I can prioritize selection for the pdf report
-        self.report_txt_files = [
+        self.report_csv_files = [
             "misc_findings_type1.csv",
             "misc_findings_type2.csv",
             "new_editions.csv",
@@ -130,14 +130,8 @@ class CHSDVDReaderApp(QMainWindow):
     def run_checker(self):
         # clear all text boxes before running the checker
         utils.clear_all_text_boxes(self.text_browsers)
-
-        # delete existing .txt files so they can be updated; these files are used to fill tabs and create the pdf report
-        # first get a list of all files in the current directory
-        files = os.listdir()
-        # Loop through the files and delete those with a .txt extension
-        for file in files:
-            if file.endswith('.txt'):
-                os.remove(file)
+        # delete existing csv files so they can be updated; these files are used to fill tabs and create the pdf report
+        utils.delete_existing_files(self.report_csv_files)
         
         # instantiate run_checker
         self.run_checker = RunChecker(self.current_database_name, self.run_checker_signals.run_checker_textbox, self.ui.checker_data_input_path.text())

@@ -319,7 +319,7 @@ def generate_reports(results, current_yyyymmdd, target_textbox, message, file_to
         writer.writerow([message])
         # Write each entry of the results list on a separate line
         for entry in results:
-            writer.writerow(entry)
+            writer.writerow([entry])
 
 def convert_to_yyyymmdd(date_str):
     try:
@@ -352,3 +352,10 @@ def merge_files(file1_path, file2_path):
             file1.write("\n" + content2)
         os.remove(file2_path)
     return file1
+
+def delete_existing_files(files):
+    for file_name in files:
+        if os.path.exists(file_name):
+            os.remove(file_name)
+            print(f"Deleted existing file: {file_name}")
+
