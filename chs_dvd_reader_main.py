@@ -185,13 +185,13 @@ class CHSDVDReaderApp(QMainWindow):
                 if charts_withdrawn:
                     message = "Withdrawn Charts"
                     # type of report is type 1; tuple therefore provide a file_to_open name for report purposes
-                    file_to_open = 'charts_withdrawn.txt'
+                    file_to_open = 'charts_withdrawn.csv'
                     utils.generate_reports(charts_withdrawn, None, self.charts_withdrawn_signals.chart_withdrawn_textbox, message, file_to_open)
                 # Report new charts on new charts tab
                 if new_charts:
                     message = "New Charts"
                     # type of report is type 1; tuple therefore provide a file_to_open name for report purposes
-                    file_to_open = 'new_charts.txt'
+                    file_to_open = 'new_charts.csv'
                     utils.generate_reports(new_charts, None, self.new_charts_signals.new_charts_textbox, message, file_to_open)
 
                 # PART 3 OF 3 - find data mismatches
@@ -202,13 +202,13 @@ class CHSDVDReaderApp(QMainWindow):
                 # Report missing charts on missing charts tab; can't use same process as above because of textbox identification
                 if new_editions:
                     message = "New Editions"
-                    file_to_open = 'new_editions.txt'
+                    file_to_open = 'new_editions.csv'
                     utils.generate_reports(new_editions, current_yyyymmdd, self.new_editions_signals.new_editions_textbox, message, file_to_open)
                 # Report new charts on new charts tab
                 if misc_findings:
                     message = "Uncategorized Findings"
                     # type of report is type 1; tuple therefore provide a file_to_open name for report purposes
-                    file_to_open = 'misc_findings_type1.txt'
+                    file_to_open = 'misc_findings_type1.csv'
                     utils.generate_reports(misc_findings, current_yyyymmdd, self.errors_signals.errors_textbox, message, file_to_open)
                     utils.show_warning_popup("Possible errors were noted. See the Misc. Results tab.")
                 # Print a message to indicate that the checker has run

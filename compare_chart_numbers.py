@@ -33,7 +33,7 @@ class CompareChartNumbers():
             temp_master_table_name = utils.insert_text(table_name, master_yyyymmdd, pos_to_insert=1)
             temp_current_table_name = utils.insert_text(table_name, current_yyyymmdd, pos_to_insert=1)
             
-            # Table exists in both databases; compare content
+            # table_name exists in both databases; compare content
             self.master_database_cursor.execute(f"SELECT * FROM {temp_master_table_name}")
             master_data = self.master_database_cursor.fetchall()
 

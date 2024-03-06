@@ -198,28 +198,33 @@ def get_first_table_yyyymmdd(prefix, database_conn):
 
 ''' compare_database_tables common functions '''
 def detect_column_changes(column_index, base_table, secondary_table, table_name):
-        # using the column_index to identify the comparator, detect changes in cell content (i.e., missing cell content)
-        # base_table = primary table against which the secondary_table is being compared
-        # reset encountered column content
-        encountered_column_content = set()
-        # Create a set of cell content from secondary_table for faster lookup
-        column_content = set(row[column_index] for row in secondary_table)
-        # Initialize a list to store the rows where missing cell content has been found
-        found_rows = []
-        # Iterate through rows of master_data
-        for i, row in enumerate(base_table):
-            # get base_table cell content for the current row
-            cell_content = row[column_index].strip()
-            # Check if the cell content from base_table is in secondary_table
-            if (cell_content not in column_content) and (cell_content not in encountered_column_content):
-                # Append the row to the list
-                found_rows.append(row)
-            # whether or not above condition fails add it to encountered_column_content so we don't keep checking repeating cell content
-            if cell_content not in encountered_column_content:
-                # Add the cell content to the encountered_column_content set
-                encountered_column_content.add(cell_content)
-        return (table_name, found_rows) if found_rows else None
-
+    # using the column_index to identify the comparator, detect changes in cell content (i.e., missing cell content)
+    # base_table = primary table against which the secondary_table is being compared
+    # reset encountered column content
+    encountered_column_content = []
+    
+    # Create a list of tuples containing (row_index, cell_content) from secondary_table for comparison
+    column_content = [(i, row[column_index].strip()) for i, row in enumerate(secondary_table)]
+    
+    # Initialize a list to store the rows where missing cell content has been found
+    found_rows = []
+    
+    # Iterate through rows of base_table
+    for i, row in enumerate(base_table):
+        # get base_table cell content for the current row
+        cell_content = row[column_index].strip()
+        
+        # Check if the cell content from base_table is not in secondary_table
+        if (cell_content not in [content[1] for content in column_content]) and (cell_content not in [content[1] for content in encountered_column_content]):
+            # Append the row to the list
+            found_rows.append(row)
+        
+        # whether or not above condition fails add it to encountered_column_content so we don't keep checking repeating cell content
+        if cell_content not in [content[1] for content in encountered_column_content]:
+            # Add the cell content to the encountered_column_content list
+            encountered_column_content.append((i, cell_content))
+    
+    return (table_name, found_rows) if found_rows else None
 ''' 
 Raster table columns:
 0 Chart 
@@ -289,7 +294,7 @@ def generate_reports(results, current_yyyymmdd, target_textbox, message, file_to
             formatted_data += "\n" + header_line
             # format data
             for data in details:
-                if file_to_open != "new_charts.txt" and "_V_" in folder_name:
+                if file_to_open != "new_charts.csv" and "_V_" in folder_name:
                     # another instance where an extra tab is needed because of ENC label character difference
                     temp = f"{data[col_indices[0]].strip()}\t\t{data[col_indices[1]].strip()}\t{data[col_indices[2]]}"
                 else:
@@ -310,7 +315,7 @@ def generate_reports(results, current_yyyymmdd, target_textbox, message, file_to
     # sending formatted_data to target_textbox.emit()
     target_textbox.emit(formatted_data)
 
-    # Writting to the selected file; note by this point the formatted_data is complete for the type of report being generated
+    # Second part; writting to the selected file; note by this point the formatted_data is complete for the type of report being generated
     # this second part adds a bit more formatting to the column headers in preparation for pdf report generation
     # Write data to the CSV file
     with open(file_to_open, write_method, newline='') as csv_file:
