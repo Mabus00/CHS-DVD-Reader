@@ -310,7 +310,6 @@ def generate_reports(results, current_yyyymmdd, target_textbox, message, file_to
             if current_yyyymmdd is not None:
                 folder_name = utils.insert_text(result, current_yyyymmdd, pos_to_insert=1)
             formatted_data += "\n" +  folder_name
-            formatted_data += "\n" 
                 
     # sending formatted_data to target_textbox.emit()
     target_textbox.emit(formatted_data)
@@ -318,13 +317,13 @@ def generate_reports(results, current_yyyymmdd, target_textbox, message, file_to
     # Second part; writting to the selected file; note by this point the formatted_data is complete for the type of report being generated
     # this second part adds a bit more formatting to the column headers in preparation for pdf report generation
     # Write data to the CSV file
-    with open(file_to_open, write_method, newline='') as csv_file:
-        writer = csv.writer(csv_file)
-        # Write each table name as a separate row in the CSV file
-        writer.writerow([message])
-        # Write each entry of the results list on a separate line
-        for entry in results:
-            writer.writerow([entry])
+    # with open(file_to_open, write_method, newline='') as csv_file:
+    #     writer = csv.writer(csv_file)
+    #     # Write each table name as a separate row in the CSV file
+    #     writer.writerow([message])
+    #     # Write each entry of the results list on a separate line
+    #     for entry in results:
+    #         writer.writerow([entry])
 
 def convert_to_yyyymmdd(date_str):
     try:
@@ -364,3 +363,32 @@ def delete_existing_files(files):
             os.remove(file_name)
             print(f"Deleted existing file: {file_name}")
 
+def save_data_to_csv(data, message, csv_file_path):
+    """
+    Save the given data to a CSV file.
+
+    Args:
+    - data (list): The data to be saved.
+    - message (str): The message to be written at the beginning of the file.
+    - csv_file_path (str): The file path of the CSV file to be created.
+    """
+    # Open the CSV file for writing
+    with open(csv_file_path, 'w', newline='') as csv_file:
+        writer = csv.writer(csv_file)
+        
+        # Write the message at the beginning of the file
+        writer.writerow([message])
+
+        # Write each entry of the data list to the CSV file
+        for entry in data:
+            # Check if the entry is a tuple (data structure) or a single value
+            if isinstance(entry, tuple):
+                text, data_list = entry
+                # Write the text as a header
+                if text:
+                    writer.writerow([text])
+                # Write each row in the data list as a separate record
+                for row in data_list:
+                    writer.writerow(row)
+            else:
+                writer.writerow([entry])  # Write a single value to the CSV file
