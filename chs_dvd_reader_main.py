@@ -158,31 +158,29 @@ class CHSDVDReaderApp(QMainWindow):
                 # (i.e., in master but not in current) folders on the appropriate tabs.
                 # run this first so you can ignore missing tables in PART 2 and 3
                 self.compare_databases = CompareDatabases(self.master_database_cursor, self.current_database_cursor)
-                # tables_missing_in_current represent tables that have been removed; tables_missing_in_master represent tables that have been added in current
+                # temp_tables_missing_in_current represent tables that have been removed; tables_missing_in_master represent tables that have been added in current
                 # tables_master_temp and tables_current_temp have yyyymmdd removed; do this once and share with other modules
                 # master_yyyymmdd and current_yyyymmdd are the extracted yyyymmdd for each
-                tables_master_temp, tables_missing_in_master, tables_missing_in_current, master_yyyymmdd, current_yyyymmdd = self.compare_databases.compare_databases()
+                tables_master_temp, temp_tables_missing_in_master, tables_current_temp, temp_tables_missing_in_current, master_yyyymmdd, current_yyyymmdd = self.compare_databases.compare_databases()
                 # report withdrawn or new folders in current_database
-                if tables_missing_in_current or tables_missing_in_master:
+                if temp_tables_missing_in_current or temp_tables_missing_in_master:
                     utils.show_warning_popup("Possible errors were noted. See the Misc. Results tab.")
                     error_messages = {
                         "missing_current": "Folders Removed:",
                         "missing_master": "Folders Added:",
                     }
-                    for error_type, table_list in {"missing_current": tables_missing_in_current, "missing_master": tables_missing_in_master}.items():
+                    for error_type, table_list in {"missing_current": temp_tables_missing_in_current, "missing_master": temp_tables_missing_in_master}.items():
                         if table_list:
                             message = error_messages[error_type]
-                            # type of report is type 2; non-tuple therefore use default file_to_open name for pdf report purposes (default set in method)
-                            utils.generate_reports(table_list, current_yyyymmdd, self.errors_signals.errors_textbox, message)
-
                             csv_file_path = 'misc_findings_type2.csv'
-
                             # Call the method to save the data structure to the CSV file
                             utils.save_data_to_csv(table_list, message, csv_file_path)
+                            # type of report is type 2; non-tuple
+                            utils.generate_reports(table_list, current_yyyymmdd, self.errors_signals.errors_textbox, message)
 
                 # PART 2 OF 2 - compare master and current databases and report charts withdrawn and new charts
                 # Remove tables_missing_from_current from tables_master so table content matches; no need to check tables_missing_in_master because these are newly added
-                tables_master_temp = [table for table in tables_master_temp if table not in tables_missing_in_current]
+                tables_master_temp = [table for table in tables_master_temp if table not in tables_current_temp]
                 # instantiate CompareChartNumbers
                 self.compare_chart_numbers = CompareChartNumbers(self.master_database_cursor, self.current_database_cursor)
                 charts_withdrawn, new_charts = self.compare_chart_numbers.compare_chart_numbers(tables_master_temp, master_yyyymmdd, current_yyyymmdd)
@@ -191,18 +189,20 @@ class CHSDVDReaderApp(QMainWindow):
                     message = "Withdrawn Charts"
                     # type of report is type 1; tuple therefore provide a csv_file_path name for report purposes
                     csv_file_path = 'charts_withdrawn.csv'
-                    utils.generate_reports(charts_withdrawn, None, self.charts_withdrawn_signals.chart_withdrawn_textbox, message, csv_file_path)
                     # Call the method to save the data structure to the CSV file
                     utils.save_data_to_csv(charts_withdrawn, message, csv_file_path)
-                # Report new charts on new charts tab
+                    # type of report is type 1; list of tuples
+                    utils.generate_reports(charts_withdrawn, None, self.charts_withdrawn_signals.chart_withdrawn_textbox, message, csv_file_path)
+               # Report new charts on new charts tab
                 if new_charts:
                     message = "New Charts"
                     # type of report is type 1; tuple therefore provide a csv_file_path name for report purposes
                     csv_file_path = 'new_charts.csv'
-                    utils.generate_reports(new_charts, None, self.new_charts_signals.new_charts_textbox, message, csv_file_path)
                     # Call the method to save the data structure to the CSV file
                     utils.save_data_to_csv(new_charts, message, csv_file_path)
-                # PART 3 OF 3 - find data mismatches
+                    # type of report is type 1; list of tuples
+                    utils.generate_reports(new_charts, None, self.new_charts_signals.new_charts_textbox, message, csv_file_path)
+               # PART 3 OF 3 - find data mismatches
                 # instantiate FindDataMismatches
                 self.find_data_mismatches = FindDataMismatches(self.master_database_cursor, self.current_database_cursor)
                 new_editions, misc_findings = self.find_data_mismatches.find_mismatches(tables_master_temp, master_yyyymmdd, current_yyyymmdd)
@@ -211,17 +211,19 @@ class CHSDVDReaderApp(QMainWindow):
                 if new_editions:
                     message = "New Editions"
                     csv_file_path = 'new_editions.csv'
-                    utils.generate_reports(new_editions, current_yyyymmdd, self.new_editions_signals.new_editions_textbox, message, csv_file_path)
                     # Call the method to save the data structure to the CSV file
                     utils.save_data_to_csv(new_editions, message, csv_file_path)
+                    # type of report is type 1; list of tuples
+                    utils.generate_reports(new_editions, current_yyyymmdd, self.new_editions_signals.new_editions_textbox, message, csv_file_path)
                 # Report new charts on new charts tab
                 if misc_findings:
                     message = "Uncategorized Findings"
                     # type of report is type 1; tuple therefore provide a csv_file_path name for report purposes
                     csv_file_path = 'misc_findings_type1.csv'
-                    utils.generate_reports(misc_findings, current_yyyymmdd, self.errors_signals.errors_textbox, message, csv_file_path)
                     # Call the method to save the data structure to the CSV file
                     utils.save_data_to_csv(misc_findings, message, csv_file_path)
+                    # type of report is type 1; list of tuples
+                    utils.generate_reports(misc_findings, current_yyyymmdd, self.errors_signals.errors_textbox, message, csv_file_path)
                     utils.show_warning_popup("Possible errors were noted. See the Misc. Results tab.")
                 # Print a message to indicate that the checker has run
                 self.run_checker_signals.run_checker_textbox.emit('\nThe Checker ran succesfully!')

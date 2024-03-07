@@ -103,9 +103,9 @@ class FindDataMismatches():
                     #     misc_finding.append(matching_current_row)
 
             if found_new_edition:
-                new_editions.append((table_name, found_new_edition))
+                new_editions.append((temp_current_table_name, found_new_edition))
             if misc_finding:
-                misc_findings.append((table_name, misc_finding))
+                misc_findings.append((temp_master_table_name, misc_finding))
 
         return new_editions, misc_findings
 

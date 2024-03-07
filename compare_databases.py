@@ -20,6 +20,10 @@ class CompareDatabases():
         self.current_database_cursor = current_database_cursor
 
     def compare_databases(self):
+
+        temp_tables_missing_in_master = []
+        temp_tables_missing_in_current = []
+
         # Get the list of table names for both databases
         self.master_database_cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
         tables_master = [row[0] for row in self.master_database_cursor.fetchall()]
@@ -38,8 +42,16 @@ class CompareDatabases():
         # Find tables in "master" that are not in "current" and vice versa
         tables_missing_in_current = [table for table in tables_master_temp if table not in tables_current_temp]
         tables_missing_in_master = [table for table in tables_current_temp if table not in tables_master_temp]
+            
+        # add the yyyymmdd to match complete table name
+        for i in range(len(tables_missing_in_master)):
+            temp_tables_missing_in_master.append(utils.insert_text(tables_missing_in_master[i], master_yyyymmdd, pos_to_insert=1))
+ 
+        # add the yyyymmdd to match complete table name
+        for i in range(len(tables_missing_in_current)):
+            temp_tables_missing_in_current.append(utils.insert_text(tables_missing_in_current[i], current_yyyymmdd, pos_to_insert=1))
 
-        return tables_master_temp, tables_missing_in_master, tables_missing_in_current, master_yyyymmdd, current_yyyymmdd
+        return tables_master_temp, temp_tables_missing_in_master, tables_missing_in_current, temp_tables_missing_in_current, master_yyyymmdd, current_yyyymmdd
 
 
 # Main execution block (can be used for testing)
