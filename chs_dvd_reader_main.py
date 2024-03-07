@@ -176,7 +176,7 @@ class CHSDVDReaderApp(QMainWindow):
                             # Call the method to save the data structure to the CSV file
                             utils.save_data_to_csv(table_list, message, csv_file_path)
                             # type of report is type 2; non-tuple
-                            utils.generate_reports(table_list, current_yyyymmdd, self.errors_signals.errors_textbox, message)
+                            utils.generate_reports(csv_file_path, self.errors_signals.errors_textbox, message)
 
                 # PART 2 OF 2 - compare master and current databases and report charts withdrawn and new charts
                 # Remove tables_missing_from_current from tables_master so table content matches; no need to check tables_missing_in_master because these are newly added
@@ -192,7 +192,7 @@ class CHSDVDReaderApp(QMainWindow):
                     # Call the method to save the data structure to the CSV file
                     utils.save_data_to_csv(charts_withdrawn, message, csv_file_path)
                     # type of report is type 1; list of tuples
-                    utils.generate_reports(charts_withdrawn, None, self.charts_withdrawn_signals.chart_withdrawn_textbox, message, csv_file_path)
+                    utils.generate_reports(csv_file_path, self.charts_withdrawn_signals.chart_withdrawn_textbox, message, csv_file_path)
                # Report new charts on new charts tab
                 if new_charts:
                     message = "New Charts"
@@ -201,7 +201,7 @@ class CHSDVDReaderApp(QMainWindow):
                     # Call the method to save the data structure to the CSV file
                     utils.save_data_to_csv(new_charts, message, csv_file_path)
                     # type of report is type 1; list of tuples
-                    utils.generate_reports(new_charts, None, self.new_charts_signals.new_charts_textbox, message, csv_file_path)
+                    utils.generate_reports(csv_file_path, self.new_charts_signals.new_charts_textbox, message, csv_file_path)
                # PART 3 OF 3 - find data mismatches
                 # instantiate FindDataMismatches
                 self.find_data_mismatches = FindDataMismatches(self.master_database_cursor, self.current_database_cursor)
@@ -214,7 +214,7 @@ class CHSDVDReaderApp(QMainWindow):
                     # Call the method to save the data structure to the CSV file
                     utils.save_data_to_csv(new_editions, message, csv_file_path)
                     # type of report is type 1; list of tuples
-                    utils.generate_reports(new_editions, current_yyyymmdd, self.new_editions_signals.new_editions_textbox, message, csv_file_path)
+                    utils.generate_reports(csv_file_path, self.new_editions_signals.new_editions_textbox, message, csv_file_path)
                 # Report new charts on new charts tab
                 if misc_findings:
                     message = "Uncategorized Findings"
@@ -223,7 +223,7 @@ class CHSDVDReaderApp(QMainWindow):
                     # Call the method to save the data structure to the CSV file
                     utils.save_data_to_csv(misc_findings, message, csv_file_path)
                     # type of report is type 1; list of tuples
-                    utils.generate_reports(misc_findings, current_yyyymmdd, self.errors_signals.errors_textbox, message, csv_file_path)
+                    utils.generate_reports(csv_file_path, self.errors_signals.errors_textbox, message, csv_file_path)
                     utils.show_warning_popup("Possible errors were noted. See the Misc. Results tab.")
                 # Print a message to indicate that the checker has run
                 self.run_checker_signals.run_checker_textbox.emit('\nThe Checker ran succesfully!')
