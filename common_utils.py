@@ -257,78 +257,49 @@ def get_column_headers(table_type, selected_cols):
         return []  # Return an empty list for an invalid table_type
     return selected_columns
 
-def modify_csv_format_OLD(results, current_yyyymmdd, target_textbox, message, file_to_open = 'misc_findings_type2.csv'):
-    # Report for all tabs / pdf reports. Note there are small formatting adjustments (e.g., \t\t and \t\t\t) to accomodate tab vs pdf report differences
-    # Doing this seemed to be the easiest way even though I don't like how it looks. Other route would have been to create tables in pyQt or use HTML formatting
-    # Type 1 is for detailed results (hence tuple) whereas Type 2 is simple results (non-tuple) (default)
-    formatted_data = ""
-    # Establish the type of data; use tuple as delineator
-    # this first part formats for display in gui tabs
-    for result in results:
-        if isinstance(result, tuple):
-            write_method = 'w'
-            if formatted_data == "":
-                # add message which acts as section header
-                formatted_data += message
-            folder_name, details = result
-            # Add date to folder name if needed
-            if current_yyyymmdd is not None:
-                folder_name = utils.insert_text(folder_name, current_yyyymmdd, pos_to_insert=1)
-            # add folder_name which acts as table header
-            formatted_data += "\n" + folder_name
-            # get column headers; not all are used
-            if "RM" in folder_name:
-                # only show these columns
-                col_indices = [0,4,5]
-                table_type = "raster"
-                # set header row column tabs
-                col_headers = get_column_headers(table_type, col_indices)
-                header_line  = f"{col_headers[0].strip()}\t{col_headers[1].strip()}\t{col_headers[2]}"
-            else:
-                col_indices = [1,2,5]
-                table_type = "vector"
-                # set header row column tabs; needs an extra tab to line things up
-                col_headers = get_column_headers(table_type, col_indices)
-                header_line  = f"{col_headers[0].strip()}\t\t{col_headers[1].strip()}\t{col_headers[2]}"
-            # add column headers
-            formatted_data += "\n" + header_line
-            # format data
-            for data in details:
-                if file_to_open != "new_charts.csv" and "_V_" in folder_name:
-                    # another instance where an extra tab is needed because of ENC label character difference
-                    temp = f"{data[col_indices[0]].strip()}\t\t{data[col_indices[1]].strip()}\t{data[col_indices[2]]}"
-                else:
-                    temp = f"{data[col_indices[0]].strip()}\t{data[col_indices[1]].strip()}\t{data[col_indices[2]]}"
-                formatted_data += "\n" + temp
-            formatted_data += "\n"
-        else:
-           # type 2 report uses append method because I want to track all type 2 reports in one document; there could be more than one call to this method
-            write_method = 'a'
-            if formatted_data == "":
-                    formatted_data += message
-            # add folder name to combined_results
-            if current_yyyymmdd is not None:
-                folder_name = utils.insert_text(result, current_yyyymmdd, pos_to_insert=1)
-            formatted_data += "\n" +  folder_name
-                
-    # sending formatted_data to target_textbox.emit()
-    target_textbox.emit(formatted_data)
+def prep_csv_for_gui(csv_file_path):
+    # extracts .csv file data and keeps only those fields needed for gui tab display
+    # these files will also be used to create .pdf report
+    # Extract the file name and extension from the input file path
+    file_name, file_extension = os.path.splitext(csv_file_path)
+    # Construct the output file path by appending "_mod" before the file extension
+    output_csv_file = file_name + "_mod" + file_extension
 
-def modify_csv_format(csv_file_path, target_textbox):
-    # Open the CSV file for reading
-    with open(csv_file_path, 'r', newline='') as csv_file:
-        # Create a CSV reader object
-        csv_reader = csv.reader(csv_file)
-
-        # Convert CSV data to a string
-        csv_data_str = ''
+    # Open the input CSV file for reading and the output CSV file for writing
+    with open(csv_file_path, 'r', newline='') as input_file, open(output_csv_file, 'w', newline='') as output_file:
+        # Create a CSV reader object for the input file
+        csv_reader = csv.reader(input_file)
+        # Create a CSV writer object for the output file
+        csv_writer = csv.writer(output_file)
+        # Iterate over each row in the CSV file
         for row in csv_reader:
-            csv_data_str += ', '.join(row) + '\n'
-        
-        
+            if "misc" not in csv_file_path:
+                # Check the number of columns in the row
+                num_columns = len(row)
+                # Keep rows with only one column
+                if num_columns == 1:
+                    if "RM" in csv_file_path:
+                        # only show these columns
+                        col_indices = [0,4,5]
+                        table_type = "raster"
+                        # set header row column tabs
+                        col_headers = get_column_headers(table_type, col_indices)
+                    else:
+                        col_indices = [1,2,5]
+                        table_type = "vector"
+                        # set header row column tabs; needs an extra tab to line things up
+                        col_headers = get_column_headers(table_type, col_indices)
+                    csv_writer.writerow(row)
+                    csv_writer.writerow(col_headers)
+                # Keep columns 0, 4, and 5 for rows with more than one column
+                else:
+                    new_row = [row[col_indices[0]], row[col_indices[1]], row[col_indices[2]]]
+                    csv_writer.writerow(new_row)
+            else:
+                csv_writer.writerow(row)
         
         # sending formatted_data to target_textbox.emit()
-        target_textbox.emit(csv_data_str)
+        #target_textbox.emit(csv_data_str)
 
 def convert_to_yyyymmdd(date_str):
     try:
@@ -380,7 +351,7 @@ def save_data_to_csv(data, message, csv_file_path):
     # Open the CSV file for writing
     with open(csv_file_path, 'w', newline='') as csv_file:
         writer = csv.writer(csv_file)
-        # Write the message at the beginning of the file
+        # Write the message at the beginning of the file (only for misc report type 2)
         if message:
             writer.writerow([message])
         # Write each entry of the data list to the CSV file
@@ -396,3 +367,15 @@ def save_data_to_csv(data, message, csv_file_path):
                     writer.writerow(row)
             else:
                 writer.writerow([entry])  # Write a single value to the CSV file
+
+def write_csv_mods_to_gui(csv_mod_file_path, target_textbox):
+    # Open the CSV file for writing
+    with open(csv_mod_file_path, 'r', newline='') as csv_file:
+        # Create a CSV reader object for the input file
+        csv_reader = csv.reader(csv_file)
+        # Convert CSV data to a string
+        csv_data_str = ''
+        for row in csv_reader:
+            csv_data_str += ', '.join(row) + '\n'
+        # sending formatted_data to target_textbox.emit()
+        target_textbox.emit(csv_data_str)

@@ -48,6 +48,14 @@ class CHSDVDReaderApp(QMainWindow):
             "new_charts.csv",
             "charts_withdrawn.csv"
         ]
+        
+        self.csv_mod_files = [
+            "misc_findings_type1_mod.csv",
+            "misc_findings_type2_mod.csv",
+            "new_editions_mod.csv",
+            "new_charts_mod.csv",
+            "charts_withdrawn_mod.csv"
+        ]
 
         # set database connections
         self.master_database_conn = ""
@@ -132,7 +140,7 @@ class CHSDVDReaderApp(QMainWindow):
         utils.clear_all_text_boxes(self.text_browsers)
         # delete existing csv files so they can be updated; these files are used to fill tabs and create the pdf report
         utils.delete_existing_files(self.report_csv_files)
-        
+        utils.delete_existing_files(self.csv_mod_files)
         # instantiate run_checker
         self.run_checker = RunChecker(self.current_database_name, self.run_checker_signals.run_checker_textbox, self.ui.checker_data_input_path.text())
         
@@ -173,10 +181,12 @@ class CHSDVDReaderApp(QMainWindow):
                         if table_list:
                             message = error_messages[error_type]
                             csv_file_path = 'misc_findings_type2.csv'
+                            csv_mod_file_path = 'misc_findings_type2_mod.csv'
                             # Call the method to save the data structure to the CSV file
                             utils.save_data_to_csv(table_list, message, csv_file_path)
                             # type of report is type 2; non-tuple
-                            utils.modify_csv_format(csv_file_path, self.errors_signals.errors_textbox)
+                            utils.prep_csv_for_gui(csv_file_path)
+                            utils.write_csv_mods_to_gui(csv_mod_file_path, self.errors_signals.errors_textbox)
 
                 # PART 2 OF 2 - compare master and current databases and report charts withdrawn and new charts
                 # Remove tables_missing_from_current from tables_master so table content matches; no need to check tables_missing_in_master because these are newly added
@@ -186,22 +196,24 @@ class CHSDVDReaderApp(QMainWindow):
                 charts_withdrawn, new_charts = self.compare_chart_numbers.compare_chart_numbers(tables_master_temp, master_yyyymmdd, current_yyyymmdd)
                 # Report missing charts on missing charts tab; can't use same process as above because of textbox identification
                 if charts_withdrawn:
-                    message = "Withdrawn Charts"
                     # type of report is type 1; tuple therefore provide a csv_file_path name for report purposes
                     csv_file_path = 'charts_withdrawn.csv'
+                    csv_mod_file_path = 'charts_withdrawn_mod.csv'
                     # Call the method to save the data structure to the CSV file
                     utils.save_data_to_csv(charts_withdrawn, None, csv_file_path)
                     # type of report is type 1; list of tuples
-                    utils.modify_csv_format(csv_file_path, self.charts_withdrawn_signals.chart_withdrawn_textbox)
+                    utils.prep_csv_for_gui(csv_file_path)
+                    utils.write_csv_mods_to_gui(csv_mod_file_path, self.charts_withdrawn_signals.chart_withdrawn_textbox)
                # Report new charts on new charts tab
                 if new_charts:
-                    message = "New Charts"
                     # type of report is type 1; tuple therefore provide a csv_file_path name for report purposes
                     csv_file_path = 'new_charts.csv'
+                    csv_mod_file_path = 'new_charts_mod.csv'
                     # Call the method to save the data structure to the CSV file
                     utils.save_data_to_csv(new_charts, None, csv_file_path)
                     # type of report is type 1; list of tuples
-                    utils.modify_csv_format(csv_file_path, self.new_charts_signals.new_charts_textbox)
+                    utils.prep_csv_for_gui(csv_file_path)
+                    utils.write_csv_mods_to_gui(csv_mod_file_path, self.new_charts_signals.new_charts_textbox)
                # PART 3 OF 3 - find data mismatches
                 # instantiate FindDataMismatches
                 self.find_data_mismatches = FindDataMismatches(self.master_database_cursor, self.current_database_cursor)
@@ -209,21 +221,24 @@ class CHSDVDReaderApp(QMainWindow):
                 # report new_editions and misc. findings (findings that couldn't be categorized as New Charts, New Editions or Charts Withdrawn)
                 # Report missing charts on missing charts tab; can't use same process as above because of textbox identification
                 if new_editions:
-                    message = "New Editions"
                     csv_file_path = 'new_editions.csv'
+                    csv_mod_file_path = 'new_editions_mod.csv'
                     # Call the method to save the data structure to the CSV file
                     utils.save_data_to_csv(new_editions, None, csv_file_path)
                     # type of report is type 1; list of tuples
-                    utils.modify_csv_format(csv_file_path, self.new_editions_signals.new_editions_textbox)
+                    utils.prep_csv_for_gui(csv_file_path)
+                    utils.write_csv_mods_to_gui(csv_mod_file_path, self.new_editions_signals.new_editions_textbox)
                 # Report new charts on new charts tab
                 if misc_findings:
                     message = "Uncategorized Findings"
                     # type of report is type 1; tuple therefore provide a csv_file_path name for report purposes
                     csv_file_path = 'misc_findings_type1.csv'
+                    csv_mod_file_path = 'misc_findings_type1_mod.csv'
                     # Call the method to save the data structure to the CSV file
-                    utils.save_data_to_csv(misc_findings, None, csv_file_path)
+                    utils.save_data_to_csv(misc_findings, message, csv_file_path)
                     # type of report is type 1; list of tuples
-                    utils.modify_csv_format(csv_file_path, self.errors_signals.errors_textbox, message, csv_file_path)
+                    utils.prep_csv_for_gui(csv_file_path)
+                    utils.write_csv_mods_to_gui(csv_mod_file_path, self.errors_signals.errors_textbox, message, csv_file_path)
                     utils.show_warning_popup("Possible errors were noted. See the Misc. Results tab.")
                 # Print a message to indicate that the checker has run
                 self.run_checker_signals.run_checker_textbox.emit('\nThe Checker ran succesfully!')
