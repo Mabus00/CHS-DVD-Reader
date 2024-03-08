@@ -285,7 +285,7 @@ def prep_csv_for_gui(csv_file_path):
                         # set header row column tabs
                         col_headers = get_column_headers(table_type, col_indices)
                     else:
-                        col_indices = [1,2,5]
+                        col_indices = [0,2,5]
                         table_type = "vector"
                         # set header row column tabs; needs an extra tab to line things up
                         col_headers = get_column_headers(table_type, col_indices)
@@ -297,9 +297,6 @@ def prep_csv_for_gui(csv_file_path):
                     csv_writer.writerow(new_row)
             else:
                 csv_writer.writerow(row)
-        
-        # sending formatted_data to target_textbox.emit()
-        #target_textbox.emit(csv_data_str)
 
 def convert_to_yyyymmdd(date_str):
     try:
@@ -364,18 +361,43 @@ def save_data_to_csv(data, message, csv_file_path):
                     writer.writerow([text])
                 # Write each row in the data list as a separate record
                 for row in data_list:
-                    writer.writerow(row)
+                    row_stripped = [str(cell).strip() for cell in row]
+                    writer.writerow(row_stripped)
             else:
                 writer.writerow([entry])  # Write a single value to the CSV file
 
 def write_csv_mods_to_gui(csv_mod_file_path, target_textbox):
-    # Open the CSV file for writing
+    # Initialize variables to store formatted CSV data
+    folder_title = ''
+    col_headers = []
+    data_rows = []
+
+    # Open the CSV file for reading
     with open(csv_mod_file_path, 'r', newline='') as csv_file:
         # Create a CSV reader object for the input file
         csv_reader = csv.reader(csv_file)
-        # Convert CSV data to a string
-        csv_data_str = ''
-        for row in csv_reader:
-            csv_data_str += ', '.join(row) + '\n'
-        # sending formatted_data to target_textbox.emit()
-        target_textbox.emit(csv_data_str)
+
+        # Open the CSV file for reading
+        with open(csv_mod_file_path, 'r', newline='') as csv_file:
+            # Create a CSV reader object for the input file
+            csv_reader = csv.reader(csv_file)
+
+            # Read each row of the CSV file
+            for i, row in enumerate(csv_reader):
+                if i == 0:
+                    folder_title = row[0]  # Extract folder title from the first row
+                elif i == 1:
+                    col_headers = row  # Extract column headers from the second row
+                else:
+                    if len(row) == 1 and data_rows:
+                        data_rows.append([])  # Insert a blank line before the folder title
+                    data_rows.append(row)  # Process data rows
+
+    # Construct formatted CSV data
+    formatted_data = f"{folder_title}\n"
+    formatted_data += '\t'.join(col_headers) + '\n'
+    for row in data_rows:
+        formatted_data += '\t'.join(row) + '\n'
+
+    # Send formatted_data to target_textbox.emit()
+    target_textbox.emit(formatted_data)
