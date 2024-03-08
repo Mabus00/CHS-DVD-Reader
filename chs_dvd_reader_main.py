@@ -176,7 +176,7 @@ class CHSDVDReaderApp(QMainWindow):
                             # Call the method to save the data structure to the CSV file
                             utils.save_data_to_csv(table_list, message, csv_file_path)
                             # type of report is type 2; non-tuple
-                            utils.generate_reports(csv_file_path, self.errors_signals.errors_textbox, message)
+                            utils.modify_csv_format(csv_file_path, self.errors_signals.errors_textbox)
 
                 # PART 2 OF 2 - compare master and current databases and report charts withdrawn and new charts
                 # Remove tables_missing_from_current from tables_master so table content matches; no need to check tables_missing_in_master because these are newly added
@@ -190,18 +190,18 @@ class CHSDVDReaderApp(QMainWindow):
                     # type of report is type 1; tuple therefore provide a csv_file_path name for report purposes
                     csv_file_path = 'charts_withdrawn.csv'
                     # Call the method to save the data structure to the CSV file
-                    utils.save_data_to_csv(charts_withdrawn, message, csv_file_path)
+                    utils.save_data_to_csv(charts_withdrawn, None, csv_file_path)
                     # type of report is type 1; list of tuples
-                    utils.generate_reports(csv_file_path, self.charts_withdrawn_signals.chart_withdrawn_textbox, message, csv_file_path)
+                    utils.modify_csv_format(csv_file_path, self.charts_withdrawn_signals.chart_withdrawn_textbox)
                # Report new charts on new charts tab
                 if new_charts:
                     message = "New Charts"
                     # type of report is type 1; tuple therefore provide a csv_file_path name for report purposes
                     csv_file_path = 'new_charts.csv'
                     # Call the method to save the data structure to the CSV file
-                    utils.save_data_to_csv(new_charts, message, csv_file_path)
+                    utils.save_data_to_csv(new_charts, None, csv_file_path)
                     # type of report is type 1; list of tuples
-                    utils.generate_reports(csv_file_path, self.new_charts_signals.new_charts_textbox, message, csv_file_path)
+                    utils.modify_csv_format(csv_file_path, self.new_charts_signals.new_charts_textbox)
                # PART 3 OF 3 - find data mismatches
                 # instantiate FindDataMismatches
                 self.find_data_mismatches = FindDataMismatches(self.master_database_cursor, self.current_database_cursor)
@@ -212,18 +212,18 @@ class CHSDVDReaderApp(QMainWindow):
                     message = "New Editions"
                     csv_file_path = 'new_editions.csv'
                     # Call the method to save the data structure to the CSV file
-                    utils.save_data_to_csv(new_editions, message, csv_file_path)
+                    utils.save_data_to_csv(new_editions, None, csv_file_path)
                     # type of report is type 1; list of tuples
-                    utils.generate_reports(csv_file_path, self.new_editions_signals.new_editions_textbox, message, csv_file_path)
+                    utils.modify_csv_format(csv_file_path, self.new_editions_signals.new_editions_textbox)
                 # Report new charts on new charts tab
                 if misc_findings:
                     message = "Uncategorized Findings"
                     # type of report is type 1; tuple therefore provide a csv_file_path name for report purposes
                     csv_file_path = 'misc_findings_type1.csv'
                     # Call the method to save the data structure to the CSV file
-                    utils.save_data_to_csv(misc_findings, message, csv_file_path)
+                    utils.save_data_to_csv(misc_findings, None, csv_file_path)
                     # type of report is type 1; list of tuples
-                    utils.generate_reports(csv_file_path, self.errors_signals.errors_textbox, message, csv_file_path)
+                    utils.modify_csv_format(csv_file_path, self.errors_signals.errors_textbox, message, csv_file_path)
                     utils.show_warning_popup("Possible errors were noted. See the Misc. Results tab.")
                 # Print a message to indicate that the checker has run
                 self.run_checker_signals.run_checker_textbox.emit('\nThe Checker ran succesfully!')

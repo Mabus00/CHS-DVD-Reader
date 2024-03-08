@@ -257,7 +257,7 @@ def get_column_headers(table_type, selected_cols):
         return []  # Return an empty list for an invalid table_type
     return selected_columns
 
-def generate_reports_OLD(results, current_yyyymmdd, target_textbox, message, file_to_open = 'misc_findings_type2.csv'):
+def modify_csv_format_OLD(results, current_yyyymmdd, target_textbox, message, file_to_open = 'misc_findings_type2.csv'):
     # Report for all tabs / pdf reports. Note there are small formatting adjustments (e.g., \t\t and \t\t\t) to accomodate tab vs pdf report differences
     # Doing this seemed to be the easiest way even though I don't like how it looks. Other route would have been to create tables in pyQt or use HTML formatting
     # Type 1 is for detailed results (hence tuple) whereas Type 2 is simple results (non-tuple) (default)
@@ -314,28 +314,21 @@ def generate_reports_OLD(results, current_yyyymmdd, target_textbox, message, fil
     # sending formatted_data to target_textbox.emit()
     target_textbox.emit(formatted_data)
 
-def generate_reports(csv_file_path, target_textbox, message, file_to_open = 'misc_findings_type2.csv'):
-    # Report for all tabs / pdf reports. Note there are small formatting adjustments (e.g., \t\t and \t\t\t) to accomodate tab vs pdf report differences
-    # Doing this seemed to be the easiest way even though I don't like how it looks. Other route would have been to create tables in pyQt or use HTML formatting
-    # Type 1 is for detailed results (hence tuple) whereas Type 2 is simple results (non-tuple) (default)
-    formatted_data = ""
-    # Establish the type of data; use tuple as delineator
-    # this first part formats for display in gui tabs
-
+def modify_csv_format(csv_file_path, target_textbox):
     # Open the CSV file for reading
     with open(csv_file_path, 'r', newline='') as csv_file:
         # Create a CSV reader object
         csv_reader = csv.reader(csv_file)
 
-
         # Convert CSV data to a string
         csv_data_str = ''
         for row in csv_reader:
             csv_data_str += ', '.join(row) + '\n'
+        
+        
+        
         # sending formatted_data to target_textbox.emit()
         target_textbox.emit(csv_data_str)
-
-
 
 def convert_to_yyyymmdd(date_str):
     try:
@@ -388,7 +381,8 @@ def save_data_to_csv(data, message, csv_file_path):
     with open(csv_file_path, 'w', newline='') as csv_file:
         writer = csv.writer(csv_file)
         # Write the message at the beginning of the file
-        writer.writerow([message])
+        if message:
+            writer.writerow([message])
         # Write each entry of the data list to the CSV file
         for entry in data:
             # Check if the entry is a tuple (data structure) or a single value
