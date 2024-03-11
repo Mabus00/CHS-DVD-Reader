@@ -278,14 +278,14 @@ def prep_csv_for_gui(csv_file_path):
                 num_columns = len(row)
                 # Keep rows with only one column
                 if num_columns == 1:
-                    if "RM" in csv_file_path:
+                    if "RM" in row[0]:
                         # only show these columns
-                        col_indices = [0,4,5]
+                        col_indices = [0,3,5]
                         table_type = "raster"
                         # set header row column tabs
                         col_headers = get_column_headers(table_type, col_indices)
                     else:
-                        col_indices = [0,2,5]
+                        col_indices = [1,4,5]
                         table_type = "vector"
                         # set header row column tabs; needs an extra tab to line things up
                         col_headers = get_column_headers(table_type, col_indices)
