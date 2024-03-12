@@ -367,46 +367,36 @@ def save_data_to_csv(data, message, csv_file_path):
                 writer.writerow([entry])  # Write a single value to the CSV file
 
 def write_csv_mods_to_gui(csv_mod_file_path, target_textbox):
-    # Initialize variables to store formatted CSV data
-    folder_title = ''
-    col_headers = []
-    data_rows = []
-
+    formatted_data = ''
+    current_folder_title = None
     # Open the CSV file for reading
     with open(csv_mod_file_path, 'r', newline='') as csv_file:
         # Create a CSV reader object for the input file
         csv_reader = csv.reader(csv_file)
-
         if "misc" in csv_mod_file_path:
             # Read each row of the CSV file
             for i, row in enumerate(csv_reader):
                 if i == 0:
-                    folder_title = row[0]  # Extract folder title from the first row
+                    formatted_data = f"{row[0]}\n"  # Extract folder title from the first row
                 else:
-                    data_rows.append(row[0])  # Process data rows
-            # Construct formatted CSV data
-            formatted_data = f"{folder_title}\n"
-            for row in data_rows:
-                formatted_data += str(row) + '\n'
+                    formatted_data += str(row[0]) + '\n'  # Process data rows
         else:
-            
             # Read each row of the CSV file
             for i, row in enumerate(csv_reader):
-                if i == 0:
-                    folder_title = row[0]  # Extract folder title from the first row
-                elif i == 1:
-                    col_headers = row  # Extract column headers from the second row
-                else:
-                    if len(row) == 1 and data_rows:
-                        data_rows.append([])  # Insert a blank line before the folder title
-                    data_rows.append(row)  # Process data rows
-
-            # Construct formatted CSV data
-            formatted_data = f"{folder_title}\n"
-            formatted_data += '\t'.join(col_headers) + '\n'
-            for row in data_rows:
-                formatted_data += '\t'.join(row) + '\n'
-
+                if len(row) == 1: # this is a folder title
+                    # If this is not the first folder title, add a newline before the next folder title
+                    if current_folder_title:
+                        formatted_data += '\n'
+                    current_folder_title = row[0]  # Extract folder title
+                    formatted_data += f"{current_folder_title}\n"  # Add folder title
+                elif formatted_data:  # Ensure there is a folder title before adding data
+                    if "RM" in current_folder_title:
+                        formatted_data += '\t\t'.join(row) + '\n'
+                    else:
+                        if any(any(char.isdigit() for char in string) for string in row):
+                            formatted_data += row[0] + '\t\t\t' + row[1] + '\t' + row[2] + '\n'
+                        else:
+                            formatted_data += row[0] + '\t\t\t' + row[1] + '\t\t' + row[2] + '\n'
 
     # Send formatted_data to target_textbox.emit()
     target_textbox.emit(formatted_data)
