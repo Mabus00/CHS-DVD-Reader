@@ -377,11 +377,19 @@ def write_csv_mods_to_gui(csv_mod_file_path, target_textbox):
         # Create a CSV reader object for the input file
         csv_reader = csv.reader(csv_file)
 
-        # Open the CSV file for reading
-        with open(csv_mod_file_path, 'r', newline='') as csv_file:
-            # Create a CSV reader object for the input file
-            csv_reader = csv.reader(csv_file)
-
+        if "misc" in csv_mod_file_path:
+            # Read each row of the CSV file
+            for i, row in enumerate(csv_reader):
+                if i == 0:
+                    folder_title = row[0]  # Extract folder title from the first row
+                else:
+                    data_rows.append(row[0])  # Process data rows
+            # Construct formatted CSV data
+            formatted_data = f"{folder_title}\n"
+            for row in data_rows:
+                formatted_data += str(row) + '\n'
+        else:
+            
             # Read each row of the CSV file
             for i, row in enumerate(csv_reader):
                 if i == 0:
@@ -393,11 +401,12 @@ def write_csv_mods_to_gui(csv_mod_file_path, target_textbox):
                         data_rows.append([])  # Insert a blank line before the folder title
                     data_rows.append(row)  # Process data rows
 
-    # Construct formatted CSV data
-    formatted_data = f"{folder_title}\n"
-    formatted_data += '\t'.join(col_headers) + '\n'
-    for row in data_rows:
-        formatted_data += '\t'.join(row) + '\n'
+            # Construct formatted CSV data
+            formatted_data = f"{folder_title}\n"
+            formatted_data += '\t'.join(col_headers) + '\n'
+            for row in data_rows:
+                formatted_data += '\t'.join(row) + '\n'
+
 
     # Send formatted_data to target_textbox.emit()
     target_textbox.emit(formatted_data)
