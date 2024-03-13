@@ -110,8 +110,6 @@ class CHSDVDReaderApp(QMainWindow):
         self.database_signals.database_input_path_button.connect(lambda: utils.open_file_explorer(self.ui.database_input_path, self.master_database_input_path))
         self.database_signals.build_database_button.connect(self.build_database)
 
-        font = QFont("Consolas")
-        self.ui.newEditionsTextBrowser.setFont(font)
         # Using a lambda function to create an anonymous function that takes a single argument 'message'.
         # The lambda function is being used as an argument to the emit method of the custom signal.
         self.run_checker_signals.run_checker_textbox.connect(lambda message: utils.update_text_browser(self.ui.runCheckerTextBrowser, message))
@@ -343,10 +341,13 @@ def main():
     window = CHSDVDReaderApp()
     window.show()
 
+    font = QFont("Consolas")
+
     # Get all text browsers from the UI and scroll them to the top
     for browser in window.text_browsers:
         browser.verticalScrollBar().minimum()
-
+        browser.setFont(font)
+        
     sys.exit(app.exec_())
 
 if __name__ == "__main__":
