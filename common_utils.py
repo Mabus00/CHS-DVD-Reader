@@ -393,10 +393,10 @@ def write_csv_mods_to_gui(csv_mod_file_path, target_textbox):
                     if "RM" in current_folder_title:
                         formatted_data += '\t\t'.join(row) + '\n'
                     else:
-                        if any(any(char.isdigit() for char in string) for string in row):
-                            formatted_data += row[0] + '\t\t\t' + row[1] + '\t' + row[2] + '\n'
-                        else:
-                            formatted_data += row[0] + '\t\t\t' + row[1] + '\t\t' + row[2] + '\n'
+                        if any(any(char.isdigit() for char in string) for string in row): # digits means it's a line of data
+                            formatted_data += row[0] + '\t\t' + row[1] + '\t' + row[2] + '\n'
+                        else: # no digits means it's a header row
+                            formatted_data += row[0] + '\t\t' + row[1] + '\t\t' + row[2] + '\n'
 
     # Send formatted_data to target_textbox.emit()
     target_textbox.emit(formatted_data)
