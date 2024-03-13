@@ -341,6 +341,7 @@ def main():
     window = CHSDVDReaderApp()
     window.show()
 
+    # using this monospace font (best one I've tried) so text in the pyQT Gui TextBrowser windows is spaced evenly
     font = QFont("Consolas")
 
     # Get all text browsers from the UI and scroll them to the top
