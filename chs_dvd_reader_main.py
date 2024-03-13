@@ -19,6 +19,7 @@ import sys
 import inspect
 import os
 from PyQt5.QtWidgets import QApplication, QMainWindow, QTextEdit
+from PyQt5.QtGui import QFont
 from chs_dvd_gui import Ui_MainWindow
 from custom_signals import CreateDatabaseSignals, RunCheckerSignals, NewChartsSignals, NewEditionsSignals, WithdrawnSignals, ErrorsSignals
 from build_database import BuildDatabase
@@ -109,6 +110,8 @@ class CHSDVDReaderApp(QMainWindow):
         self.database_signals.database_input_path_button.connect(lambda: utils.open_file_explorer(self.ui.database_input_path, self.master_database_input_path))
         self.database_signals.build_database_button.connect(self.build_database)
 
+        font = QFont("Consolas")
+        self.ui.newEditionsTextBrowser.setFont(font)
         # Using a lambda function to create an anonymous function that takes a single argument 'message'.
         # The lambda function is being used as an argument to the emit method of the custom signal.
         self.run_checker_signals.run_checker_textbox.connect(lambda message: utils.update_text_browser(self.ui.runCheckerTextBrowser, message))
