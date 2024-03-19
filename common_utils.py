@@ -259,7 +259,7 @@ def get_column_headers(table_type, selected_cols):
 
 def prep_csv_for_gui(csv_file_path):
     # extracts .csv file data and keeps only those fields needed for gui tab display
-    # these files will also be used to create .pdf report
+    # these files will also be used to create .pdf report but note the order of columns is specifically for the gui; need to keep title last so everything looks good and lined up
     # Extract the file name and extension from the input file path
     file_name, file_extension = os.path.splitext(csv_file_path)
     # Construct the output file path by appending "_mod" before the file extension

@@ -323,9 +323,9 @@ class CHSDVDReaderApp(QMainWindow):
         for file in csv_files_sorted:
             file_path = os.path.join(directory, file)
 
-            # Open each .txt file and read its content
-            with open(file_path, 'r', encoding='utf-8') as txt_file:
-                content = txt_file.read()
+            # Open each .csv file and read its content
+            with open(file_path, 'r', encoding='utf-8') as csv_file:
+                content = csv_file.read()
 
             # Add the content as a table to the PDF report
             self.create_pdf_report.add_table(content)
