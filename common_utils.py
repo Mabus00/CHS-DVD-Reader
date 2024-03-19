@@ -9,7 +9,6 @@ from PyQt5.QtWidgets import QMessageBox, QFileDialog
 import subprocess
 import time
 from datetime import datetime
-import common_utils as utils
 import csv
 
 ''' common functions used by more than one model / module'''
