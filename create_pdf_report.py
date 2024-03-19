@@ -100,13 +100,21 @@ class PDFReport(BaseDocTemplate):
         self.elements.append(paragraph)
 
     def add_table(self, csv_file_path):
-        
+        data_rows = []
+
         # Open the .csv file and read its content
         with open(csv_file_path, 'r', newline='', encoding='utf-8') as csv_file:
             csv_reader = csv.reader(csv_file)
 
             if "misc" not in csv_file_path:
                 print(f'{csv_file_path} non misc')
+                for row in csv_reader:
+                    if len(row) == 1:  # Check if the row has only one column (folder title)
+                        folder_title = row[0]  # Update the folder title
+                    elif len(row) > 1 and any(any(char.isdigit() for char in string) for string in row): # digits means it's a line of data
+                        data_rows.append(folder_title)
+                        data_rows.append(row)
+
             else:
                 print(f'{csv_file_path} misc')
                 for i, row in enumerate(csv_reader):
