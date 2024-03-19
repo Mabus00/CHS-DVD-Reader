@@ -29,6 +29,7 @@ from compare_chart_numbers import CompareChartNumbers
 from find_data_mismatches import FindDataMismatches
 import common_utils as utils
 from create_pdf_report import PDFReport
+import glob
 
 class CHSDVDReaderApp(QMainWindow):
     def __init__(self):
@@ -307,19 +308,19 @@ class CHSDVDReaderApp(QMainWindow):
         # Add toc to the report
         self.create_pdf_report.add_toc('Table of Contents')
 
-        # Get a list of all files in the current directory
-        files = os.listdir(directory)
-
         # Filter only the .txt files; these represent the results of running the DVD checker
-        txt_files = [file for file in files if file.endswith('.txt')]
+        csv_files = glob.glob(directory + "/*_mod.csv")
         
-        # Create a dictionary to map file names to their positions in the ordered list
-        file_positions = {file_name: self.report_txt_files.index(file_name) if file_name in self.report_txt_files else None for file_name in txt_files}
+        # Create a set of filenames from csv_files for faster lookup
+        csv_files_set = set(map(lambda x: x.split('\\')[-1], csv_files))
 
-        # Sort files based on their positions in the ordered list
-        sorted_files = sorted(txt_files, key=lambda x: file_positions.get(x, float('inf')))
+        # Filter out filenames from csv_files that are not in self.csv_mod_files
+        csv_files_filtered = [filename for filename in csv_files_set if filename in self.csv_mod_files]
 
-        for file in sorted_files:
+        # Sort csv_files_filtered to match the order of self.csv_mod_files
+        csv_files_sorted = sorted(csv_files_filtered, key=lambda x: self.csv_mod_files.index(x))
+
+        for file in csv_files_sorted:
             file_path = os.path.join(directory, file)
 
             # Open each .txt file and read its content
@@ -344,7 +345,7 @@ def main():
     # using this monospace font (best one I've tried) so text in the pyQT Gui TextBrowser windows is spaced evenly
     font = QFont("Consolas")
 
-    # Get all text browsers from the UI and scroll them to the top
+    # Get all text browsers from the UI and scroll them to the top and set the font so all columns line-up in gui tabs
     for browser in window.text_browsers:
         browser.verticalScrollBar().minimum()
         browser.setFont(font)
