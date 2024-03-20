@@ -101,19 +101,30 @@ class PDFReport(BaseDocTemplate):
 
     def add_table(self, csv_file_path):
         data_rows = []
+        folder_title = None
+        block_data = []
 
         # Open the .csv file and read its content
-        with open(csv_file_path, 'r', newline='', encoding='utf-8') as csv_file:
+        with open(csv_file_path, 'r', newline='') as csv_file:
             csv_reader = csv.reader(csv_file)
 
             if "misc" not in csv_file_path:
                 print(f'{csv_file_path} non misc')
                 for row in csv_reader:
-                    if len(row) == 1:  # Check if the row has only one column (folder title)
+                    if not row:  # Check for blank line indicating the end of a block:
+                        # Process block data
+                        for data_row in block_data[2:]:
+                            self.add_paragraph("\n".join(data_row))  # Treat each single line as a paragraph
+
+                        # Reset variables for the next block
+                        folder_title = None
+                        block_data = []
+
+                    elif len(row) == 1:  # Check if the row has only one column (folder title)
                         folder_title = row[0]  # Update the folder title
-                    elif len(row) > 1 and any(any(char.isdigit() for char in string) for string in row): # digits means it's a line of data
-                        data_rows.append(folder_title)
-                        data_rows.append(row)
+                        self.doHeading(folder_title, self.toc.levelStyles[1])
+                    elif folder_title:  # If folder title exists, consider the row a data row
+                        block_data.append(row)
 
             else:
                 print(f'{csv_file_path} misc')
