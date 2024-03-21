@@ -119,7 +119,7 @@ class PDFReport(BaseDocTemplate):
                 # Remove the file extension
                 filename_without_extension = os.path.splitext(basename)[0]
                 filename =  filename_without_extension.replace('_', ' ').split()
-                filename_title = ' '.join(word.capitalize() for word in filename)  # Update the folder title
+                filename_title = ' '.join(word.capitalize() for word in filename)
                 self.add_to_toc(filename_title, self.toc.levelStyles[0])
 
                 for row in csv_reader:
