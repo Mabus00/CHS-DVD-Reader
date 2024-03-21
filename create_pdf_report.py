@@ -9,6 +9,7 @@ from reportlab.lib import colors
 from reportlab.lib.units import cm
 from hashlib import sha1
 import csv
+import os
 
 class PDFReport(BaseDocTemplate):
     def __init__(self, path, **kw):
@@ -77,7 +78,7 @@ class PDFReport(BaseDocTemplate):
 
     def add_toc(self, toc_title):
         # Adding the TOC title
-        toc_title_paragraph = Paragraph(toc_title, self.styles[1])
+        toc_title_paragraph = Paragraph(toc_title, self.styles[0])
         self.elements.append(toc_title_paragraph)
         # Adding the Table of Contents
         self.elements.append(self.toc)
@@ -100,7 +101,6 @@ class PDFReport(BaseDocTemplate):
         self.elements.append(paragraph)
 
     def add_table(self, csv_file_path):
-        data_rows = []
         folder_title = None
         block_data = []
 
@@ -110,6 +110,14 @@ class PDFReport(BaseDocTemplate):
 
             if "misc" not in csv_file_path:
                 print(f'{csv_file_path} non misc')
+                # Extract the base name from the full path
+                basename = os.path.basename(csv_file_path)
+                # Remove the file extension
+                filename_without_extension = os.path.splitext(basename)[0]
+                filename =  filename_without_extension.replace('_', ' ').split()
+                filename_title = ' '.join(word.capitalize() for word in filename)  # Update the folder title
+                self.doHeading(filename_title, self.toc.levelStyles[0])
+
                 for row in csv_reader:
                     if not row:  # Check for blank line indicating the end of a block:
                         # Process block data
@@ -121,16 +129,15 @@ class PDFReport(BaseDocTemplate):
                         block_data = []
 
                     elif len(row) == 1:  # Check if the row has only one column (folder title)
-                        folder_title = row[0]  # Update the folder title
-                        self.doHeading(folder_title, self.toc.levelStyles[1])
+                        folder_title = ' '.join(row)  # Update the folder title
+                        self.add_title(folder_title)
                     elif folder_title:  # If folder title exists, consider the row a data row
                         block_data.append(row)
-
             else:
                 print(f'{csv_file_path} misc')
                 for i, row in enumerate(csv_reader):
                     if i == 0:
-                        self.doHeading(row[0], self.toc.levelStyles[1])
+                        self.doHeading(row[0], self.toc.levelStyles[0])
                     else:
                         self.add_paragraph("\n".join(row))  # Treat each single line as a paragraph
                 self.elements.append(Spacer(1, 12))  # Add space after each table
