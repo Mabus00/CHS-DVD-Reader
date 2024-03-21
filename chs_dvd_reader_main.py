@@ -303,7 +303,7 @@ class CHSDVDReaderApp(QMainWindow):
         self.create_pdf_report = PDFReport(path)
 
         # Add title to the report
-        self.create_pdf_report.add_title(report_title)
+        self.create_pdf_report.add_report_title(report_title)
 
         # Add toc to the report
         self.create_pdf_report.add_toc('Table of Contents')

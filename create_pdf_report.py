@@ -28,14 +28,16 @@ class PDFReport(BaseDocTemplate):
         
         # set styles for document
         self.styles = [
-            PS(fontSize=20, name='Title', spaceBefore=5, spaceAfter=30),
-            PS(fontSize=12, name='Normal', spaceBefore=5, spaceAfter=5),
+            PS(fontSize=20, name='Title', spaceAfter=40),
+            PS(fontSize=16, name='TOC', spaceBefore = 10, spaceAfter=10),
+            PS(fontSize=12, name='Folder Title', spaceBefore = 15, spaceAfter=15),
+            PS(fontSize=12, name='Folder Data', spaceBefore = 10, spaceAfter=10, leftIndent = 10),
         ]
         # set styles for toc
         self.toc = TableOfContents()
 
         self.toc.levelStyles = [
-            PS(fontName='Times-Bold', fontSize=20, name='TOCHeading1', spaceBefore=5),
+            PS(fontSize=16, name='TOCHeading1', spaceBefore=5),
             PS(fontSize=12, name='TOCHeading2', spaceBefore=5),
         ]
         
@@ -66,8 +68,20 @@ class PDFReport(BaseDocTemplate):
                 E.append(anchor)
                 self.notify('TOCEntry', tuple(E))
 
-    # turn toc headings into hyperlinks
-    def doHeading(self, text, style, message = ""):
+    def add_report_title(self, title_text):
+        title = Paragraph(title_text, self.styles[0])
+        self.elements.append(title)
+
+    def add_toc(self, toc_title):
+        # Adding the TOC title to the TOC
+        toc_title_paragraph = Paragraph(toc_title, self.styles[1])
+        self.elements.append(toc_title_paragraph)
+        # Adding the Table of Contents
+        self.elements.append(self.toc)
+        self.elements.append(PageBreak())
+
+    # add to TOC and make headings into hyperlinks
+    def add_to_toc(self, text, style, message = ""):
         #create bookmarkname
         bn = sha1((message + text + style.name).encode()).hexdigest()
         #modify paragraph text to include an anchor point with name bn
@@ -76,13 +90,13 @@ class PDFReport(BaseDocTemplate):
         heading._bookmarkName = bn
         self.elements.append(heading)
 
-    def add_toc(self, toc_title):
-        # Adding the TOC title
-        toc_title_paragraph = Paragraph(toc_title, self.styles[0])
-        self.elements.append(toc_title_paragraph)
-        # Adding the Table of Contents
-        self.elements.append(self.toc)
-        self.elements.append(PageBreak())
+    def add_folder_title(self, title_text):
+        title = Paragraph(title_text, self.styles[2])
+        self.elements.append(title)
+
+    def add_folder_data(self, content):
+        paragraph = Paragraph(content, self.styles[3])
+        self.elements.append(paragraph)
 
     def footer(self, canvas, doc):
         self.canv.saveState()
@@ -90,15 +104,6 @@ class PDFReport(BaseDocTemplate):
         page_num = self.canv.getPageNumber()
         self.canv.drawString(1.5 * cm, 0.75 * cm, f"Page {page_num}")
         self.canv.restoreState()
-
-    def add_title(self, title_text):
-        title = Paragraph(title_text, self.styles[0])
-        self.elements.append(title)
-
-    def add_paragraph(self, content):
-        #self.doHeading(content, self.toc.levelStyles[0])
-        paragraph = Paragraph(content, self.styles[1])
-        self.elements.append(paragraph)
 
     def add_table(self, csv_file_path):
         folder_title = None
@@ -109,37 +114,33 @@ class PDFReport(BaseDocTemplate):
             csv_reader = csv.reader(csv_file)
 
             if "misc" not in csv_file_path:
-                print(f'{csv_file_path} non misc')
-                # Extract the base name from the full path
+                # Extract the base name from the full path to add to TOC
                 basename = os.path.basename(csv_file_path)
                 # Remove the file extension
                 filename_without_extension = os.path.splitext(basename)[0]
                 filename =  filename_without_extension.replace('_', ' ').split()
                 filename_title = ' '.join(word.capitalize() for word in filename)  # Update the folder title
-                self.doHeading(filename_title, self.toc.levelStyles[0])
+                self.add_to_toc(filename_title, self.toc.levelStyles[0])
 
                 for row in csv_reader:
-                    if not row:  # Check for blank line indicating the end of a block:
+                    if not row:  # Check for blank line indicating the end of a data block
                         # Process block data
                         for data_row in block_data[2:]:
-                            self.add_paragraph("\n".join(data_row))  # Treat each single line as a paragraph
-
+                            self.add_folder_data("\n".join(data_row))  # Treat each single line as a paragraph
                         # Reset variables for the next block
                         folder_title = None
                         block_data = []
-
                     elif len(row) == 1:  # Check if the row has only one column (folder title)
-                        folder_title = ' '.join(row)  # Update the folder title
-                        self.add_title(folder_title)
-                    elif folder_title:  # If folder title exists, consider the row a data row
+                        folder_title = ' '.join(row)
+                        self.add_folder_title(folder_title) # Add folder title to pdf doc
+                    elif folder_title:  # Use folder title to confirm still within data block; add row of data for end-block processing
                         block_data.append(row)
             else:
-                print(f'{csv_file_path} misc')
                 for i, row in enumerate(csv_reader):
                     if i == 0:
-                        self.doHeading(row[0], self.toc.levelStyles[0])
+                        self.add_to_toc(row[0], self.toc.levelStyles[0])
                     else:
-                        self.add_paragraph("\n".join(row))  # Treat each single line as a paragraph
+                        self.add_folder_data("\n".join(row))  # Treat each single line as a paragraph
                 self.elements.append(Spacer(1, 12))  # Add space after each table
 
 
@@ -156,7 +157,7 @@ class PDFReport(BaseDocTemplate):
             #     table_data = []
             #     # Table title (Folder Name)
             #     folder_title = folder[0]
-            #     self.doHeading(folder_title, self.toc.levelStyles[1], message)
+            #     self.add_to_toc(folder_title, self.toc.levelStyles[1], message)
             #     self.elements.append(Spacer(1, 12))  # Add space after each table
             #     # Commence construction of table for the folder
             #     table_data = [[folder_title]]  # Include folder_title in the merged top row
