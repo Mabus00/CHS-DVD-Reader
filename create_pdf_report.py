@@ -1,6 +1,6 @@
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus.doctemplate import PageTemplate, BaseDocTemplate
-from reportlab.platypus import TableStyle, Paragraph, Spacer, PageBreak
+from reportlab.platypus import Table, TableStyle, Paragraph, Spacer, PageBreak
 from reportlab.platypus.frames import Frame
 from reportlab.platypus.tableofcontents import TableOfContents
 from reportlab.pdfgen import canvas
@@ -31,7 +31,7 @@ class PDFReport(BaseDocTemplate):
             PS(fontSize=20, name='Title', spaceAfter=40),
             PS(fontSize=16, name='TOC', spaceBefore = 10, spaceAfter=10),
             PS(fontSize=12, name='Folder Title', spaceBefore = 15, spaceAfter=15),
-            PS(fontSize=12, name='Folder Data', spaceBefore = 10, spaceAfter=10, leftIndent = 10),
+            PS(fontSize=10, name='Folder Data', spaceBefore = 10, spaceAfter=10, leftIndent = 10),
         ]
         # set styles for toc
         self.toc = TableOfContents()
@@ -124,9 +124,22 @@ class PDFReport(BaseDocTemplate):
 
                 for row in csv_reader:
                     if not row:  # Check for blank line indicating the end of a data block
+                        table_data = []
                         # Process block data
-                        for data_row in block_data[2:]:
-                            self.add_folder_data("\n".join(data_row))  # Treat each single line as a paragraph
+                        for data_row in block_data:
+                            #self.add_folder_data("\n".join(data_row))  # Treat each single line as a paragraph
+                            table_data.extend([data_row])
+                    
+                        # Width of letter-sized paper minus margins and paddings
+                        available_width = letter[0] - 72  # Subtracting 72 points as a margin
+                        # Adjusting column widths as needed
+                        # You can adjust the factors below as per your requirement
+                        col_widths = [available_width * 0.12, available_width * 0.12, available_width * 0.75]
+
+                        table = Table(table_data, colWidths=col_widths, hAlign='LEFT', style=self.table_style, repeatRows=1)           
+                        self.elements.append(table)
+                        self.elements.append(Spacer(1, 10))  # Add space after each table
+                        
                         # Reset variables for the next block
                         folder_title = None
                         block_data = []
@@ -143,15 +156,6 @@ class PDFReport(BaseDocTemplate):
                         self.add_folder_data("\n".join(row))  # Treat each single line as a paragraph
                 self.elements.append(Spacer(1, 12))  # Add space after each table
 
-
-
-            # folders = [list(filter(None, folder.split('\n'))) for folder in content.split('\n\n') if folder.strip()]
-            # # first line in all folders contains the message and the first folder title
-            # # Extract message and print before the table
-            # message = folders[0][0]
-            # self.add_paragraph(message)
-            # # now that message has been used move the folder title into the message position to match remainder of folder structure; only needs to be done once for all folders
-            # folders[0] = folders[0][1:]
             # # process folder content
             # for folder in folders:
             #     table_data = []
