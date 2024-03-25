@@ -105,6 +105,22 @@ class PDFReport(BaseDocTemplate):
         self.canv.drawString(1.5 * cm, 0.75 * cm, f"Page {page_num}")
         self.canv.restoreState()
 
+    def process_block_data(self, block_data):
+        table_data = []
+        # Process block data
+        for data_row in block_data:
+            table_data.extend([data_row])
+        
+        # Width of letter-sized paper minus margins and paddings
+        available_width = letter[0] - 72  # Subtracting 72 points as a margin
+        # Adjusting column widths as needed
+        # You can adjust the factors below as per your requirement
+        col_widths = [available_width * 0.12, available_width * 0.12, available_width * 0.75]
+
+        table = Table(table_data, colWidths=col_widths, hAlign='LEFT', style=self.table_style, repeatRows=1)           
+        self.elements.append(table)
+        self.elements.append(Spacer(1, 10))  # Add space after each table
+        
     def add_table(self, csv_file_path):
         folder_title = None
         block_data = []
@@ -119,35 +135,26 @@ class PDFReport(BaseDocTemplate):
                 # Remove the file extension
                 filename_without_extension = os.path.splitext(basename)[0]
                 filename =  filename_without_extension.replace('_', ' ').split()
-                filename_title = ' '.join(word.capitalize() for word in filename)
+                filename_title = ' '.join(word.capitalize() for word in filename[:2])
                 self.add_to_toc(filename_title, self.toc.levelStyles[0])
 
                 for row in csv_reader:
                     if not row:  # Check for blank line indicating the end of a data block
-                        table_data = []
-                        # Process block data
-                        for data_row in block_data:
-                            #self.add_folder_data("\n".join(data_row))  # Treat each single line as a paragraph
-                            table_data.extend([data_row])
-                    
-                        # Width of letter-sized paper minus margins and paddings
-                        available_width = letter[0] - 72  # Subtracting 72 points as a margin
-                        # Adjusting column widths as needed
-                        # You can adjust the factors below as per your requirement
-                        col_widths = [available_width * 0.12, available_width * 0.12, available_width * 0.75]
-
-                        table = Table(table_data, colWidths=col_widths, hAlign='LEFT', style=self.table_style, repeatRows=1)           
-                        self.elements.append(table)
-                        self.elements.append(Spacer(1, 10))  # Add space after each table
-                        
-                        # Reset variables for the next block
-                        folder_title = None
-                        block_data = []
+                        if block_data:
+                            self.process_block_data(block_data)
+                            # Reset variables for the next block
+                            folder_title = None
+                            block_data = []
                     elif len(row) == 1:  # Check if the row has only one column (folder title)
                         folder_title = ' '.join(row)
                         self.add_folder_title(folder_title) # Add folder title to pdf doc
                     elif folder_title:  # Use folder title to confirm still within data block; add row of data for end-block processing
                         block_data.append(row)
+                        
+                # Process the last data block if any
+                if block_data:
+                    self.process_block_data(block_data)
+                        
             else:
                 for i, row in enumerate(csv_reader):
                     if i == 0:
@@ -155,36 +162,6 @@ class PDFReport(BaseDocTemplate):
                     else:
                         self.add_folder_data("\n".join(row))  # Treat each single line as a paragraph
                 self.elements.append(Spacer(1, 12))  # Add space after each table
-
-            # # process folder content
-            # for folder in folders:
-            #     table_data = []
-            #     # Table title (Folder Name)
-            #     folder_title = folder[0]
-            #     self.add_to_toc(folder_title, self.toc.levelStyles[1], message)
-            #     self.elements.append(Spacer(1, 12))  # Add space after each table
-            #     # Commence construction of table for the folder
-            #     table_data = [[folder_title]]  # Include folder_title in the merged top row
-            #     if len(folder) > 1 and '\t' in folder[1]: # if there's more rows and the rows have columns; as opposed to single row messages (if more rows)
-            #         # Table column headers
-            #         column_headers = folder[1].split('\t')
-            #         # Table data for the folder
-            #         folder_table_data = [column_headers]  # Add the column headers
-            #         folder_table_data.extend([row.split('\t') for row in folder[2:]])  # Finally, add the data rows
-            #         table_data.extend(folder_table_data)  # Extend with the data
-
-            #         # Width of letter-sized paper minus margins and paddings
-            #         available_width = letter[0] - 72  # Subtracting 72 points as a margin
-            #         # Adjusting column widths as needed
-            #         # You can adjust the factors below as per your requirement
-            #         col_widths = [available_width * 0.3, available_width * 0.1, available_width * 0.5]
-
-
-            #         table = Table(table_data, colWidths=col_widths, hAlign='LEFT', style=self.table_style, repeatRows=1)           
-            #         self.elements.append(table)
-            #         self.elements.append(Spacer(1, 12))  # Add space after each table
-            #     else:
-            #         self.add_paragraph("\n".join(folder))  # Treat single line as a paragraph
 
     def save_report(self):
         pdf_report = PDFReport(self.path, pagesize=letter)
