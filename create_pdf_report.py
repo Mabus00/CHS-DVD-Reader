@@ -30,7 +30,7 @@ class PDFReport(BaseDocTemplate):
         self.styles = [
             PS(fontSize=20, name='Title', spaceAfter=40),
             PS(fontSize=16, name='TOC', spaceBefore = 10, spaceAfter=10),
-            PS(fontSize=12, name='Folder Title', spaceBefore = 15, spaceAfter=15),
+            PS(fontSize=12, name='Folder Title', spaceBefore = 15, spaceAfter=20),
             PS(fontSize=10, name='Folder Data', spaceBefore = 10, spaceAfter=10, leftIndent = 10),
         ]
         # set styles for toc
@@ -115,7 +115,7 @@ class PDFReport(BaseDocTemplate):
         available_width = letter[0] - 72  # Subtracting 72 points as a margin
         # Adjusting column widths as needed
         # You can adjust the factors below as per your requirement
-        col_widths = [available_width * 0.12, available_width * 0.12, available_width * 0.75]
+        col_widths = [available_width * 0.12, available_width * 0.12, available_width * 0.46, available_width * 0.3]
 
         table = Table(table_data, colWidths=col_widths, hAlign='LEFT', style=self.table_style, repeatRows=1)           
         self.elements.append(table)
@@ -123,7 +123,10 @@ class PDFReport(BaseDocTemplate):
         
     def add_table(self, csv_file_path):
         folder_title = None
-        block_data = []
+        raster_block_data = []
+        vector_block_data = []
+        raster_column_headers = []
+        vector_column_headers = []
 
         # Open the .csv file and read its content
         with open(csv_file_path, 'r', newline='') as csv_file:
@@ -140,21 +143,27 @@ class PDFReport(BaseDocTemplate):
 
                 for row in csv_reader:
                     if not row:  # Check for blank line indicating the end of a data block
-                        if block_data:
-                            self.process_block_data(block_data)
-                            # Reset variables for the next block
-                            folder_title = None
-                            block_data = []
+                        folder_title = None
                     elif len(row) == 1:  # Check if the row has only one column (folder title)
                         folder_title = ' '.join(row)
-                        self.add_folder_title(folder_title) # Add folder title to pdf doc
-                    elif folder_title:  # Use folder title to confirm still within data block; add row of data for end-block processing
-                        block_data.append(row)
-                        
-                # Process the last data block if any
-                if block_data:
-                    self.process_block_data(block_data)
-                        
+                        #self.add_folder_title(folder_title) # Add folder title to pdf doc
+                    elif folder_title:  # Use folder title to confirm still within data block; add row of data for end-block processing 
+                        row_with_title = row + [folder_title]
+                        if "RM" in folder_title:
+                            # Append folder_title as the fourth column to each row
+                            if any(any(char.isdigit() for char in string) for string in row): # digits means it's a line of data; ignore headers
+                                raster_block_data.append(row_with_title)
+                            elif not raster_column_headers:
+                                raster_column_headers = row
+                                raster_block_data.insert(0, raster_column_headers)
+                        else:
+                             # Append folder_title as the fourth column to each row
+                            if any(any(char.isdigit() for char in string) for string in row): # digits means it's a line of data; ignore headers
+                                vector_block_data.append(row_with_title)
+                            elif not vector_column_headers:
+                                vector_column_headers = row
+                                vector_block_data.insert(0, vector_column_headers)
+
             else:
                 for i, row in enumerate(csv_reader):
                     if i == 0:
@@ -162,6 +171,13 @@ class PDFReport(BaseDocTemplate):
                     else:
                         self.add_folder_data("\n".join(row))  # Treat each single line as a paragraph
                 self.elements.append(Spacer(1, 12))  # Add space after each table
+
+        # Process the last data block if any
+        if raster_block_data:
+            self.process_block_data(raster_block_data)
+        
+        if vector_block_data:
+            self.process_block_data(vector_block_data)
 
     def save_report(self):
         pdf_report = PDFReport(self.path, pagesize=letter)
