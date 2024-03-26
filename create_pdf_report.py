@@ -39,6 +39,7 @@ class PDFReport(BaseDocTemplate):
         # set styles for toc
         self.toc = TableOfContents()
 
+        # set styles for TOC headers; these also apply to headers in document as well
         self.toc.levelStyles = [
             PS(fontSize=16, name='TOCHeading1', spaceBefore=5, spaceAfter=15),
             PS(fontSize=12, name='TOCHeading2', spaceBefore=5, spaceAfter=15),
@@ -54,7 +55,6 @@ class PDFReport(BaseDocTemplate):
         ])
 
     def afterFlowable(self, flowable):
-        print("""Registers TOC entries.""")
         if isinstance(flowable, Paragraph):
             text = flowable.getPlainText()
             style = flowable.style.name

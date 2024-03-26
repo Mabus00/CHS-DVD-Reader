@@ -1,7 +1,8 @@
 '''
-Main CONTROLLER for app.  There are two sub controllers:
+Main CONTROLLER for app.  There are three sub controllers:
 1. sub-controller to build_database
 2. sub-controller to run_checker.
+3. sub-controller to build pdf report.
 
 I chose to use custom signals and slots to provide greater seperation of concerns and looser coupling.
 I could have gone directly from the UI signal to the slot but chose this instead.

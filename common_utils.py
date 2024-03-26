@@ -34,8 +34,6 @@ def clear_all_text_boxes(text_browsers):
     for text_browser in text_browsers:
         text_browser.clear()
 
-    print('all text boxes cleared')
-
 ''' Database common functions '''
 
 def initialize_database(database_name, target_textbox):
