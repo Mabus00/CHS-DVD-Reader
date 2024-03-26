@@ -108,11 +108,26 @@ class PDFReport(BaseDocTemplate):
         self.canv.drawString(1.5 * cm, 0.75 * cm, f"Page {page_num}")
         self.canv.restoreState()
 
+    def custom_sort(self, row):
+        # Extract the first column value
+        first_column_value = row[0]
+        # Check if the first column value is numeric or alphanumeric
+        if first_column_value.isdigit():  # Numeric value
+            return int(first_column_value)  # Convert to integer for sorting
+        else:  # Alphanumeric value
+            return first_column_value  # Sorting as string
+        
     def process_block_data(self, block_data):
         table_data = []
         # Process block data
         for data_row in block_data:
             table_data.extend([data_row])
+
+        # Sort table_data by the first column using the custom sorting function
+        sorted_table_data = sorted(table_data[1:], key=self.custom_sort)
+
+        # Add the header row to the sorted data
+        table_data = [block_data[0]] + sorted_table_data
         
         # Width of letter-sized paper minus margins and paddings
         available_width = self.pageSize[0] - 72  # Subtracting 72 points as a margin
