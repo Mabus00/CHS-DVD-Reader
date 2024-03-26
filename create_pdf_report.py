@@ -40,8 +40,8 @@ class PDFReport(BaseDocTemplate):
         self.toc = TableOfContents()
 
         self.toc.levelStyles = [
-            PS(fontSize=16, name='TOCHeading1', spaceBefore=5),
-            PS(fontSize=12, name='TOCHeading2', spaceBefore=5),
+            PS(fontSize=16, name='TOCHeading1', spaceBefore=5, spaceAfter=15),
+            PS(fontSize=12, name='TOCHeading2', spaceBefore=5, spaceAfter=15),
         ]
         
         # set style for tables
