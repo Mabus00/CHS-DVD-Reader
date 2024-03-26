@@ -1,4 +1,4 @@
-from reportlab.lib.pagesizes import letter
+from reportlab.lib.pagesizes import letter, landscape
 from reportlab.platypus.doctemplate import PageTemplate, BaseDocTemplate
 from reportlab.platypus import Table, TableStyle, Paragraph, Spacer, PageBreak
 from reportlab.platypus.frames import Frame
@@ -16,14 +16,16 @@ class PDFReport(BaseDocTemplate):
         self.path = path
         self.elements = []
 
+        self.pageSize = landscape(letter)
         # Create a canvas object
-        self.canv = canvas.Canvas(path, pagesize=letter)
+        self.canv = canvas.Canvas(path, pagesize=self.pageSize)
 
         # define document page template
         self.allowSplitting = 0
         super().__init__(self.path, **kw)
+        
         # set template for document
-        template = PageTemplate('normal', [Frame(1.5*cm, 1.5*cm, 15*cm, 25*cm, id='F1')], onPageEnd = self.footer)
+        template = PageTemplate('normal', [Frame(2*cm, 2*cm, 20*cm, 18*cm, id='F1')], onPageEnd=self.footer)
         self.addPageTemplates(template)
         
         # set styles for document
@@ -33,6 +35,7 @@ class PDFReport(BaseDocTemplate):
             PS(fontSize=12, name='Folder Title', spaceBefore = 15, spaceAfter=20),
             PS(fontSize=10, name='Folder Data', spaceBefore = 10, spaceAfter=10, leftIndent = 10),
         ]
+
         # set styles for toc
         self.toc = TableOfContents()
 
@@ -112,10 +115,10 @@ class PDFReport(BaseDocTemplate):
             table_data.extend([data_row])
         
         # Width of letter-sized paper minus margins and paddings
-        available_width = letter[0] - 72  # Subtracting 72 points as a margin
+        available_width = self.pageSize[0] - 72  # Subtracting 72 points as a margin
         # Adjusting column widths as needed
         # You can adjust the factors below as per your requirement
-        col_widths = [available_width * 0.12, available_width * 0.12, available_width * 0.46, available_width * 0.3]
+        col_widths = [available_width * 0.10, available_width * 0.10, available_width * 0.55, available_width * 0.23]
 
         table = Table(table_data, colWidths=col_widths, hAlign='LEFT', style=self.table_style, repeatRows=1)           
         self.elements.append(table)
@@ -180,7 +183,7 @@ class PDFReport(BaseDocTemplate):
             self.process_block_data(vector_block_data)
 
     def save_report(self):
-        pdf_report = PDFReport(self.path, pagesize=letter)
+        pdf_report = PDFReport(self.path, pagesize=self.pageSize)
         pdf_report.multiBuild(self.elements)
 
 # Main execution block (can be used for testing)
