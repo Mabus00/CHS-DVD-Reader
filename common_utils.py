@@ -10,6 +10,7 @@ import subprocess
 import time
 from datetime import datetime
 import csv
+import chardet
 
 ''' common functions used by more than one model / module'''
 def open_file_explorer(parent, input_path):
@@ -109,22 +110,38 @@ def get_dvd_name(input_data_path, max_retries=5, retry_interval=1):
     print("Maximum number of retries reached. DVD name not found.")
     return None
 
+# Function to detect file encoding using chardet
+def detect_encoding(file_path):
+    with open(file_path, 'rb') as f:
+        rawdata = f.read()
+    encoding_result = chardet.detect(rawdata)
+    return encoding_result['encoding']
+
 # Function to create a table with column names from a text file
 def create_table(table_name, file_path, cursor, file_extension):
     if file_extension == 'txt':
         with open(file_path, 'r', errors='ignore') as txt_file:
             column_names = txt_file.readline().strip().split('\t')
     else:
-        with open(file_path, 'r', newline='', encoding='utf-8') as csv_file:
-            csv_reader = csv.reader(csv_file)
-            # Read the first row to get column names
-            column_names = next(csv_reader)
-    sanitized_column_names = [name.replace(".", "").strip() for name in column_names]
-    quoted_column_names = [f'"{name}"' for name in sanitized_column_names]
-    column_names_sql = ', '.join(quoted_column_names)
-    create_table_sql = f"CREATE TABLE IF NOT EXISTS {table_name} ({column_names_sql})"
-    cursor.execute(create_table_sql)
-
+        # Detect the encoding of the file
+        detected_encoding = detect_encoding(file_path)
+        detected_encoding = detected_encoding.lower()  # Convert to lowercase
+        print(f'detected encoding = {detected_encoding}')
+        try:
+            # Open the file using the detected encoding
+            with open(file_path, 'r', newline='', encoding=detected_encoding) as csv_file:
+                csv_reader = csv.reader(csv_file)
+                # Read the first row to get column names
+                column_names = next(csv_reader)
+                sanitized_column_names = [name.replace(".", "").strip() for name in column_names]
+                quoted_column_names = [f'"{name}"' for name in sanitized_column_names]
+                column_names_sql = ', '.join(quoted_column_names)
+                create_table_sql = f"CREATE TABLE IF NOT EXISTS {table_name} ({column_names_sql})"
+                cursor.execute(create_table_sql)
+        except UnicodeDecodeError as e:
+            print(f"Error decoding file '{file_path}': {e}")
+            # Handle the error as needed
+   
 # Function to insert data into a table from a .txt or .csv file
 def insert_data(table_name, file_path, cursor, file_extension):
     try:
@@ -224,27 +241,34 @@ def detect_column_changes(column_index, base_table, secondary_table, table_name)
     return (table_name, found_rows) if found_rows else None
 ''' 
 Raster table columns:
-0 Chart 
+0 BSB Chart 
 1 File
 2 Edition Date (yyyymmdd)
 3 Last NTM (yyyymmdd)
 4 Raster Edition
-5 Title
+5 KAP Files
+6 Region
+7 Title
 
 Vector table columns:
-0 Chart
-1 ENC
-2 EDTN.UPDN = Edition Number.Update Number
-3 ISDT = Issue Date (dd-Mmm-yyyy)
-4 UADT = Update Application Date (dd-Mmm-yyyy)
-5 Title
+0 Collection
+1 Cell Name
+2 EDTN = Edition Number
+3 UPDN = Update Number
+4 ISDT = Issue Date (dd-Mmm-yyyy)
+5 UADT = Update Application Date (dd-Mmm-yyyy)
+6 SLAT = Southern Lattitude
+7 WLON = Western Longitude
+8 NLAT= Northern Lattitude
+9 ELON = Eastern Longitude
+10 Title
 
 '''
 
 def get_column_headers(table_type, selected_cols):
     # return the selected column headers
-    raster_table_columns = ["Chart", "File", "Edition Date", "Last NTM", "Raster Edition", "Title"]
-    vector_table_columns = ["Chart", "ENC", "EDTN", "ISDT", "UADT", "Title"]
+    raster_table_columns = ["BSB Chart", "File", "Edition Date", "Last NTM", "Raster Edition", "Kap FIles", "Region", "Title"]
+    vector_table_columns = ["Collection", "Cell_Name", "EDTN", "UPDN", "ISDT", "UADT", "SLAT", "WLON", "NLAT", "ELON", "Title"]
     # Select appropriate columns based on table_type
     if table_type == "raster":
         selected_columns = [raster_table_columns[idx] for idx in selected_cols if idx < len(raster_table_columns)]
