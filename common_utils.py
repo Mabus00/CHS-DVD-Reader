@@ -115,7 +115,7 @@ def detect_encoding(file_path):
     with open(file_path, 'rb') as f:
         rawdata = f.read()
     encoding_result = chardet.detect(rawdata)
-    return encoding_result['encoding']
+    return encoding_result['encoding'].lower()  # Convert to lowercase
 
 # Function to create a table with column names from a text file
 def create_table(table_name, file_path, cursor, file_extension):
@@ -125,8 +125,7 @@ def create_table(table_name, file_path, cursor, file_extension):
     else:
         # Detect the encoding of the file
         detected_encoding = detect_encoding(file_path)
-        detected_encoding = detected_encoding.lower()  # Convert to lowercase
-        print(f'detected encoding = {detected_encoding}')
+        print(f'create_table detected encoding = {detected_encoding}')
         try:
             # Open the file using the detected encoding
             with open(file_path, 'r', newline='', encoding=detected_encoding) as csv_file:
@@ -158,17 +157,23 @@ def insert_data(table_name, file_path, cursor, file_extension):
                     insert_sql = f"INSERT INTO {table_name} VALUES ({placeholders})"
                     cursor.execute(insert_sql, data)
         elif file_extension == 'csv':
-            with open(file_path, 'r', newline='', encoding='utf-8') as csv_file:
-                csv_reader = csv.reader(csv_file, delimiter=',')
-                # Skip the first two lines (column names and extra line if needed)
-                next(csv_reader)  
-                for row in csv_reader:
-                    if row:  # Check if the row is not empty; there seems to be an empty row at the end of the data
-                        # Process the non-empty row
-                        data = row
-                        placeholders = ', '.join(['?'] * len(data))
-                        insert_sql = f"INSERT INTO {table_name} VALUES ({placeholders})"
-                        cursor.execute(insert_sql, data)
+            try: # Detect the encoding of the file
+                detected_encoding = detect_encoding(file_path)
+                print(f'insert_data {table_name} detected encoding = {detected_encoding}')
+                with open(file_path, 'r', newline='', encoding=detected_encoding) as csv_file:
+                    csv_reader = csv.reader(csv_file, delimiter=',')
+                    # Skip the first two lines (column names and extra line if needed)
+                    next(csv_reader)  
+                    for row in csv_reader:
+                        if row:  # Check if the row is not empty; there seems to be an empty row at the end of the data
+                            # Process the non-empty row
+                            data = row
+                            placeholders = ', '.join(['?'] * len(data))
+                            insert_sql = f"INSERT INTO {table_name} VALUES ({placeholders})"
+                            cursor.execute(insert_sql, data)
+            except UnicodeDecodeError as e:
+                print(f"Error decoding file '{file_path}': {e}")
+                # Handle the error as needed
         else:
             raise ValueError("Unsupported file extension.")
     # following is to capture errors if and when they occur
