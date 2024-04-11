@@ -414,20 +414,22 @@ def write_csv_mods_to_gui(csv_mod_file_path, target_textbox):
             # Read each row of the CSV file
             for i, row in enumerate(csv_reader):
                 if len(row) == 1: # this is a folder title
-                    # If this is not the first folder title, add a newline before the next folder title
-                    # if current_folder_title:
-                    #     formatted_data += '\n'
-                    #current_folder_title = row[0]  # Extract folder title
-                    formatted_data += f"{row[0]}\n"  # Add folder title
-                elif formatted_data:  # Ensure there is a folder title before adding data
-                    if row and row[0]:
-                        if "RM" in row[0]:
-                            formatted_data += '\t\t'.join(row) + '\n'
+                    folder_title = row[0]
+                    formatted_data += f"{folder_title}\n"  # Add folder title
+                else:  # Ensure there is a folder title before adding data
+                    if row:
+                        if not row[1]:
+                            row[1] = "            "
+                        if "RM" in folder_title:
+                            if any(any(char.isdigit() for char in string) for string in row): # digits means it's a line of data
+                                formatted_data += row[0] + '\t\t' + row[1] + '\t\t' + row[2] + '\n'
+                            else: # no digits means it's a header row
+                                formatted_data += row[0] + '\t' + row[1] + '\t\t' + row[2] + '\n'
                         else:
                             if any(any(char.isdigit() for char in string) for string in row): # digits means it's a line of data
                                 formatted_data += row[0] + '\t\t' + row[1] + '\t' + row[2] + '\n'
                             else: # no digits means it's a header row
-                                formatted_data += row[0] + '\t\t' + row[1] + '\t\t' + row[2] + '\n'
+                                formatted_data += row[0] + '\t' + row[1] + '\t\t' + row[2] + '\n'
                     else:
                         formatted_data += '\n'
 
