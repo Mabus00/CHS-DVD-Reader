@@ -111,11 +111,12 @@ class PDFReport(BaseDocTemplate):
     def custom_sort(self, row):
         # Extract the first column value
         first_column_value = row[0]
-        # Check if the first column value is numeric or alphanumeric
-        if first_column_value.isdigit():  # Numeric value
+        # Check if the first column value is numeric
+        if isinstance(first_column_value, int) or first_column_value.isdigit():
             return int(first_column_value)  # Convert to integer for sorting
-        else:  # Alphanumeric value
+        else:
             return first_column_value  # Sorting as string
+
         
     def process_block_data(self, block_data):
         table_data = []
@@ -164,7 +165,6 @@ class PDFReport(BaseDocTemplate):
                         folder_title = None
                     elif len(row) == 1:  # Check if the row has only one column (folder title)
                         folder_title = ' '.join(row)
-                        #self.add_folder_title(folder_title) # Add folder title to pdf doc
                     elif folder_title:  # Use folder title to confirm still within data block; add row of data for end-block processing 
                         row_with_title = row + [folder_title]
                         if "RM" in folder_title:

@@ -125,7 +125,7 @@ def create_table(table_name, file_path, cursor, file_extension):
     else:
         # Detect the encoding of the file
         detected_encoding = detect_encoding(file_path)
-        print(f'create_table detected encoding = {detected_encoding}')
+        #print(f'create_table detected encoding = {detected_encoding}')
         try:
             # Open the file using the detected encoding
             with open(file_path, 'r', newline='', encoding=detected_encoding) as csv_file:
@@ -138,7 +138,7 @@ def create_table(table_name, file_path, cursor, file_extension):
                 create_table_sql = f"CREATE TABLE IF NOT EXISTS {table_name} ({column_names_sql})"
                 cursor.execute(create_table_sql)
         except UnicodeDecodeError as e:
-            print(f"Error decoding file '{file_path}': {e}")
+            print(f"Error in create_table decoding file '{file_path}': {e}")
             # Handle the error as needed
    
 # Function to insert data into a table from a .txt or .csv file
@@ -159,7 +159,7 @@ def insert_data(table_name, file_path, cursor, file_extension):
         elif file_extension == 'csv':
             try: # Detect the encoding of the file
                 detected_encoding = detect_encoding(file_path)
-                print(f'insert_data {table_name} detected encoding = {detected_encoding}')
+                #print(f'insert_data {table_name} detected encoding = {detected_encoding}')
                 with open(file_path, 'r', newline='', encoding=detected_encoding) as csv_file:
                     csv_reader = csv.reader(csv_file, delimiter=',')
                     # Skip the first two lines (column names and extra line if needed)
@@ -172,10 +172,10 @@ def insert_data(table_name, file_path, cursor, file_extension):
                             insert_sql = f"INSERT INTO {table_name} VALUES ({placeholders})"
                             cursor.execute(insert_sql, data)
             except UnicodeDecodeError as e:
-                print(f"Error decoding file '{file_path}': {e}")
+                print(f"Error in insert_data decoding file '{file_path}': {e}")
                 # Handle the error as needed
         else:
-            raise ValueError("Unsupported file extension.")
+            raise ValueError("Unsupported file extension in insert_data.")
     # following is to capture errors if and when they occur
     except sqlite3.OperationalError as e:
         print(f"SQLite operational error: {e}")
@@ -307,12 +307,12 @@ def prep_csv_for_gui(csv_file_path):
                 if num_columns == 1:
                     if "RM" in row[0]:
                         # only show these columns
-                        col_indices = [0,3,5]
+                        col_indices = [0,3,7]
                         table_type = "raster"
                         # set header row column tabs
                         col_headers = get_column_headers(table_type, col_indices)
                     else:
-                        col_indices = [1,4,5]
+                        col_indices = [1,5,10]
                         table_type = "vector"
                         # set header row column tabs; needs an extra tab to line things up
                         col_headers = get_column_headers(table_type, col_indices)
