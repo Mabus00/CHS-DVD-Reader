@@ -125,8 +125,10 @@ class PDFReport(BaseDocTemplate):
             table_data.extend([data_row])
 
         # Sort table_data by the first column using the custom sorting function
-        sorted_table_data = sorted(table_data[1:], key=self.custom_sort)
-
+        try:
+            sorted_table_data = sorted(table_data[1:], key=lambda row: (row[0].isdigit(), row[0]))
+        except Exception as e:
+            print(f"An error occurred during sorting: {e}")
         # Add the header row to the sorted data
         table_data = [block_data[0]] + sorted_table_data
         
