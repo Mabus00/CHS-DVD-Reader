@@ -67,6 +67,9 @@ class CHSDVDReaderApp(QMainWindow):
         self.current_database_conn = ""
         self.current_database_cursor = ""
 
+        self.master_yyyymmdd = ""
+        self.current_yyyymmdd = ""
+
         # set master database input path to nothing; user must select path manually 
         self.master_database_input_path = ""
         self.master_database_name = "master_database.db"
@@ -172,8 +175,8 @@ class CHSDVDReaderApp(QMainWindow):
                 self.compare_databases = CompareDatabases(self.master_database_cursor, self.current_database_cursor)
                 # temp_tables_missing_in_current represent tables that have been removed; tables_missing_in_master represent tables that have been added in current
                 # tables_master_temp and tables_current_temp have yyyymmdd removed; do this once and share with other modules
-                # master_yyyymmdd and current_yyyymmdd are the extracted yyyymmdd for each
-                tables_master_temp, temp_tables_missing_in_master, tables_current_temp, temp_tables_missing_in_current, master_yyyymmdd, current_yyyymmdd = self.compare_databases.compare_databases()
+                # self.master_yyyymmdd and self.current_yyyymmdd are the extracted yyyymmdd for each
+                tables_master_temp, temp_tables_missing_in_master, tables_current_temp, temp_tables_missing_in_current, self.master_yyyymmdd, self.current_yyyymmdd = self.compare_databases.compare_databases()
                 # report withdrawn or new folders in current_database
                 if temp_tables_missing_in_current or temp_tables_missing_in_master:
                     utils.show_warning_popup("Possible errors were noted. See the Misc. Results tab.")
@@ -191,26 +194,27 @@ class CHSDVDReaderApp(QMainWindow):
                 tables_master_temp = [table for table in tables_master_temp if table not in tables_current_temp]
                 # instantiate CompareChartNumbers
                 self.compare_chart_numbers = CompareChartNumbers(self.master_database_cursor, self.current_database_cursor)
-                charts_withdrawn, new_charts = self.compare_chart_numbers.compare_chart_numbers(tables_master_temp, master_yyyymmdd, current_yyyymmdd)
-                # Report missing charts on missing charts tab; can't use same process as above because of textbox identification
+                charts_withdrawn, new_charts = self.compare_chart_numbers.compare_chart_numbers(tables_master_temp, self.master_yyyymmdd, self.current_yyyymmdd)
+                # Report missing charts on missing charts tab; can't use same process as above because of filenames and textbox identification
                 if charts_withdrawn:
                     utils.process_report(charts_withdrawn, 'charts_withdrawn', self.charts_withdrawn_signals.chart_withdrawn_textbox)
                # Report new charts on new charts tab
                 if new_charts:
                     utils.process_report(new_charts, 'new_charts', self.new_charts_signals.new_charts_textbox)
+                
                # PART 3 OF 3 - find data mismatches
                 # instantiate FindDataMismatches
                 self.find_data_mismatches = FindDataMismatches(self.master_database_cursor, self.current_database_cursor)
-                new_editions, misc_findings = self.find_data_mismatches.find_mismatches(tables_master_temp, master_yyyymmdd, current_yyyymmdd)
-                # report new_editions and misc. findings (findings that couldn't be categorized as New Charts, New Editions or Charts Withdrawn)
-                # Report missing charts on missing charts tab; can't use same process as above because of textbox identification
+                new_editions, misc_findings = self.find_data_mismatches.find_mismatches(tables_master_temp, self.master_yyyymmdd, self.current_yyyymmdd)
+                # report new_editions
                 if new_editions:
                     utils.process_report(new_editions, 'new_editions', self.new_editions_signals.new_editions_textbox)
-                # Report new charts on new charts tab
+                # Report misc. findings (findings that couldn't be categorized as New Charts, New Editions or Charts Withdrawn)
                 if misc_findings:
                     message = "Uncategorized Findings"
                     utils.process_report(misc_findings, 'misc_findings_type1', self.errors_signals.errors_textbox, message)
                     utils.show_warning_popup("Possible errors were noted. See the Misc. Results tab.")
+                
                 # Print a message to indicate that the checker has run
                 self.run_checker_signals.run_checker_textbox.emit('\nThe Checker ran succesfully!')
                 self.run_checker_successful = True
@@ -223,6 +227,7 @@ class CHSDVDReaderApp(QMainWindow):
         utils.close_database(self.run_checker_signals.run_checker_textbox, self.current_database_conn, self.current_database_name)
 
     def update_master_database(self):
+        # intent is to allow user to update master_database so next time program is run there's no need to re-create
         # first confirm the program has run successfully before allowing user to update the master_database
         if self.run_checker_successful:
             # confirm errors are accepted
@@ -252,17 +257,12 @@ class CHSDVDReaderApp(QMainWindow):
             return
 
     def create_pdf_report(self):
-        print('create_pdf_report')
-
         # establish database connections; operate under assumption that master_database won't be created each time widget is used
         self.master_database_conn, self.master_database_cursor = utils.get_database_connection(self.master_database_name, self.database_signals.create_database_textbox)
         self.current_database_conn, self.current_database_cursor = utils.get_database_connection(self.current_database_name, self.database_signals.create_database_textbox)
 
-        table_prefixes = ['EastDVD', 'WestDVD']
-        master_dates, current_dates = self.run_checker.get_databases_yyyymmdd(self.master_database_conn, self.current_database_conn, table_prefixes)
-
         # set report title
-        report_title = f"{current_dates['EastDVD']} CHS DVD Report"
+        report_title = f"{self.current_yyyymmdd} CHS DVD Report"
 
         # establish the working directory
         directory = os.getcwd()
