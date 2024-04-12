@@ -12,7 +12,6 @@ Updated to streamline.
 # Import necessary modules
 import os
 import common_utils as utils
-from datetime import datetime
 
 # Define the RunChecker class
 class RunChecker():
