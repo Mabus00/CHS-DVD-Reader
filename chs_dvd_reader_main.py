@@ -43,7 +43,7 @@ class CHSDVDReaderApp(QMainWindow):
         # create list of text browsers so they can be cleared en masse
         self.text_browsers = [obj for name, obj in inspect.getmembers(self.ui) if isinstance(obj, QTextEdit)]
 
-        # create an ordered list of txt files so I can prioritize selection for the pdf report
+        # create an ordered list of csv files so I can prioritize selection for the pdf report
         self.report_csv_files = [
             "misc_findings_type1.csv",
             "misc_findings_type2.csv",
@@ -52,6 +52,7 @@ class CHSDVDReaderApp(QMainWindow):
             "charts_withdrawn.csv"
         ]
         
+        # these files are pre-formatted versions of the above files; used for the gui windows and pdf report
         self.csv_mod_files = [
             "misc_findings_type1_mod.csv",
             "misc_findings_type2_mod.csv",
@@ -148,7 +149,7 @@ class CHSDVDReaderApp(QMainWindow):
         self.run_checker = RunChecker(self.current_database_name, self.run_checker_signals.run_checker_textbox, self.ui.checker_data_input_path.text())
         
         # THREE PARTS TO RUN CHECKING
-        # before starting confirm pre-build checks (checking whether to delete existing database and a valid path is provided) are met
+        # before starting confirm pre-build checks; checking whether to delete existing database and a valid path is provided
         if self.run_checker.pre_build_checks():
             # establish database connections; operate under assumption that master_database won't be created each time widget is used
             self.master_database_conn, self.master_database_cursor = utils.get_database_connection(self.master_database_name, self.database_signals.create_database_textbox)
@@ -166,7 +167,7 @@ class CHSDVDReaderApp(QMainWindow):
                 utils.show_warning_popup('You have error messages that need to be addressed.  See the Progress Report window.')
             else:
                 # PART 1 OF 3 - compare the folder content of the master and current databases and report new (i.e., not in master but in current) or missing / withdrawn
-                # (i.e., in master but not in current) folders on the appropriate tabs.
+                # (i.e., in master but not in current) folders on the appropriate gui tab
                 # run this first so you can ignore missing tables in PART 2 and 3
                 self.compare_databases = CompareDatabases(self.master_database_cursor, self.current_database_cursor)
                 # temp_tables_missing_in_current represent tables that have been removed; tables_missing_in_master represent tables that have been added in current
@@ -183,13 +184,7 @@ class CHSDVDReaderApp(QMainWindow):
                     for error_type, table_list in {"missing_current": temp_tables_missing_in_current, "missing_master": temp_tables_missing_in_master}.items():
                         if table_list:
                             message = error_messages[error_type]
-                            csv_file_path = 'misc_findings_type2.csv'
-                            csv_mod_file_path = 'misc_findings_type2_mod.csv'
-                            # Call the method to save the data structure to the CSV file
-                            utils.save_data_to_csv(table_list, message, csv_file_path)
-                            # type of report is type 2; non-tuple
-                            utils.prep_csv_for_gui(csv_file_path)
-                            utils.write_csv_mods_to_gui(csv_mod_file_path, self.errors_signals.errors_textbox)
+                            utils.process_report(table_list, 'misc_findings_type2', self.errors_signals.errors_textbox, message)
 
                 # PART 2 OF 2 - compare master and current databases and report charts withdrawn and new charts
                 # Remove tables_missing_from_current from tables_master so table content matches; no need to check tables_missing_in_master because these are newly added
@@ -199,24 +194,10 @@ class CHSDVDReaderApp(QMainWindow):
                 charts_withdrawn, new_charts = self.compare_chart_numbers.compare_chart_numbers(tables_master_temp, master_yyyymmdd, current_yyyymmdd)
                 # Report missing charts on missing charts tab; can't use same process as above because of textbox identification
                 if charts_withdrawn:
-                    # type of report is type 1; tuple therefore provide a csv_file_path name for report purposes
-                    csv_file_path = 'charts_withdrawn.csv'
-                    csv_mod_file_path = 'charts_withdrawn_mod.csv'
-                    # Call the method to save the data structure to the CSV file
-                    utils.save_data_to_csv(charts_withdrawn, None, csv_file_path)
-                    # type of report is type 1; list of tuples
-                    utils.prep_csv_for_gui(csv_file_path)
-                    utils.write_csv_mods_to_gui(csv_mod_file_path, self.charts_withdrawn_signals.chart_withdrawn_textbox)
+                    utils.process_report(charts_withdrawn, 'charts_withdrawn', self.charts_withdrawn_signals.chart_withdrawn_textbox)
                # Report new charts on new charts tab
                 if new_charts:
-                    # type of report is type 1; tuple therefore provide a csv_file_path name for report purposes
-                    csv_file_path = 'new_charts.csv'
-                    csv_mod_file_path = 'new_charts_mod.csv'
-                    # Call the method to save the data structure to the CSV file
-                    utils.save_data_to_csv(new_charts, None, csv_file_path)
-                    # type of report is type 1; list of tuples
-                    utils.prep_csv_for_gui(csv_file_path)
-                    utils.write_csv_mods_to_gui(csv_mod_file_path, self.new_charts_signals.new_charts_textbox)
+                    utils.process_report(new_charts, 'new_charts', self.new_charts_signals.new_charts_textbox)
                # PART 3 OF 3 - find data mismatches
                 # instantiate FindDataMismatches
                 self.find_data_mismatches = FindDataMismatches(self.master_database_cursor, self.current_database_cursor)
@@ -224,24 +205,11 @@ class CHSDVDReaderApp(QMainWindow):
                 # report new_editions and misc. findings (findings that couldn't be categorized as New Charts, New Editions or Charts Withdrawn)
                 # Report missing charts on missing charts tab; can't use same process as above because of textbox identification
                 if new_editions:
-                    csv_file_path = 'new_editions.csv'
-                    csv_mod_file_path = 'new_editions_mod.csv'
-                    # Call the method to save the data structure to the CSV file
-                    utils.save_data_to_csv(new_editions, None, csv_file_path)
-                    # type of report is type 1; list of tuples
-                    utils.prep_csv_for_gui(csv_file_path)
-                    utils.write_csv_mods_to_gui(csv_mod_file_path, self.new_editions_signals.new_editions_textbox)
+                    utils.process_report(new_editions, 'new_editions', self.new_editions_signals.new_editions_textbox)
                 # Report new charts on new charts tab
                 if misc_findings:
                     message = "Uncategorized Findings"
-                    # type of report is type 1; tuple therefore provide a csv_file_path name for report purposes
-                    csv_file_path = 'misc_findings_type1.csv'
-                    csv_mod_file_path = 'misc_findings_type1_mod.csv'
-                    # Call the method to save the data structure to the CSV file
-                    utils.save_data_to_csv(misc_findings, message, csv_file_path)
-                    # type of report is type 1; list of tuples
-                    utils.prep_csv_for_gui(csv_file_path)
-                    utils.write_csv_mods_to_gui(csv_mod_file_path, self.errors_signals.errors_textbox, message, csv_file_path)
+                    utils.process_report(misc_findings, 'misc_findings_type1', self.errors_signals.errors_textbox, message)
                     utils.show_warning_popup("Possible errors were noted. See the Misc. Results tab.")
                 # Print a message to indicate that the checker has run
                 self.run_checker_signals.run_checker_textbox.emit('\nThe Checker ran succesfully!')

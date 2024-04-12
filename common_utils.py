@@ -110,6 +110,17 @@ def get_dvd_name(input_data_path, max_retries=5, retry_interval=1):
     print("Maximum number of retries reached. DVD name not found.")
     return None
 
+def process_report(data, csv_file_name, gui_text_box, message=None):
+    csv_file_path = f'{csv_file_name}.csv'
+    csv_mod_file_path = f'{csv_file_name}_mod.csv'
+    
+    # Save data to CSV file
+    save_data_to_csv(data, message, csv_file_path)
+    
+    # Prepare data for GUI tab
+    prep_csv_for_gui(csv_file_path)
+    write_csv_mods_to_gui(csv_mod_file_path, gui_text_box)
+
 # Function to detect file encoding using chardet
 def detect_encoding(file_path):
     with open(file_path, 'rb') as f:
