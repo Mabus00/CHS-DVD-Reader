@@ -277,13 +277,13 @@ class CHSDVDReaderApp(QMainWindow):
         # Add toc to the report
         self.create_pdf_report.add_toc('Table of Contents')
 
-        # Filter only the .csv files; these represent the results of running the DVD checker
+        # Filter only the _mod.csv files; formatted csv for gui window and pdf report
         csv_files = glob.glob(directory + "/*_mod.csv")
         
         # Create a set of filenames from csv_files for faster lookup
         csv_files_set = set(map(lambda x: x.split('\\')[-1], csv_files))
 
-        # Filter out filenames from csv_files that are not in self.csv_mod_files
+        # Filter out filenames from csv_files that are not in self.csv_mod_files; possible not all files were created (e.g., no misc findings so no misc files)
         csv_files_filtered = [filename for filename in csv_files_set if filename in self.csv_mod_files]
 
         # Sort csv_files_filtered to match the order of self.csv_mod_files
