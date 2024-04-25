@@ -224,36 +224,6 @@ class CHSDVDReaderApp(QMainWindow):
         utils.close_database(self.database_signals.create_database_textbox, self.master_database_conn, self.master_database_name)
         utils.close_database(self.run_checker_signals.run_checker_textbox, self.current_database_conn, self.current_database_name)
 
-    def update_master_database(self):
-        # intent is to allow user to update master_database so next time program is run there's no need to re-create
-        # first confirm the program has run successfully before allowing user to update the master_database
-        if self.run_checker_successful:
-            # confirm errors are accepted
-            if self.ui.errorsTextBrowser.toPlainText().strip() == "":
-                # if no misc_results then nothing to confirm
-                self.ui.acceptErrorsCheckBox.setChecked(True)  # Check the acceptErrorsCheckBox (on misc_resutls tab)
-                #self.ui.acceptResultsCheckBox.setChecked(True)  # Check the acceptResultsCheckBox (on run_checker tab)
-            else:
-                print('misc results textbox is NOT empty')
-            # both acceptErrorsCheckBox and acceptResultsCheckBox must be checked before proceeding
-            if self.ui.acceptErrorsCheckBox.isChecked() and self.ui.acceptResultsCheckBox.isChecked():
-                print(f'Accept Misc. Results is {self.ui.acceptErrorsCheckBox.isChecked()}')
-                print(f'Results reviewed and acceptable is {self.ui.acceptResultsCheckBox.isChecked()}')
-                # confirm with popup
-                confirmation = utils.yes_or_no_popup("Are you sure you want to overwrite the Master Database with the current CHS DVDs?")
-                if confirmation == 16384: # pyQT code returned for yes
-                    print(f'user says yes {confirmation}')
-                    utils.delete_existing_database(self.master_database_name, self.run_checker_signals.run_checker_textbox)
-                    utils.rename_database(self.current_database_name, self.master_database_name)
-                else:
-                    print(f'user says no {confirmation}')
-            else:
-                print('misc_results and/or run_checker results not accepted; returning')
-                return
-        else:
-            print('run_checker hasnt run')
-            return
-
     def create_pdf_report(self):
         # establish database connections; operate under assumption that master_database won't be created each time widget is used
         self.master_database_conn, self.master_database_cursor = utils.get_database_connection(self.master_database_name, self.database_signals.create_database_textbox)
