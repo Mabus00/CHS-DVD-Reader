@@ -342,11 +342,6 @@ def yes_or_no_popup(message):
                         QMessageBox.StandardButton.No)
     return reply.exec()
 
-def rename_database(old_database_name, new_database_name):
-    print('making current the new master database')
-    # Replace 'current_database.db' and 'master_database.db' with your actual file names
-    os.rename(old_database_name, new_database_name)
-
 def merge_files(file1_path, file2_path):
     if os.path.exists(file1_path) and os.path.exists(file2_path):
         with open(file1_path, "a") as file1, open(file2_path, "r") as file2:

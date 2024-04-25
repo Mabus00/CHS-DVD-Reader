@@ -100,7 +100,6 @@ class CHSDVDReaderApp(QMainWindow):
         # run checker tab
         self.ui.selectCheckerDataPathButton.clicked.connect(self.run_checker_signals.data_input_path_button.emit)
         self.ui.runCheckerButton.clicked.connect(self.run_checker_signals.run_checker_button.emit)
-        self.ui.buildNewMasterDatabaseButton.clicked.connect(self.run_checker_signals.build_new_master_database_button.emit)
         self.ui.createPDFReportButton.clicked.connect(self.run_checker_signals.create_pdf_report_button.emit)
         # create database tab
         self.ui.selectDataPathButton.clicked.connect(self.database_signals.database_input_path_button.emit)
@@ -110,7 +109,6 @@ class CHSDVDReaderApp(QMainWindow):
         # run checker tab
         self.run_checker_signals.data_input_path_button.connect(lambda: utils.open_file_explorer(self.ui.checker_data_input_path, self.current_database_input_path))
         self.run_checker_signals.run_checker_button.connect(self.run_checker)
-        self.run_checker_signals.build_new_master_database_button.connect(self.update_master_database)
         self.run_checker_signals.create_pdf_report_button.connect(self.create_pdf_report)
         # create database tab
         self.database_signals.database_input_path_button.connect(lambda: utils.open_file_explorer(self.ui.database_input_path, self.master_database_input_path))
@@ -285,6 +283,8 @@ class CHSDVDReaderApp(QMainWindow):
             self.create_pdf_report.add_table(csv_file_path)
         # Save the report
         self.create_pdf_report.save_report()
+        # Print a message to indicate that the checker has run
+        self.run_checker_signals.run_checker_textbox.emit('\nThe .pdf report was created succesfully!')
         # close the databases
         utils.close_database(self.database_signals.create_database_textbox, self.master_database_conn, self.master_database_name)
         utils.close_database(self.run_checker_signals.run_checker_textbox, self.current_database_conn, self.current_database_name)
