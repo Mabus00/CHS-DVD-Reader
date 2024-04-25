@@ -27,16 +27,12 @@ class RunChecker():
 
     def pre_build_checks(self):
         path_selected = True
-        
         # delete if necessary; database will be rebuilt
-        # NOTE UNCOMMENT FOR PRODUCTION ONLY
         if os.path.exists(self.current_database_name):
             utils.delete_existing_database(self.current_database_name, self.run_checker_textbox)
-
         # ensure user has selected a data input path
         if not utils.confirm_data_path(self.input_data_path):
             path_selected = False
-        
         return path_selected
     
     # Method to compare databases
