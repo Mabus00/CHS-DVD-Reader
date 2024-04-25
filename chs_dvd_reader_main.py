@@ -134,7 +134,7 @@ class CHSDVDReaderApp(QMainWindow):
             # establish database connections; operate under assumption that master_database won't be created each time widget is used
             # note that this can't be done earlier because pre-build-checks deletes existing databases, and this can't happen if a connection to the database has been opened
             self.master_database_conn, self.master_database_cursor = utils.get_database_connection(self.master_database_name, self.database_signals.create_database_textbox)
-            self.create_db.generate_database(self.master_database_conn, self.master_database_cursor, 'Master Database')
+            self.create_db.generate_database(self.master_database_conn, self.master_database_cursor, self.master_database_name)
         else:
             return
         # close the master database so it can be opened in run_checker (assumption is that create_database isn't always used)
@@ -158,7 +158,7 @@ class CHSDVDReaderApp(QMainWindow):
 
             # instantiate generate_database and create the current month's database
             self.create_db = BuildDatabase(self.current_database_name, None, self.run_checker_signals.run_checker_textbox, self.ui.checker_data_input_path.text())
-            self.create_db.generate_database(self.current_database_conn, self.current_database_cursor, 'Current Database')
+            self.create_db.generate_database(self.current_database_conn, self.current_database_cursor, self.current_database_name)
 
             # compliance = East and West tables within each database have the same date and the new current database is at least one month older than the master database
             # required to proceed further
