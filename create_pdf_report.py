@@ -1,3 +1,8 @@
+'''
+Creates the .pdf report.
+
+'''
+
 from reportlab.lib.pagesizes import letter, landscape
 from reportlab.platypus.doctemplate import PageTemplate, BaseDocTemplate
 from reportlab.platypus import Table, TableStyle, Paragraph, Spacer, PageBreak
@@ -54,6 +59,7 @@ class PDFReport(BaseDocTemplate):
             ('WORDWRAP', (0, 0), (-1, -1), 1),  # Enable word wrap for the third column
         ])
 
+    # code that allows the addition of text/tables/content to the document after the creation of the document
     def afterFlowable(self, flowable):
         if isinstance(flowable, Paragraph):
             text = flowable.getPlainText()
@@ -83,7 +89,7 @@ class PDFReport(BaseDocTemplate):
         self.elements.append(self.toc)
         self.elements.append(PageBreak())
 
-    # add to TOC and make headings into hyperlinks
+    # add content to TOC and make headings into hyperlinks
     def add_to_toc(self, text, style, message = ""):
         #create bookmarkname
         bn = sha1((message + text + style.name).encode()).hexdigest()
@@ -116,28 +122,24 @@ class PDFReport(BaseDocTemplate):
             return int(first_column_value)  # Convert to integer for sorting
         else:
             return first_column_value  # Sorting as string
-
-        
+       
     def process_block_data(self, block_data):
         table_data = []
         # Process block data
         for data_row in block_data:
             table_data.extend([data_row])
-
         # Sort table_data by the first column using the custom sorting function
         try:
             sorted_table_data = sorted(table_data[1:], key=lambda row: (row[0].isdigit(), row[0]))
         except Exception as e:
             print(f"An error occurred during sorting: {e}")
         # Add the header row to the sorted data
-        table_data = [block_data[0]] + sorted_table_data
-        
+        table_data = [block_data[0]] + sorted_table_data     
         # Width of letter-sized paper minus margins and paddings
         available_width = self.pageSize[0] - 72  # Subtracting 72 points as a margin
         # Adjusting column widths as needed
         # You can adjust the factors below as per your requirement
         col_widths = [available_width * 0.10, available_width * 0.10, available_width * 0.55, available_width * 0.23]
-
         table = Table(table_data, colWidths=col_widths, hAlign='LEFT', style=self.table_style, repeatRows=1)           
         self.elements.append(table)
         self.elements.append(Spacer(1, 10))  # Add space after each table
@@ -148,11 +150,9 @@ class PDFReport(BaseDocTemplate):
         vector_block_data = []
         raster_column_headers = []
         vector_column_headers = []
-
         # Open the .csv file and read its content
         with open(csv_file_path, 'r', newline='') as csv_file:
             csv_reader = csv.reader(csv_file)
-
             if "misc" not in csv_file_path:
                 # Extract the base name from the full path to add to TOC
                 basename = os.path.basename(csv_file_path)
@@ -161,7 +161,6 @@ class PDFReport(BaseDocTemplate):
                 filename =  filename_without_extension.replace('_', ' ').split()
                 filename_title = ' '.join(word.capitalize() for word in filename[:2])
                 self.add_to_toc(filename_title, self.toc.levelStyles[0])
-
                 for row in csv_reader:
                     if not row:  # Check for blank line indicating the end of a data block
                         folder_title = None
@@ -183,7 +182,6 @@ class PDFReport(BaseDocTemplate):
                             elif not vector_column_headers:
                                 vector_column_headers = row
                                 vector_block_data.insert(0, vector_column_headers)
-
             else:
                 for i, row in enumerate(csv_reader):
                     if i == 0:
@@ -191,11 +189,9 @@ class PDFReport(BaseDocTemplate):
                     else:
                         self.add_folder_data("\n".join(row))  # Treat each single line as a paragraph
                 self.elements.append(Spacer(1, 12))  # Add space after each table
-
         # Process the last data block if any
         if raster_block_data:
             self.process_block_data(raster_block_data)
-        
         if vector_block_data:
             self.process_block_data(vector_block_data)
 

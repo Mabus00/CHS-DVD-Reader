@@ -260,43 +260,31 @@ class CHSDVDReaderApp(QMainWindow):
         # establish database connections; operate under assumption that master_database won't be created each time widget is used
         self.master_database_conn, self.master_database_cursor = utils.get_database_connection(self.master_database_name, self.database_signals.create_database_textbox)
         self.current_database_conn, self.current_database_cursor = utils.get_database_connection(self.current_database_name, self.database_signals.create_database_textbox)
-
         # set report title
         report_title = f"{self.current_yyyymmdd} CHS DVD Report"
-
         # establish the working directory
         directory = os.getcwd()
         path = os.path.join(directory, f"{report_title}.pdf")   
-
         # instantiate pdf_report
         self.create_pdf_report = PDFReport(path)
-
         # Add title to the report
         self.create_pdf_report.add_report_title(report_title)
-
         # Add toc to the report
         self.create_pdf_report.add_toc('Table of Contents')
-
         # Filter only the _mod.csv files; formatted csv for gui window and pdf report
-        csv_files = glob.glob(directory + "/*_mod.csv")
-        
+        csv_files = glob.glob(directory + "/*_mod.csv") 
         # Create a set of filenames from csv_files for faster lookup
         csv_files_set = set(map(lambda x: x.split('\\')[-1], csv_files))
-
         # Filter out filenames from csv_files that are not in self.csv_mod_files; possible not all files were created (e.g., no misc findings so no misc files)
         csv_files_filtered = [filename for filename in csv_files_set if filename in self.csv_mod_files]
-
         # Sort csv_files_filtered to match the order of self.csv_mod_files
         csv_files_sorted = sorted(csv_files_filtered, key=lambda x: self.csv_mod_files.index(x))
-
         for file in csv_files_sorted:
             csv_file_path = os.path.join(directory, file)
             # Add the content as a table to the PDF report
             self.create_pdf_report.add_table(csv_file_path)
-
         # Save the report
         self.create_pdf_report.save_report()
-        
         # close the databases
         utils.close_database(self.database_signals.create_database_textbox, self.master_database_conn, self.master_database_name)
         utils.close_database(self.run_checker_signals.run_checker_textbox, self.current_database_conn, self.current_database_name)
