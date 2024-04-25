@@ -12,7 +12,6 @@ from datetime import datetime
 import csv
 import chardet
 
-''' common functions used by more than one model / module'''
 def open_file_explorer(parent, input_path):
     input_path = QFileDialog.getExistingDirectory(parent, "Select Folder")
     input_path = input_path.replace("/", "\\")
@@ -34,8 +33,6 @@ def clear_all_text_boxes(text_browsers):
     # Create a list of QTextBrowser widgets by inspecting the module
     for text_browser in text_browsers:
         text_browser.clear()
-
-''' Database common functions '''
 
 def initialize_database(database_name, target_textbox):
     conn = sqlite3.connect(database_name)
@@ -113,10 +110,8 @@ def get_dvd_name(input_data_path, max_retries=5, retry_interval=1):
 def process_report(data, csv_file_name, gui_text_box, message=None):
     csv_file_path = f'{csv_file_name}.csv'
     csv_mod_file_path = f'{csv_file_name}_mod.csv'
-    
     # Save data to CSV file
     save_data_to_csv(data, message, csv_file_path)
-    
     # Prepare data for GUI tab
     prep_csv_for_gui(csv_file_path)
     write_csv_mods_to_gui(csv_mod_file_path, gui_text_box)
@@ -128,7 +123,7 @@ def detect_encoding(file_path):
     encoding_result = chardet.detect(rawdata)
     return encoding_result['encoding'].lower()  # Convert to lowercase
 
-# Function to create a table with column names from a text file
+# Function to create a table with column names from a .txt or .csv file
 def create_table(table_name, file_path, cursor, file_extension):
     if file_extension == 'txt':
         with open(file_path, 'r', errors='ignore') as txt_file:
@@ -193,8 +188,6 @@ def insert_data(table_name, file_path, cursor, file_extension):
     except Exception as e:
         print(f"Error inserting data: {e}")
 
-''' Run Checker common functions '''
-
 # Function to remove indicated portion from table_name
 def remove_text(table_name, part_to_replace):
     parts = table_name.split('_')
@@ -219,42 +212,35 @@ def get_first_table_yyyymmdd(prefix, database_conn):
     cursor = database_conn.cursor()
     cursor.execute(f"SELECT name FROM sqlite_master WHERE type='table' AND name LIKE '{prefix}%'")
     tables = cursor.fetchall()
-
     if tables:
         first_table = tables[0][0]
         return extract_yyyymmdd(first_table)
-
     return None
 
-''' compare_database_tables common functions '''
 def detect_column_changes(column_index, base_table, secondary_table, table_name):
     # using the column_index to identify the comparator, detect changes in cell content (i.e., missing cell content)
     # base_table = primary table against which the secondary_table is being compared
     # reset encountered column content
     encountered_column_content = []
-    
     # Create a list of tuples containing (row_index, cell_content) from secondary_table for comparison
     column_content = [(i, row[column_index].strip()) for i, row in enumerate(secondary_table)]
-    
     # Initialize a list to store the rows where missing cell content has been found
     found_rows = []
-    
     # Iterate through rows of base_table
     for i, row in enumerate(base_table):
         # get base_table cell content for the current row
         cell_content = row[column_index].strip()
-        
         # Check if the cell content from base_table is not in secondary_table
         if (cell_content not in [content[1] for content in column_content]) and (cell_content not in [content[1] for content in encountered_column_content]):
             # Append the row to the list
             found_rows.append(row)
-        
         # whether or not above condition fails add it to encountered_column_content so we don't keep checking repeating cell content
         if cell_content not in [content[1] for content in encountered_column_content]:
             # Add the cell content to the encountered_column_content list
             encountered_column_content.append((i, cell_content))
     # returns a tuple consisting of the table_name and a list of tuples with the row data
     return (table_name, found_rows) if found_rows else None
+
 ''' 
 Raster table columns:
 0 BSB Chart 
@@ -302,7 +288,6 @@ def prep_csv_for_gui(csv_file_path):
     # Construct the output file path by appending "_mod" before the file extension
     output_csv_file = file_name + "_mod" + file_extension
     folder_title = None
-
     # Open the input CSV file for reading and the output CSV file for writing
     with open(csv_file_path, 'r', newline='') as input_file, open(output_csv_file, 'w', newline='') as output_file:
         # Create a CSV reader object for the input file
@@ -443,6 +428,5 @@ def write_csv_mods_to_gui(csv_mod_file_path, target_textbox):
                                 formatted_data += row[0] + '\t' + row[1] + '\t\t' + row[2] + '\n'
                     else:
                         formatted_data += '\n'
-
     # Send formatted_data to target_textbox.emit()
     target_textbox.emit(formatted_data)
