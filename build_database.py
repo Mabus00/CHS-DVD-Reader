@@ -1,10 +1,8 @@
 '''
-Creates the sqlite database and populates tables by reading from CHS DVDs inserted in DVD reader.
-Intent is that user will only load one CHS East and one CHS West DVD.
+Creates the sqlite database and populates tables by reading from CHS DVDs / system files.
+If DVDs, intent is that user will only load one CHS East and one CHS West DVD.
 This forms the database. Later code will read current CHS DVDs and compare data to what is in database
 to check for errors, new charts, new editions, charts withdrawn and potential errors.
-
-Intent later is to modify this code to also read from a .zip file (this is how the monthly data is received).
 
 '''
 
@@ -91,27 +89,24 @@ class BuildDatabase():
     def process_folders(self, folders, folder_path, source_name):
         for folder in folders:
             if folder.startswith("RM") or folder.startswith("V"):
-                self.process_folder(folder, folder_path, source_name)
+                table_name = f"{source_name}_{folder.replace('-', '_')}"
+                sub_folder_path = os.path.join(folder_path, folder)
 
-    def process_folder(self, folder, folder_path, source_name):
-        table_name = f"{source_name}_{folder.replace('-', '_')}"
-        sub_folder_path = os.path.join(folder_path, folder)
-
-        for file_name in os.listdir(sub_folder_path):
-            file_path = os.path.join(sub_folder_path, file_name)
-            # following ignores anything that isn't a file (i.e., folders)
-            if os.path.isfile(file_path):
-                # get the extension so file can be read correctly
-                file_extension = file_name.split('.')[-1].lower()
-                files = utils.get_files(sub_folder_path, file_extension)
-                if file_extension == "csv" or file_extension == "txt":
-                    # it's understood there's only one file; method is written so it can apply if there are >1 files
-                    for file in files:
-                        file_path = os.path.join(sub_folder_path, file)
-                        utils.create_table(table_name, file_path, self.master_database_cursor, file_extension)  # Create the table
-                        utils.insert_data(table_name, file_path, self.master_database_cursor, file_extension)    # Insert data into the table
-                elif file_extension == "":
-                    self.create_database_textbox.emit("\nNo .txt or .csv files in this folder.")
+                for file_name in os.listdir(sub_folder_path):
+                    file_path = os.path.join(sub_folder_path, file_name)
+                    # following ignores anything that isn't a file (i.e., folders)
+                    if os.path.isfile(file_path):
+                        # get the extension so file can be read correctly
+                        file_extension = file_name.split('.')[-1].lower()
+                        files = utils.get_files(sub_folder_path, file_extension)
+                        if file_extension == "csv" or file_extension == "txt":
+                            # it's understood there's only one file; method is written so it can apply if there are >1 files
+                            for file in files:
+                                file_path = os.path.join(sub_folder_path, file)
+                                utils.create_table(table_name, file_path, self.master_database_cursor, file_extension)  # Create the table
+                                utils.insert_data(table_name, file_path, self.master_database_cursor, file_extension)    # Insert data into the table
+                        elif file_extension == "":
+                            self.create_database_textbox.emit("\nNo .txt or .csv files in this folder.")
    
 if __name__ == "__main__":
    pass
