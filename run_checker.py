@@ -33,7 +33,7 @@ class RunChecker():
         # ensure user has selected a data input path
         if not utils.confirm_data_path(self.input_data_path):
             path_selected = False
-        return path_selected
+        return path_selected, self.input_data_path
     
     # Method to compare databases
     def confirm_database_compliance(self, master_database_conn, current_database_conn):

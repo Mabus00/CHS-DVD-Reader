@@ -33,7 +33,7 @@ class BuildDatabase():
         if not utils.confirm_data_path(self.input_data_path):
             path_selected = False
         
-        return rebuild_selected, path_selected
+        return rebuild_selected, path_selected, self.input_data_path
 
     def generate_database(self, master_database_conn, master_database_cursor, database_name):
         # declare master database connection and cursor

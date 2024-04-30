@@ -71,11 +71,11 @@ class CHSDVDReaderApp(QMainWindow):
         self.current_yyyymmdd = ""
 
         # set master database input path to nothing; user must select path manually 
-        self.master_database_input_path = ""
+        self.master_database_path = ""
         self.master_database_name = "master_database.db"
 
         # set current month database input path to nothing; user must select path manually 
-        self.current_database_input_path = ""
+        self.current_database_path = ""
         self.current_database_name = "current_database.db"
 
         # Create an instance of RunCheckerSignals
@@ -107,11 +107,11 @@ class CHSDVDReaderApp(QMainWindow):
 
         # Connect custom signals to slots
         # run checker tab
-        self.run_checker_signals.data_input_path_button.connect(lambda: utils.open_file_explorer(self.ui.checker_data_input_path, self.current_database_input_path))
+        self.run_checker_signals.data_input_path_button.connect(lambda: utils.open_file_explorer(self.ui.checker_data_input_path, self.current_database_path))
         self.run_checker_signals.run_checker_button.connect(self.run_checker)
         self.run_checker_signals.create_pdf_report_button.connect(self.create_pdf_report)
         # create database tab
-        self.database_signals.database_input_path_button.connect(lambda: utils.open_file_explorer(self.ui.database_input_path, self.master_database_input_path))
+        self.database_signals.database_input_path_button.connect(lambda: utils.open_file_explorer(self.ui.database_input_path, self.master_database_path))
         self.database_signals.build_database_button.connect(self.build_database)
 
         # Using a lambda function to create an anonymous function that takes a single argument 'message'.
@@ -123,18 +123,18 @@ class CHSDVDReaderApp(QMainWindow):
         self.charts_withdrawn_signals.chart_withdrawn_textbox.connect(lambda message: utils.update_text_browser(self.ui.chartsWithdrawnTextBrowser, message))
         self.database_signals.create_database_textbox.connect(lambda message: utils.update_text_browser(self.ui.createDatabaseTextBrowser, message))
 
-        # initial state of run_checker ran successfully flag; needed to confirm the program was run before the master_database can be overwritten
-        self.run_checker_successful = False
-
     def build_database(self):
         # instantiate create_database and pass instance of database_name, etc...
         self.create_db = BuildDatabase(self.master_database_name, self.ui.rebuild_checkbox, self.database_signals.create_database_textbox, self.ui.database_input_path.text())
-        # confirm that pre-build checks are met before proceeding        
-        if all(self.create_db.pre_build_checks()):
+        # confirm that pre-build checks are met before proceeding
+        rebuild_selected, path_selected, self.master_database_path = self.create_db.pre_build_checks()
+        if all([rebuild_selected, path_selected]):
             # establish database connections; operate under assumption that master_database won't be created each time widget is used
             # note that this can't be done earlier because pre-build-checks deletes existing databases, and this can't happen if a connection to the database has been opened
+            self.master_database_path = os.path.join(self.master_database_path, self.master_database_name)
+            # utils-get-database_connection creates the master_database in the desired folder
             self.master_database_conn, self.master_database_cursor = utils.get_database_connection(self.master_database_name, self.database_signals.create_database_textbox)
-            self.create_db.generate_database(self.master_database_conn, self.master_database_cursor, self.master_database_name)
+            self.create_db.generate_database(self.master_database_conn, self.master_database_cursor, self.master_database_path)
         else:
             return
         # close the master database so it can be opened in run_checker (assumption is that create_database isn't always used)
@@ -151,7 +151,8 @@ class CHSDVDReaderApp(QMainWindow):
         
         # THREE PARTS TO RUN CHECKING
         # before starting confirm pre-build checks; checking whether to delete existing database and a valid path is provided
-        if self.run_checker.pre_build_checks():
+        path_selected, self.current_database_path = self.run_checker.pre_build_checks()
+        if path_selected and self.master_database_path != '':
             # establish database connections; operate under assumption that master_database won't be created each time widget is used
             self.master_database_conn, self.master_database_cursor = utils.get_database_connection(self.master_database_name, self.database_signals.create_database_textbox)
             self.current_database_conn, self.current_database_cursor = utils.get_database_connection(self.current_database_name, self.database_signals.create_database_textbox)
@@ -215,9 +216,11 @@ class CHSDVDReaderApp(QMainWindow):
                 
                 # Print a message to indicate that the checker has run
                 self.run_checker_signals.run_checker_textbox.emit('\nThe Checker ran succesfully!')
-                self.run_checker_successful = True
         else:
-            self.run_checker_successful = False
+            if not path_selected:
+                utils.show_warning_popup("The path selected for the current month is invalid.")
+            elif self.master_database_path == '':
+                utils.show_warning_popup("You need to create a master database before conducting the current month comparison.")
             return
         
         # close the databases
