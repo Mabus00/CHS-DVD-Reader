@@ -153,7 +153,7 @@ class CHSDVDReaderApp(QMainWindow):
         path_selected, self.current_database_path = self.run_checker.pre_build_checks()
         if path_selected and self.master_database_path != '':
             # establish database connections; operate under assumption that master_database won't be created each time widget is used
-            self.master_database_conn, self.master_database_cursor = utils.get_database_connection(self.master_database_name, self.database_signals.create_database_textbox)
+            self.master_database_conn, self.master_database_cursor = utils.get_database_connection(self.master_database_path, self.database_signals.create_database_textbox)
             self.current_database_conn, self.current_database_cursor = utils.get_database_connection(self.current_database_name, self.database_signals.create_database_textbox)
 
             # instantiate generate_database and create the current month's database
@@ -223,12 +223,12 @@ class CHSDVDReaderApp(QMainWindow):
             return
         
         # close the databases
-        utils.close_database(self.database_signals.create_database_textbox, self.master_database_conn, self.master_database_name)
+        utils.close_database(self.database_signals.create_database_textbox, self.master_database_conn, self.master_database_path)
         utils.close_database(self.run_checker_signals.run_checker_textbox, self.current_database_conn, self.current_database_name)
 
     def create_pdf_report(self):
         # establish database connections; operate under assumption that master_database won't be created each time widget is used
-        self.master_database_conn, self.master_database_cursor = utils.get_database_connection(self.master_database_name, self.database_signals.create_database_textbox)
+        self.master_database_conn, self.master_database_cursor = utils.get_database_connection(self.master_database_path, self.database_signals.create_database_textbox)
         self.current_database_conn, self.current_database_cursor = utils.get_database_connection(self.current_database_name, self.database_signals.create_database_textbox)
         # set report title
         report_title = f"{self.current_yyyymmdd} CHS DVD Report"
@@ -258,7 +258,7 @@ class CHSDVDReaderApp(QMainWindow):
         # Print a message to indicate that the checker has run
         self.run_checker_signals.run_checker_textbox.emit('\nThe .pdf report was created succesfully!')
         # close the databases
-        utils.close_database(self.database_signals.create_database_textbox, self.master_database_conn, self.master_database_name)
+        utils.close_database(self.database_signals.create_database_textbox, self.master_database_conn, self.master_database_path)
         utils.close_database(self.run_checker_signals.run_checker_textbox, self.current_database_conn, self.current_database_name)
 
 def main():
