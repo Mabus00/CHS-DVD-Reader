@@ -125,20 +125,19 @@ class CHSDVDReaderApp(QMainWindow):
 
     def build_database(self):
         # instantiate create_database and pass instance of database_name, etc...
-        self.create_db = BuildDatabase(self.master_database_name, self.ui.rebuild_checkbox, self.database_signals.create_database_textbox, self.ui.database_input_path.text())
+        self.master_database_path = os.path.join(self.ui.database_input_path.text(), self.master_database_name)
+        self.create_db = BuildDatabase(self.master_database_path, self.ui.rebuild_checkbox, self.database_signals.create_database_textbox, self.ui.database_input_path.text())
         # confirm that pre-build checks are met before proceeding
-        rebuild_selected, path_selected, self.master_database_path = self.create_db.pre_build_checks()
-        if all([rebuild_selected, path_selected]):
+        if all(self.create_db.pre_build_checks()):
             # establish database connections; operate under assumption that master_database won't be created each time widget is used
             # note that this can't be done earlier because pre-build-checks deletes existing databases, and this can't happen if a connection to the database has been opened
-            self.master_database_path = os.path.join(self.master_database_path, self.master_database_name)
-            # utils-get-database_connection creates the master_database in the desired folder
-            self.master_database_conn, self.master_database_cursor = utils.get_database_connection(self.master_database_name, self.database_signals.create_database_textbox)
+            # utils.get_database_connection creates the master_database in the desired folder
+            self.master_database_conn, self.master_database_cursor = utils.get_database_connection(self.master_database_path, self.database_signals.create_database_textbox)
             self.create_db.generate_database(self.master_database_conn, self.master_database_cursor, self.master_database_path)
         else:
             return
         # close the master database so it can be opened in run_checker (assumption is that create_database isn't always used)
-        utils.close_database(self.database_signals.create_database_textbox, self.master_database_conn, self.master_database_name)
+        utils.close_database(self.database_signals.create_database_textbox, self.master_database_conn, self.master_database_path)
 
     def run_checker(self):
         # clear all text boxes before running the checker

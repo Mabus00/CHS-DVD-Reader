@@ -34,23 +34,23 @@ def clear_all_text_boxes(text_browsers):
     for text_browser in text_browsers:
         text_browser.clear()
 
-def initialize_database(database_name, target_textbox):
-    conn = sqlite3.connect(database_name)
+def initialize_database(database_path, target_textbox):
+    conn = sqlite3.connect(database_path)
     cursor = conn.cursor()
-    target_textbox.emit(f"Database '{database_name}' connected")
+    target_textbox.emit(f"Database '{database_path}' connected")
     return conn, cursor
 
-def get_database_connection(database_name, target_textbox):
-    conn, cursor = initialize_database(database_name, target_textbox)
+def get_database_connection(database_path, target_textbox):
+    conn, cursor = initialize_database(database_path, target_textbox)
     return conn, cursor
 
-def confirm_database_deletion(rebuild_checkbox, database_name, target_textbox):
+def confirm_database_deletion(rebuild_checkbox, database_path, target_textbox):
     # chs_dvd.db exists
     while not rebuild_checkbox.isChecked():
         show_warning_popup("Database exists. Check the 'Confirm deletion of database' box to proceed")
         return False
     else:
-        delete_existing_database(database_name, target_textbox)
+        delete_existing_database(database_path, target_textbox)
         return True
 
 def confirm_data_path(text):
@@ -59,14 +59,14 @@ def confirm_data_path(text):
         return False
     return True
         
-def delete_existing_database(database_name, target_textbox):
-    os.remove(database_name)
-    target_textbox.emit(f"Database '{database_name}' deleted.")
+def delete_existing_database(database_path, target_textbox):
+    os.remove(database_path)
+    target_textbox.emit(f"Database '{database_path}' deleted.")
 
-def close_database(target_textbox, database_conn, database_name):
+def close_database(target_textbox, database_conn, database_path):
     if database_conn:
         database_conn.close()
-    target_textbox.emit(f'\n{database_name} closed.')
+    target_textbox.emit(f'\n{database_path} closed.')
 
 # Function to list folders in the DVD path
 def list_folders(folder_path):
