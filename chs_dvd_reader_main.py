@@ -140,6 +140,7 @@ class CHSDVDReaderApp(QMainWindow):
         utils.close_database(self.database_signals.create_database_textbox, self.master_database_conn, self.master_database_path)
 
     def run_checker(self):
+        self.current_database_path = os.path.join(self.ui.checker_data_input_path.text(), self.current_database_name)
         # clear all text boxes before running the checker
         utils.clear_all_text_boxes(self.text_browsers)
         # delete existing csv files so they can be updated; these files are used to fill tabs and create the pdf report
