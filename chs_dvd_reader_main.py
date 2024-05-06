@@ -147,18 +147,18 @@ class CHSDVDReaderApp(QMainWindow):
         utils.delete_existing_files(self.report_csv_files)
         utils.delete_existing_files(self.csv_mod_files)
         # instantiate run_checker
-        self.run_checker = RunChecker(self.current_database_name, self.run_checker_signals.run_checker_textbox, self.ui.checker_data_input_path.text())
+        self.run_checker = RunChecker(self.current_database_name, self.run_checker_signals.run_checker_textbox, self.current_database_path)
         
         # THREE PARTS TO RUN CHECKING
         # before starting confirm pre-build checks; checking whether to delete existing database and a valid path is provided
-        path_selected, self.current_database_path = self.run_checker.pre_build_checks()
-        if path_selected and self.master_database_path != '':
+        path_selected = self.run_checker.pre_build_checks()
+        if path_selected:
             # establish database connections; operate under assumption that master_database won't be created each time widget is used
             self.master_database_conn, self.master_database_cursor = utils.get_database_connection(self.master_database_path, self.database_signals.create_database_textbox)
             self.current_database_conn, self.current_database_cursor = utils.get_database_connection(self.current_database_name, self.database_signals.create_database_textbox)
 
             # instantiate generate_database and create the current month's database
-            self.create_db = BuildDatabase(self.current_database_name, None, self.run_checker_signals.run_checker_textbox, self.ui.checker_data_input_path.text())
+            self.create_db = BuildDatabase(self.current_database_name, None, self.run_checker_signals.run_checker_textbox, self.current_database_path)
             self.create_db.generate_database(self.current_database_conn, self.current_database_cursor, self.current_database_name)
 
             # compliance = East and West tables within each database have the same date and the new current database is at least one month older than the master database
@@ -186,7 +186,7 @@ class CHSDVDReaderApp(QMainWindow):
                     for error_type, table_list in {"missing_current": temp_tables_missing_in_current, "missing_master": temp_tables_missing_in_master}.items():
                         if table_list:
                             message = error_messages[error_type]
-                            utils.process_report(table_list, 'misc_findings_type2', self.errors_signals.errors_textbox, message)
+                            utils.process_report(table_list, 'misc_findings_type2', self.errors_signals.errors_textbox, self.current_database_path, message)
 
                 # PART 2 OF 2 - compare master and current databases and report charts withdrawn and new charts
                 # Remove tables_missing_from_current from tables_master so table content matches; no need to check tables_missing_in_master because these are newly added
