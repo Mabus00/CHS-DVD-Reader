@@ -71,8 +71,8 @@ class CHSDVDReaderApp(QMainWindow):
         self.current_yyyymmdd = ""
 
         # set master database input path to nothing; user must select path manually 
-        self.master_database_path = ""
-        self.master_database_name = "master_database.db"
+        self.master_database_folder = ""
+        self.master_database_path = "master_database.db"
 
         # set current month database input path to nothing; user must select path manually 
         self.current_database_path = ""
@@ -111,7 +111,7 @@ class CHSDVDReaderApp(QMainWindow):
         self.run_checker_signals.run_checker_button.connect(self.run_checker)
         self.run_checker_signals.create_pdf_report_button.connect(self.create_pdf_report)
         # create database tab
-        self.database_signals.database_input_path_button.connect(lambda: utils.open_file_explorer(self.ui.database_input_path, self.master_database_path))
+        self.database_signals.database_input_path_button.connect(lambda: utils.open_file_explorer(self.ui.database_input_path, self.master_database_folder))
         self.database_signals.build_database_button.connect(self.build_database)
 
         # Using a lambda function to create an anonymous function that takes a single argument 'message'.
@@ -125,15 +125,16 @@ class CHSDVDReaderApp(QMainWindow):
 
     def build_database(self):
         # instantiate create_database and pass instance of database_name, etc...
-        self.master_database_path = os.path.join(self.ui.database_input_path.text(), self.master_database_name)
-        self.create_db = BuildDatabase(self.master_database_path, self.ui.rebuild_checkbox, self.database_signals.create_database_textbox, self.ui.database_input_path.text())
+        self.master_database_folder = self.ui.database_input_path.text() # path to master database folder
+        self.master_database_path = os.path.join(self.master_database_folder, self.master_database_path) # actual path to master database
+        self.create_db = BuildDatabase(self.master_database_path, self.ui.rebuild_checkbox, self.database_signals.create_database_textbox, self.master_database_folder)
         # confirm that pre-build checks are met before proceeding
         if all(self.create_db.pre_build_checks()):
             # establish database connections; operate under assumption that master_database won't be created each time widget is used
             # note that this can't be done earlier because pre-build-checks deletes existing databases, and this can't happen if a connection to the database has been opened
             # utils.get_database_connection creates the master_database in the desired folder
             self.master_database_conn, self.master_database_cursor = utils.get_database_connection(self.master_database_path, self.database_signals.create_database_textbox)
-            self.create_db.generate_database(self.master_database_conn, self.master_database_cursor, self.master_database_path)
+            self.create_db.generate_database(self.master_database_conn, self.master_database_cursor)
         else:
             return
         # close the master database so it can be opened in run_checker (assumption is that create_database isn't always used)

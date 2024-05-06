@@ -11,14 +11,14 @@ import common_utils as utils
 
 class BuildDatabase():
 
-    def __init__(self, master_database_path, rebuild_checkbox, create_database_textbox, database_input_path):
-        self.master_database_path = master_database_path
+    def __init__(self, master_database_path, rebuild_checkbox, create_database_textbox, master_database_folder):
+        self.master_database_path = master_database_path  # actual path to master database
         # Create custom_signals connections
         self.rebuild_checkbox = rebuild_checkbox
         self.create_database_textbox = create_database_textbox
 
         # database data input path
-        self.input_data_path = database_input_path
+        self.master_database_folder = master_database_folder  # path to master database folder
 
     def pre_build_checks(self):
         rebuild_selected = True
@@ -30,52 +30,52 @@ class BuildDatabase():
                 rebuild_selected = False
         
         # ensure user has selected a data input path
-        if not utils.confirm_data_path(self.input_data_path):
+        if not utils.confirm_data_path(self.master_database_folder):
             path_selected = False
         
         return rebuild_selected, path_selected
 
-    def generate_database(self, master_database_conn, master_database_cursor, database_path):
+    def generate_database(self, master_database_conn, master_database_cursor):
         # declare master database connection and cursor
         self.master_database_conn = master_database_conn
         self.master_database_cursor = master_database_cursor
 
-        if self.input_data_path[:1] == "C": #  Case 1: the files are in a folder on the desktop
-            self.process_desktop_folder(database_path)
+        if self.master_database_folder[:1] == "C": #  Case 1: the files are in a folder on the desktop
+            self.process_desktop_folder()
         else:# Case 2: files are on a DVD reader
-            self.process_dvd(database_path)
+            self.process_dvd()
         # Commit the changes at the end
         self.master_database_conn.commit()
-        self.create_database_textbox.emit(f"\n{database_path} successfully created!")
+        self.create_database_textbox.emit(f"\n{self.master_database_path} successfully created!")
 
-    def process_dvd(self, database_path):
+    def process_dvd(self):
         # default to two DVDs; one East and one West
         num_sources = 2
         for source_num in range(1, num_sources + 1): 
             utils.show_warning_popup(f"Insert DVD {source_num} and press Enter when ready...")
-            dvd_name = utils.get_dvd_name(self.input_data_path)
+            dvd_name = utils.get_dvd_name(self.master_database_folder)
             if dvd_name:
-                folders = utils.list_folders(self.input_data_path)
+                folders = utils.list_folders(self.master_database_folder)
                 if folders:
-                    self.create_database_textbox.emit(f"\nAdded '{dvd_name}' to the {database_path}.")
+                    self.create_database_textbox.emit(f"\nAdded '{dvd_name}' to the {self.master_database_path}.")
                     # database data input path is self.input_data_path
-                    self.process_folders(folders, self.input_data_path, dvd_name)
+                    self.process_folders(folders, self.master_database_folder, dvd_name)
                 else:
                     self.create_database_textbox.emit(f"\nNo folders found in '{dvd_name}'.")
             else:
-                self.create_database_textbox.emit(f"\nDVD not found at path '{self.input_data_path}'.")
+                self.create_database_textbox.emit(f"\nDVD not found at path '{self.master_database_folder}'.")
 
-    def process_desktop_folder(self, database_path):
+    def process_desktop_folder(self):
         # Get the list of foldernames in the subject folder
-        folders = [item for item in os.listdir(self.input_data_path) if os.path.isdir(os.path.join(self.input_data_path, item))]
+        folders = [item for item in os.listdir(self.master_database_folder) if os.path.isdir(os.path.join(self.master_database_folder, item))]
         # Check if two folders were found
         if len(folders) == 2:
             for folder_name in folders:
                 # build desktop folder path
-                desktop_folder_path = os.path.join(self.input_data_path, folder_name)
+                desktop_folder_path = os.path.join(self.master_database_folder, folder_name)
                 folders = utils.list_folders(desktop_folder_path)
                 if folders:
-                    self.create_database_textbox.emit(f"\nAdded '{desktop_folder_path}' to the {database_path}.")
+                    self.create_database_textbox.emit(f"\nAdded '{desktop_folder_path}' to the {self.master_database_path}.")
                     self.process_folders(folders, desktop_folder_path, folder_name)
                 else:
                     self.create_database_textbox.emit(f"\no folders found in '{desktop_folder_path}'.")
