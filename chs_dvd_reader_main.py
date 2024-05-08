@@ -234,7 +234,7 @@ class CHSDVDReaderApp(QMainWindow):
         self.master_database_conn, self.master_database_cursor = utils.get_database_connection(self.master_database_path, self.database_signals.create_database_textbox)
         self.current_database_conn, self.current_database_cursor = utils.get_database_connection(self.current_database_path, self.database_signals.create_database_textbox)
         # set report title
-        report_title = f"{self.current_yyyymmdd} CHS DVD Report"
+        report_title = f"{self.master_yyyymmdd}_VS_{self.current_yyyymmdd} CHS DVD Report"
         # establish the current folder as the folder within which to save the report
         path = os.path.join(self.current_database_folder, f"{report_title}.pdf")   
         # instantiate pdf_report
