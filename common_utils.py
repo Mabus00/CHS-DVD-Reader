@@ -107,9 +107,10 @@ def get_dvd_name(input_data_path, max_retries=5, retry_interval=1):
     print("Maximum number of retries reached. DVD name not found.")
     return None
 
-def process_report(data, csv_file_name, gui_text_box, current_database_path, message=None):
-    csv_file_path = f'{csv_file_name}.csv'
-    csv_mod_file_path = f'{csv_file_name}_mod.csv'
+def process_report(data, csv_file_name, gui_text_box, current_database_folder, message=None):
+    file_path = os.path.join(current_database_folder, csv_file_name)
+    csv_file_path = f'{file_path}.csv'
+    csv_mod_file_path = f'{file_path}_mod.csv'
     # Save data to CSV file
     save_data_to_csv(data, message, csv_file_path)
     # Prepare data for GUI tab

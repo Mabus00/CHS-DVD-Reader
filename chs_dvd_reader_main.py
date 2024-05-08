@@ -75,8 +75,8 @@ class CHSDVDReaderApp(QMainWindow):
         self.master_database_path = "master_database.db"
 
         # set current month database input path to nothing; user must select path manually 
-        self.current_database_path = ""
-        self.current_database_name = "current_database.db"
+        self.current_database_folder = ""
+        self.current_database_path = "current_database.db"
 
         # Create an instance of RunCheckerSignals
         self.run_checker_signals = RunCheckerSignals()
@@ -141,14 +141,15 @@ class CHSDVDReaderApp(QMainWindow):
         utils.close_database(self.database_signals.create_database_textbox, self.master_database_conn, self.master_database_path)
 
     def run_checker(self):
-        self.current_database_path = os.path.join(self.ui.checker_data_input_path.text(), self.current_database_name)
+        self.current_database_folder = self.ui.checker_data_input_path.text() # path to current database folder
+        self.current_database_path = os.path.join(self.current_database_folder, self.current_database_path) # actual path to current database
         # clear all text boxes before running the checker
         utils.clear_all_text_boxes(self.text_browsers)
         # delete existing csv files so they can be updated; these files are used to fill tabs and create the pdf report
         utils.delete_existing_files(self.report_csv_files)
         utils.delete_existing_files(self.csv_mod_files)
         # instantiate run_checker
-        self.run_checker = RunChecker(self.current_database_name, self.run_checker_signals.run_checker_textbox, self.current_database_path)
+        self.run_checker = RunChecker(self.current_database_path, self.run_checker_signals.run_checker_textbox, self.current_database_folder)
         
         # THREE PARTS TO RUN CHECKING
         # before starting confirm pre-build checks; checking whether to delete existing database and a valid path is provided
@@ -156,11 +157,11 @@ class CHSDVDReaderApp(QMainWindow):
         if path_selected:
             # establish database connections; operate under assumption that master_database won't be created each time widget is used
             self.master_database_conn, self.master_database_cursor = utils.get_database_connection(self.master_database_path, self.database_signals.create_database_textbox)
-            self.current_database_conn, self.current_database_cursor = utils.get_database_connection(self.current_database_name, self.database_signals.create_database_textbox)
+            self.current_database_conn, self.current_database_cursor = utils.get_database_connection(self.current_database_path, self.database_signals.create_database_textbox)
 
             # instantiate generate_database and create the current month's database
-            self.create_db = BuildDatabase(self.current_database_name, None, self.run_checker_signals.run_checker_textbox, self.current_database_path)
-            self.create_db.generate_database(self.current_database_conn, self.current_database_cursor, self.current_database_name)
+            self.create_db = BuildDatabase(self.current_database_path, None, self.run_checker_signals.run_checker_textbox, self.current_database_folder)
+            self.create_db.generate_database(self.current_database_conn, self.current_database_cursor)
 
             # compliance = East and West tables within each database have the same date and the new current database is at least one month older than the master database
             # required to proceed further
@@ -187,7 +188,7 @@ class CHSDVDReaderApp(QMainWindow):
                     for error_type, table_list in {"missing_current": temp_tables_missing_in_current, "missing_master": temp_tables_missing_in_master}.items():
                         if table_list:
                             message = error_messages[error_type]
-                            utils.process_report(table_list, 'misc_findings_type2', self.errors_signals.errors_textbox, self.current_database_path, message)
+                            utils.process_report(table_list, 'misc_findings_type2', self.errors_signals.errors_textbox, self.current_database_folder, message)
 
                 # PART 2 OF 2 - compare master and current databases and report charts withdrawn and new charts
                 # Remove tables_missing_from_current from tables_master so table content matches; no need to check tables_missing_in_master because these are newly added
@@ -197,10 +198,10 @@ class CHSDVDReaderApp(QMainWindow):
                 charts_withdrawn, new_charts = self.compare_chart_numbers.compare_chart_numbers(tables_master_temp, self.master_yyyymmdd, self.current_yyyymmdd)
                 # Report missing charts on missing charts tab; can't use same process as above because of filenames and textbox identification
                 if charts_withdrawn:
-                    utils.process_report(charts_withdrawn, 'charts_withdrawn', self.charts_withdrawn_signals.chart_withdrawn_textbox)
+                    utils.process_report(charts_withdrawn, 'charts_withdrawn', self.charts_withdrawn_signals.chart_withdrawn_textbox, self.current_database_folder)
                # Report new charts on new charts tab
                 if new_charts:
-                    utils.process_report(new_charts, 'new_charts', self.new_charts_signals.new_charts_textbox)
+                    utils.process_report(new_charts, 'new_charts', self.new_charts_signals.new_charts_textbox, self.current_database_folder)
                 
                # PART 3 OF 3 - find data mismatches
                 # instantiate FindDataMismatches
@@ -208,11 +209,11 @@ class CHSDVDReaderApp(QMainWindow):
                 new_editions, misc_findings = self.find_data_mismatches.find_mismatches(tables_master_temp, self.master_yyyymmdd, self.current_yyyymmdd)
                 # report new_editions
                 if new_editions:
-                    utils.process_report(new_editions, 'new_editions', self.new_editions_signals.new_editions_textbox)
+                    utils.process_report(new_editions, 'new_editions', self.new_editions_signals.new_editions_textbox, self.current_database_folder)
                 # Report misc. findings (findings that couldn't be categorized as New Charts, New Editions or Charts Withdrawn)
                 if misc_findings:
                     message = "Uncategorized Findings"
-                    utils.process_report(misc_findings, 'misc_findings_type1', self.errors_signals.errors_textbox, message)
+                    utils.process_report(misc_findings, 'misc_findings_type1', self.errors_signals.errors_textbox, message, self.current_database_folder)
                     utils.show_warning_popup("Possible errors were noted. See the Misc. Results tab.")
                 
                 # Print a message to indicate that the checker has run
@@ -226,17 +227,16 @@ class CHSDVDReaderApp(QMainWindow):
         
         # close the databases
         utils.close_database(self.database_signals.create_database_textbox, self.master_database_conn, self.master_database_path)
-        utils.close_database(self.run_checker_signals.run_checker_textbox, self.current_database_conn, self.current_database_name)
+        utils.close_database(self.run_checker_signals.run_checker_textbox, self.current_database_conn, self.current_database_path)
 
     def create_pdf_report(self):
         # establish database connections; operate under assumption that master_database won't be created each time widget is used
         self.master_database_conn, self.master_database_cursor = utils.get_database_connection(self.master_database_path, self.database_signals.create_database_textbox)
-        self.current_database_conn, self.current_database_cursor = utils.get_database_connection(self.current_database_name, self.database_signals.create_database_textbox)
+        self.current_database_conn, self.current_database_cursor = utils.get_database_connection(self.current_database_path, self.database_signals.create_database_textbox)
         # set report title
         report_title = f"{self.current_yyyymmdd} CHS DVD Report"
-        # establish the working directory
-        directory = os.getcwd()
-        path = os.path.join(directory, f"{report_title}.pdf")   
+        # establish the current folder as the folder within which to save the report
+        path = os.path.join(self.current_database_folder, f"{report_title}.pdf")   
         # instantiate pdf_report
         self.create_pdf_report = PDFReport(path)
         # Add title to the report
@@ -244,7 +244,7 @@ class CHSDVDReaderApp(QMainWindow):
         # Add toc to the report
         self.create_pdf_report.add_toc('Table of Contents')
         # Filter only the _mod.csv files; formatted csv for gui window and pdf report
-        csv_files = glob.glob(directory + "/*_mod.csv") 
+        csv_files = glob.glob(self.current_database_folder + "/*_mod.csv") 
         # Create a set of filenames from csv_files for faster lookup
         csv_files_set = set(map(lambda x: x.split('\\')[-1], csv_files))
         # Filter out filenames from csv_files that are not in self.csv_mod_files; possible not all files were created (e.g., no misc findings so no misc files)
@@ -252,7 +252,7 @@ class CHSDVDReaderApp(QMainWindow):
         # Sort csv_files_filtered to match the order of self.csv_mod_files
         csv_files_sorted = sorted(csv_files_filtered, key=lambda x: self.csv_mod_files.index(x))
         for file in csv_files_sorted:
-            csv_file_path = os.path.join(directory, file)
+            csv_file_path = os.path.join(self.current_database_folder, file)
             # Add the content as a table to the PDF report
             self.create_pdf_report.add_table(csv_file_path)
         # Save the report
@@ -261,7 +261,7 @@ class CHSDVDReaderApp(QMainWindow):
         self.run_checker_signals.run_checker_textbox.emit('\nThe .pdf report was created succesfully!')
         # close the databases
         utils.close_database(self.database_signals.create_database_textbox, self.master_database_conn, self.master_database_path)
-        utils.close_database(self.run_checker_signals.run_checker_textbox, self.current_database_conn, self.current_database_name)
+        utils.close_database(self.run_checker_signals.run_checker_textbox, self.current_database_conn, self.current_database_path)
 
 def main():
     app = QApplication(sys.argv)
