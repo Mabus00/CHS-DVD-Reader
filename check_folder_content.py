@@ -25,7 +25,15 @@ class CheckFolderContent():
         # divide into east and west table and only keep the parts that march the folder names; lists will be used to scan sub-folders
         east_tables = ["-".join(table.split("_")[2:]) for table in tables_current if table.startswith("EastDVD_")]
         west_tables = ["-".join(table.split("_")[2:]) for table in tables_current if table.startswith("WestDVD_")]
+        '''
+        best approach - create tables with entries and compare the tables.
+        
+        best way might be to create tables of folder contents of each folder then compare that to the entries in the table.
 
+        EastDVD, folder name (e.g., RM-ARC), sub-folder name (e.g., BSBCHART), create list of contents.
+        Compare that to below; is file name in the above folder?
+
+        '''
         for table in tables_current:
             if "RM" in table:
                 self.current_database_cursor.execute(f"SELECT File FROM {table};")
