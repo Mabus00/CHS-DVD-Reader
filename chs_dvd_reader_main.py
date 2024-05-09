@@ -151,8 +151,8 @@ class CHSDVDReaderApp(QMainWindow):
         # instantiate run_checker
         self.run_checker = RunChecker(self.current_database_path, self.run_checker_signals.run_checker_textbox, self.current_database_folder)
         
-        # THREE PARTS TO RUN CHECKING
-        # before starting confirm pre-build checks; checking whether to delete existing database and a valid path is provided
+        # FOUR PARTS TO RUN CHECKING
+        # before starting confirm pre-build checks; checking whether a valid path was provided for new current database
         path_selected = self.run_checker.pre_build_checks()
         if path_selected:
             # establish database connections; operate under assumption that master_database won't be created each time widget is used
@@ -170,7 +170,14 @@ class CHSDVDReaderApp(QMainWindow):
             if not compliance:
                 utils.show_warning_popup('You have error messages that need to be addressed.  See the Progress Report window.')
             else:
-                # PART 1 OF 3 - compare the folder content of the master and current databases and report new (i.e., not in master but in current) or missing / withdrawn
+                # PART 1 OF 4 - check the current database and confirm that each sub-folder in the EAST and WEST primary folders contain the chart folders listed in that folder's .csv file
+                # e.g., for the RM-ARC folder in the EAST folder, the charts listed in the RM-ARC.csv are in the associated BSBCHART folder
+                # note - not needed for the master database; assumption is that this was confirmed in the previous month (the master in month X was the current in month X-1)
+
+
+
+
+                # PART 2 OF 4 - compare the folder content of the master and current databases and report new (i.e., not in master but in current) or missing / withdrawn
                 # (i.e., in master but not in current) folders on the appropriate gui tab
                 # run this first so you can ignore missing tables in PART 2 and 3
                 self.compare_databases = CompareDatabases(self.master_database_cursor, self.current_database_cursor)
@@ -190,7 +197,7 @@ class CHSDVDReaderApp(QMainWindow):
                             message = error_messages[error_type]
                             utils.process_report(table_list, 'misc_findings_type2', self.errors_signals.errors_textbox, self.current_database_folder, message)
 
-                # PART 2 OF 2 - compare master and current databases and report charts withdrawn and new charts
+                # PART 3 OF 4 - compare master and current databases and report charts withdrawn and new charts
                 # Remove tables_missing_from_current from tables_master so table content matches; no need to check tables_missing_in_master because these are newly added
                 tables_master_temp = [table for table in tables_master_temp if table not in tables_current_temp]
                 # instantiate CompareChartNumbers
@@ -203,7 +210,7 @@ class CHSDVDReaderApp(QMainWindow):
                 if new_charts:
                     utils.process_report(new_charts, 'new_charts', self.new_charts_signals.new_charts_textbox, self.current_database_folder)
                 
-               # PART 3 OF 3 - find data mismatches
+               # PART 4 OF 4 - find data mismatches
                 # instantiate FindDataMismatches
                 self.find_data_mismatches = FindDataMismatches(self.master_database_cursor, self.current_database_cursor)
                 new_editions, misc_findings = self.find_data_mismatches.find_mismatches(tables_master_temp, self.master_yyyymmdd, self.current_yyyymmdd)
