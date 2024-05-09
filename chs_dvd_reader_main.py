@@ -28,6 +28,7 @@ from run_checker import RunChecker
 from compare_databases import CompareDatabases
 from compare_chart_numbers import CompareChartNumbers
 from find_data_mismatches import FindDataMismatches
+from check_folder_content import CheckFolderContent
 import common_utils as utils
 from create_pdf_report import PDFReport
 import glob
@@ -173,8 +174,11 @@ class CHSDVDReaderApp(QMainWindow):
                 # PART 1 OF 4 - check the current database and confirm that each sub-folder in the EAST and WEST primary folders contain the chart folders listed in that folder's .csv file
                 # e.g., for the RM-ARC folder in the EAST folder, the charts listed in the RM-ARC.csv are in the associated BSBCHART folder
                 # note - not needed for the master database; assumption is that this was confirmed in the previous month (the master in month X was the current in month X-1)
-
-
+                self.check_folder_content = CheckFolderContent(self.master_database_cursor, self.current_database_cursor)
+                charts_missing = self.check_folder_content.check_folders(self.current_database_path)
+                # report charts_missing
+                if charts_missing:
+                    utils.show_warning_popup("Possible errors were noted. See the Misc. Results tab.")
 
 
                 # PART 2 OF 4 - compare the folder content of the master and current databases and report new (i.e., not in master but in current) or missing / withdrawn
