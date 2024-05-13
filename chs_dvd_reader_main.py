@@ -175,7 +175,7 @@ class CHSDVDReaderApp(QMainWindow):
                 # e.g., for the RM-ARC folder in the EAST folder, the charts listed in the RM-ARC.csv are in the associated BSBCHART folder
                 # note - not needed for the master database; assumption is that this was confirmed in the previous month (the master in month X was the current in month X-1)
                 self.check_folder_content = CheckFolderContent(self.master_database_cursor, self.current_database_cursor)
-                charts_missing = self.check_folder_content.check_folders(self.current_database_path)
+                charts_missing = self.check_folder_content.check_folders(self.current_database_folder)
                 # report charts_missing
                 if charts_missing:
                     utils.show_warning_popup("Possible errors were noted. See the Misc. Results tab.")

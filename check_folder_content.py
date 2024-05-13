@@ -6,6 +6,8 @@ e.g., for the RM-ARC folder in the EAST folder, the charts listed in the RM-ARC.
 '''
 
 import common_utils as utils
+import os
+import csv
 
 # Define the RunChecker class
 class CheckFolderContent():
@@ -16,37 +18,40 @@ class CheckFolderContent():
         self.master_database_cursor = master_database_cursor
         self.current_database_cursor = current_database_cursor
 
-    def check_folders(self, current_database_path):
-        charts_missing = []
-        # Get the list of table names for current_database
-        self.current_database_cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
-        # extract all the table names from the current_database
-        tables_current = [row[0] for row in self.current_database_cursor.fetchall()]
-        # divide into east and west table and only keep the parts that march the folder names; lists will be used to scan sub-folders
-        east_tables = ["-".join(table.split("_")[2:]) for table in tables_current if table.startswith("EastDVD_")]
-        west_tables = ["-".join(table.split("_")[2:]) for table in tables_current if table.startswith("WestDVD_")]
-        '''
-        best approach - create tables with entries and compare the tables.
-        
-        best way might be to create tables of folder contents of each folder then compare that to the entries in the table.
+    def compare_csv_to_files(self, csv_path, bsbchart_path):
+        # Read CSV file
+        with open(csv_path, 'r') as csv_file:
+            csv_reader = csv.reader(csv_file)
+            # Skip header if present
+            next(csv_reader)
+            # Extract second column
+            csv_data = [row[1] for row in csv_reader]
 
-        EastDVD, folder name (e.g., RM-ARC), sub-folder name (e.g., BSBCHART), create list of contents.
-        Compare that to below; is file name in the above folder?
+        # Get list of files in BSBCHART folder
+        bsbchart_files = os.listdir(bsbchart_path)
 
-        '''
-        for table in tables_current:
-            if "RM" in table:
-                self.current_database_cursor.execute(f"SELECT File FROM {table};")
-                files = self.current_database_cursor.fetchall()
-                print(f"Contents of File column in table {table}:")
-                for file_row in files:
-                    print(file_row[0])
+        # Compare CSV data to BSBCHART files
+        for filename in bsbchart_files:
+            if filename in csv_data:
+                print(f"{filename} found in CSV")
             else:
-                self.current_database_cursor.execute(f"SELECT CELL_NAME FROM {table};")
-                files = self.current_database_cursor.fetchall()
-                print(f"Contents of CELL_NAME column in table {table}:")
-                for file_row in files:
-                    print(file_row[0])
+                print(f"{filename} not found in CSV")
+        
+    def check_folders(self, current_database_folder):
+        charts_missing = []
+
+        for root, dirs, files in os.walk(current_database_folder):
+            for dir_name in dirs:
+                # Extract part before underscore
+                dvd_folder_name = dir_name.split('_')[0]
+                if dvd_folder_name.startswith('EastDVD') or dvd_folder_name.startswith('WestDVD'):
+                    dvd_path = os.path.join(root, dir_name)
+                    for root, dirs, files in os.walk(dvd_path):
+                        for file in files:
+                            if file.endswith('.csv'):
+                                csv_path = os.path.join(root, file)
+                                bsbchart_path = os.path.join(root, 'BSBCHART')
+                                self.compare_csv_to_files(csv_path, bsbchart_path)
 
         return charts_missing
 
