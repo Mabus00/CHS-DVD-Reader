@@ -17,6 +17,10 @@ class CheckFolderContent():
         self.master_database_cursor = master_database_cursor
         self.current_database_cursor = current_database_cursor
 
+        self.East_West = ['EastDVD_', 'WestDVD_']
+        self.RM_V = ['RM-', 'V-']
+        self.BSB_ENC = ['BSBCHART', 'ENC_ROOT']
+
     def read_csv_with_fallback(self, file_path):
         """Try reading a CSV file with different encodings."""
         encodings = ['utf-8', 'latin1']
@@ -28,37 +32,41 @@ class CheckFolderContent():
         raise ValueError(f"Could not read the file {file_path} with available encodings.")
 
     def check_folders(self, base_folder):
+            # start at base_folder
             for sub_folder in os.listdir(base_folder):
-                sub_folder_path = os.path.join(base_folder, sub_folder)
-                
-                if os.path.isdir(sub_folder_path):
+                if any(sub_folder.startswith(prefix) for prefix in self.East_West):
+                    sub_folder_path = os.path.join(base_folder, sub_folder)
+                    # now in EastDVD or WestDVD folder
                     for sub_sub_folder in os.listdir(sub_folder_path):
-                        sub_sub_folder_path = os.path.join(sub_folder_path, sub_sub_folder)
-                        
-                        if os.path.isdir(sub_sub_folder_path):
-                            # Find the CSV file in the sub-sub-folder
+                        if any(sub_sub_folder.startswith(prefix) for prefix in self.RM_V):
+                            # now in an R- or V- folder
+                            sub_sub_folder_path = os.path.join(sub_folder_path, sub_sub_folder)
+                            # Find the CSV file and the BSB or ENC folder in the sub-sub-folder
                             csv_file = None
                             sub_sub_sub_folder = None
-                            
                             for item in os.listdir(sub_sub_folder_path):
-                                item_path = os.path.join(sub_sub_folder_path, item)
                                 if item.endswith('.csv'):
-                                    csv_file = item_path
-                                elif os.path.isdir(item_path):
-                                    sub_sub_sub_folder = item_path
-                            
+                                    csv_file = os.path.join(sub_sub_folder_path, item)
+                                elif any(item.startswith(prefix) for prefix in self.BSB_ENC):
+                                    sub_sub_sub_folder = os.path.join(sub_sub_folder_path, item)
+
                             if csv_file and sub_sub_sub_folder:
                                 # Read the second column from the CSV file
                                 try:
+                                    # read the second column of the CSV file to extract the list of expected_files
                                     df = self.read_csv_with_fallback(csv_file)
-                                    expected_files = df.iloc[:, 0].tolist()
+                                    expected_files = df.iloc[:, 1].tolist()
                                     
-                                    # Get the list of actual files in the sub-sub-sub-folder
-                                    actual_files = [file for file in os.listdir(sub_sub_sub_folder) if file.endswith('.BSB')]
-                                    
+                                    if "BSB" in sub_sub_sub_folder:
+                                        # Get the list of actual files in the sub-sub-sub-folder
+                                        content = [file for file in os.listdir(sub_sub_sub_folder) if file.endswith('.BSB')]
+                                    else:
+                                        # List of all directories within sub_sub_sub_folder
+                                        content = [item for item in os.listdir(sub_sub_sub_folder) if os.path.isdir(os.path.join(sub_sub_sub_folder, item))]
+
                                     # Check for missing and extra files
-                                    missing_files = [file for file in expected_files if file not in actual_files]
-                                    extra_files = [file for file in actual_files if file not in expected_files]
+                                    missing_files = [file for file in expected_files if file not in content]
+                                    extra_files = [file for file in content if file not in expected_files]
                                     
                                     if missing_files:
                                         print(f"Missing files in {sub_sub_sub_folder}: {missing_files}")
