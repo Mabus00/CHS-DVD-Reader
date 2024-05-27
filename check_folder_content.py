@@ -55,7 +55,7 @@ class CheckFolderContent():
                                 try:
                                     # read the second column of the CSV file to extract the list of expected_files
                                     df = self.read_csv_with_fallback(csv_file)
-                                    expected_files = df.iloc[:, 1].tolist()
+                                    expected_files = df.iloc[:, 0].tolist()
                                     
                                     if "BSB" in sub_sub_sub_folder:
                                         # Get the list of actual files in the sub-sub-sub-folder
