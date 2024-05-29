@@ -26,7 +26,8 @@ class CheckFolderContent():
         encodings = ['utf-8', 'latin1']
         for encoding in encodings:
             try:
-                return pd.read_csv(file_path, usecols=[1], encoding=encoding)
+                # note here I'm only reading the second column
+                return pd.read_csv(file_path, usecols=[1], encoding=encoding, skiprows=1, header=None)
             except UnicodeDecodeError:
                 continue
         raise ValueError(f"Could not read the file {file_path} with available encodings.")
@@ -53,7 +54,7 @@ class CheckFolderContent():
                             if csv_file and sub_sub_sub_folder:
                                 # Read the second column from the CSV file
                                 try:
-                                    # read the second column of the CSV file to extract the list of expected_files
+                                    # read the extracted second column of the CSV file to extract the list of expected_files
                                     df = self.read_csv_with_fallback(csv_file)
                                     expected_files = df.iloc[:, 0].tolist()
                                     
