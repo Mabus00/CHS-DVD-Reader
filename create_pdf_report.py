@@ -183,6 +183,8 @@ class PDFReport(BaseDocTemplate):
                                 vector_column_headers = row
                                 vector_block_data.insert(0, vector_column_headers)
             else:
+                # anything that is misc will need to be investigated and resolved, and once done, there will be nothing to include in the report.
+                # should the issue not be resolved then it will remain in the report
                 for i, row in enumerate(csv_reader):
                     if i == 0:
                         self.add_to_toc(row[0], self.toc.levelStyles[0])

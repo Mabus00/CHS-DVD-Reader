@@ -359,14 +359,6 @@ def delete_existing_files(files):
             print(f"Deleted existing file: {file_name}")
 
 def save_data_to_csv(data, message, csv_file_path):
-    """
-    Save the given data to a CSV file.
-
-    Args:
-    - data (list): The data to be saved.
-    - message (str): The message to be written at the beginning of the file.
-    - csv_file_path (str): The file path of the CSV file to be created.
-    """
     # Open the CSV file for writing
     with open(csv_file_path, 'w', newline='') as csv_file:
         writer = csv.writer(csv_file)
