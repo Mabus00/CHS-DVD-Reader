@@ -230,7 +230,7 @@ class CHSDVDReaderApp(QMainWindow):
                 # Report misc. findings (findings that couldn't be categorized as New Charts, New Editions or Charts Withdrawn)
                 if misc_findings:
                     message = "Uncategorized Findings"
-                    utils.process_report(misc_findings, 'misc_findings_type1', self.errors_signals.errors_textbox, message, self.current_database_folder)
+                    utils.process_report(misc_findings, 'misc_findings_type1', self.errors_signals.errors_textbox, self.current_database_folder, message)
                     utils.show_warning_popup("Possible errors were noted. See the Misc. Results tab.")
                 
                 # Print a message to indicate that the checker has run
