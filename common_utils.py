@@ -1,21 +1,16 @@
 ''' 
 
-module of common functions that are called more than once by different modules
+module of common functions that are called more than once by different modules or that share other method calls
+so it makes sense to keep them together
 
 '''
 import os
 import sqlite3
 from PyQt5.QtWidgets import QMessageBox, QFileDialog
-import subprocess
-import time
 from datetime import datetime
 import csv
 import chardet
 
-def open_file_explorer(parent, input_path):
-    input_path = QFileDialog.getExistingDirectory(parent, "Select Folder")
-    input_path = input_path.replace("/", "\\")
-    parent.setText(input_path)
 
 def show_warning_popup(message):
     popup = QMessageBox()
@@ -23,16 +18,6 @@ def show_warning_popup(message):
     popup.setText(message)
     popup.setIcon(QMessageBox.Warning)
     popup.exec_()
-
-def update_text_browser(text_browser, message):
-    # updates the selected text_browser with a simple message
-    text_browser.insertPlainText(message + "\n")  # Append the message and a newline
-    text_browser.ensureCursorVisible()
-
-def clear_all_text_boxes(text_browsers):
-    # Create a list of QTextBrowser widgets by inspecting the module
-    for text_browser in text_browsers:
-        text_browser.clear()
 
 def initialize_database(database_path, target_textbox):
     conn = sqlite3.connect(database_path)
@@ -67,45 +52,6 @@ def close_database(target_textbox, database_conn, database_path):
     if database_conn:
         database_conn.close()
     target_textbox.emit(f'\n{database_path} closed.')
-
-# Function to list folders in the DVD path
-def list_folders(folder_path):
-    if os.path.exists(folder_path):
-        folders = [item for item in os.listdir(folder_path) if os.path.isdir(os.path.join(folder_path, item))]
-        return folders
-    else:
-        return []
-
-# Function to get a list of .txt or .csv files in a folder
-def get_files(folder_path, file_extension):
-    files = [file for file in os.listdir(folder_path) if file.endswith(f".{file_extension}")]
-    return files
-
-# Function to get the DVD name using the disk path; retries introduced because USB connected DVD readers can lag
-def get_dvd_name(input_data_path, max_retries=5, retry_interval=1):
-    retry_count = 0
-    while retry_count < max_retries:
-        try:
-            # Attempt to retrieve DVD name
-            output = subprocess.check_output(f'wmic logicaldisk where DeviceID="{input_data_path[:2]}" get volumename', text=True)
-            lines = output.strip().split('\n')
-            dvd_name = lines[2] if len(lines) > 1 else ''
-            if dvd_name:
-                print(f'Number of retries = {retry_count}') #number of retries
-                dvd_name = dvd_name.replace('EAST', 'East').replace('WEST', 'West')
-                return dvd_name.strip()
-        except subprocess.CalledProcessError as e:
-            # Handle the error if the subprocess call fails
-            print(f"Error while getting DVD name (Attempt {retry_count + 1}): {e}")
-        except Exception as e:
-            # Handle other exceptions, if any
-            print(f"An unexpected error occurred (Attempt {retry_count + 1}): {e}") 
-        # Wait for a specified interval before retrying
-        time.sleep(retry_interval)
-        retry_count += 1
-    # Return None if the maximum number of retries is reached
-    print("Maximum number of retries reached. DVD name not found.")
-    return None
 
 def process_report(data, csv_file_name, gui_text_box, current_database_folder, message=None):
     file_path = os.path.join(current_database_folder, csv_file_name)

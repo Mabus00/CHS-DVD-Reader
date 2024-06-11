@@ -19,7 +19,7 @@ VIEW = chs_dvd_gui
 import sys
 import inspect
 import os
-from PyQt5.QtWidgets import QApplication, QMainWindow, QTextEdit
+from PyQt5.QtWidgets import QApplication, QMainWindow, QTextEdit, QMessageBox, QFileDialog
 from PyQt5.QtGui import QFont
 from chs_dvd_gui import Ui_MainWindow
 from custom_signals import CreateDatabaseSignals, RunCheckerSignals, NewChartsSignals, NewEditionsSignals, WithdrawnSignals, ErrorsSignals
@@ -108,21 +108,37 @@ class CHSDVDReaderApp(QMainWindow):
 
         # Connect custom signals to slots
         # run checker tab
-        self.run_checker_signals.data_input_path_button.connect(lambda: utils.open_file_explorer(self.ui.checker_data_input_path, self.current_database_path))
+        self.run_checker_signals.data_input_path_button.connect(lambda: self.open_file_explorer(self.ui.checker_data_input_path, self.current_database_path))
         self.run_checker_signals.run_checker_button.connect(self.run_checker)
         self.run_checker_signals.create_pdf_report_button.connect(self.create_pdf_report)
         # create database tab
-        self.database_signals.database_input_path_button.connect(lambda: utils.open_file_explorer(self.ui.database_input_path, self.master_database_folder))
+        self.database_signals.database_input_path_button.connect(lambda: self.open_file_explorer(self.ui.database_input_path, self.master_database_folder))
         self.database_signals.build_database_button.connect(self.build_database)
 
         # Using a lambda function to create an anonymous function that takes a single argument 'message'.
         # The lambda function is being used as an argument to the emit method of the custom signal.
-        self.run_checker_signals.run_checker_textbox.connect(lambda message: utils.update_text_browser(self.ui.runCheckerTextBrowser, message))
-        self.errors_signals.errors_textbox.connect(lambda message: utils.update_text_browser(self.ui.errorsTextBrowser, message))
-        self.new_charts_signals.new_charts_textbox.connect(lambda message: utils.update_text_browser(self.ui.newChartsTextBrowser, message))
-        self.new_editions_signals.new_editions_textbox.connect(lambda message: utils.update_text_browser(self.ui.newEditionsTextBrowser, message))
-        self.charts_withdrawn_signals.chart_withdrawn_textbox.connect(lambda message: utils.update_text_browser(self.ui.chartsWithdrawnTextBrowser, message))
-        self.database_signals.create_database_textbox.connect(lambda message: utils.update_text_browser(self.ui.createDatabaseTextBrowser, message))
+        self.run_checker_signals.run_checker_textbox.connect(lambda message: self.update_text_browser(self.ui.runCheckerTextBrowser, message))
+        self.errors_signals.errors_textbox.connect(lambda message: self.update_text_browser(self.ui.errorsTextBrowser, message))
+        self.new_charts_signals.new_charts_textbox.connect(lambda message: self.update_text_browser(self.ui.newChartsTextBrowser, message))
+        self.new_editions_signals.new_editions_textbox.connect(lambda message: self.update_text_browser(self.ui.newEditionsTextBrowser, message))
+        self.charts_withdrawn_signals.chart_withdrawn_textbox.connect(lambda message: self.update_text_browser(self.ui.chartsWithdrawnTextBrowser, message))
+        self.database_signals.create_database_textbox.connect(lambda message: self.update_text_browser(self.ui.createDatabaseTextBrowser, message))
+
+    def open_file_explorer(self, parent, input_path):
+        input_path = QFileDialog.getExistingDirectory(parent, "Select Folder")
+        input_path = input_path.replace("/", "\\")
+        parent.setText(input_path)
+
+    def update_text_browser(self, text_browser, message):
+        # updates the selected text_browser with a simple message
+        text_browser.insertPlainText(message + "\n")  # Append the message and a newline
+        text_browser.ensureCursorVisible()
+
+    def clear_all_text_boxes(self, text_browsers):
+        # Create a list of QTextBrowser widgets by inspecting the module
+        for text_browser in text_browsers:
+            text_browser.clear()
+
 
     def build_database(self):
         # instantiate create_database and pass instance of database_name, etc...
@@ -145,7 +161,7 @@ class CHSDVDReaderApp(QMainWindow):
         self.current_database_folder = self.ui.checker_data_input_path.text() # path to current database folder
         self.current_database_path = os.path.join(self.current_database_folder, self.current_database_path) # actual path to current database
         # clear all text boxes before running the checker
-        utils.clear_all_text_boxes(self.text_browsers)
+        self.clear_all_text_boxes(self.text_browsers)
         # delete existing csv files so they can be updated; these files are used to fill tabs and create the pdf report
         utils.delete_existing_files(self.report_csv_files)
         utils.delete_existing_files(self.csv_mod_files)

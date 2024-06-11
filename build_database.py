@@ -8,6 +8,8 @@ to check for errors, new charts, new editions, charts withdrawn and potential er
 
 import os
 import common_utils as utils
+import subprocess
+import time
 
 class BuildDatabase():
 
@@ -48,12 +50,51 @@ class BuildDatabase():
         self.master_database_conn.commit()
         self.create_database_textbox.emit(f"\n{self.master_database_path} successfully created!")
 
+    # Function to list folders in the DVD path
+    def list_folders(self, folder_path):
+        if os.path.exists(folder_path):
+            folders = [item for item in os.listdir(folder_path) if os.path.isdir(os.path.join(folder_path, item))]
+            return folders
+        else:
+            return []
+
+    # Function to get a list of .txt or .csv files in a folder
+    def get_files(self, folder_path, file_extension):
+        files = [file for file in os.listdir(folder_path) if file.endswith(f".{file_extension}")]
+        return files
+
+    # Function to get the DVD name using the disk path; retries introduced because USB connected DVD readers can lag
+    def get_dvd_name(self, input_data_path, max_retries=5, retry_interval=1):
+        retry_count = 0
+        while retry_count < max_retries:
+            try:
+                # Attempt to retrieve DVD name
+                output = subprocess.check_output(f'wmic logicaldisk where DeviceID="{input_data_path[:2]}" get volumename', text=True)
+                lines = output.strip().split('\n')
+                dvd_name = lines[2] if len(lines) > 1 else ''
+                if dvd_name:
+                    print(f'Number of retries = {retry_count}') #number of retries
+                    dvd_name = dvd_name.replace('EAST', 'East').replace('WEST', 'West')
+                    return dvd_name.strip()
+            except subprocess.CalledProcessError as e:
+                # Handle the error if the subprocess call fails
+                print(f"Error while getting DVD name (Attempt {retry_count + 1}): {e}")
+            except Exception as e:
+                # Handle other exceptions, if any
+                print(f"An unexpected error occurred (Attempt {retry_count + 1}): {e}") 
+            # Wait for a specified interval before retrying
+            time.sleep(retry_interval)
+            retry_count += 1
+        # Return None if the maximum number of retries is reached
+        print("Maximum number of retries reached. DVD name not found.")
+        return None
+
     def process_dvd(self):
         # default to two DVDs; one East and one West
         num_sources = 2
         for source_num in range(1, num_sources + 1): 
             utils.show_warning_popup(f"Insert DVD {source_num} and press Enter when ready...")
-            dvd_name = utils.get_dvd_name(self.master_database_folder)
+            dvd_name = self.get_dvd_name(self.master_database_folder)
             if dvd_name:
                 folders = utils.list_folders(self.master_database_folder)
                 if folders:
@@ -73,7 +114,7 @@ class BuildDatabase():
             for folder_name in folders:
                 # build desktop folder path
                 desktop_folder_path = os.path.join(self.master_database_folder, folder_name)
-                folders = utils.list_folders(desktop_folder_path)
+                folders = self.list_folders(desktop_folder_path)
                 if folders:
                     self.create_database_textbox.emit(f"\nAdded '{desktop_folder_path}' to the {self.master_database_path}.")
                     self.process_folders(folders, desktop_folder_path, folder_name)
@@ -98,7 +139,7 @@ class BuildDatabase():
                     if os.path.isfile(file_path):
                         # get the extension so file can be read correctly
                         file_extension = file_name.split('.')[-1].lower()
-                        files = utils.get_files(sub_folder_path, file_extension)
+                        files = self.get_files(sub_folder_path, file_extension)
                         if file_extension == "csv" or file_extension == "txt":
                             # it's understood there's only one file; method is written so it can apply if there are >1 files
                             for file in files:
