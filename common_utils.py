@@ -199,6 +199,7 @@ def prep_csv_for_gui(csv_file_path):
             else:
                 csv_writer.writerow(row)
 
+# not used but keep
 def yes_or_no_popup(message):
     reply = QMessageBox()
     reply.setText(message)
@@ -206,6 +207,7 @@ def yes_or_no_popup(message):
                         QMessageBox.StandardButton.No)
     return reply.exec()
 
+# not used but keep
 def merge_files(file1_path, file2_path):
     if os.path.exists(file1_path) and os.path.exists(file2_path):
         with open(file1_path, "a") as file1, open(file2_path, "r") as file2:
@@ -214,12 +216,6 @@ def merge_files(file1_path, file2_path):
             file1.write("\n" + content2)
         os.remove(file2_path)
     return file1
-
-def delete_existing_files(files):
-    for file_name in files:
-        if os.path.exists(file_name):
-            os.remove(file_name)
-            print(f"Deleted existing file: {file_name}")
 
 def save_data_to_csv(data, message, csv_file_path):
     # Open the CSV file for writing
