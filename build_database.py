@@ -10,6 +10,7 @@ import os
 import common_utils as utils
 import subprocess
 import time
+import csv
 
 class BuildDatabase():
 
@@ -89,6 +90,30 @@ class BuildDatabase():
         print("Maximum number of retries reached. DVD name not found.")
         return None
 
+    # Function to create a table with column names from a .txt or .csv file
+    def create_table(self, table_name, file_path, cursor, file_extension):
+        if file_extension == 'txt':
+            with open(file_path, 'r', errors='ignore') as txt_file:
+                column_names = txt_file.readline().strip().split('\t')
+        else:
+            # Detect the encoding of the file
+            detected_encoding = utils.detect_encoding(file_path)
+            #print(f'create_table detected encoding = {detected_encoding}')
+            try:
+                # Open the file using the detected encoding
+                with open(file_path, 'r', newline='', encoding=detected_encoding) as csv_file:
+                    csv_reader = csv.reader(csv_file)
+                    # Read the first row to get column names
+                    column_names = next(csv_reader)
+                    sanitized_column_names = [name.replace(".", "").strip() for name in column_names]
+                    quoted_column_names = [f'"{name}"' for name in sanitized_column_names]
+                    column_names_sql = ', '.join(quoted_column_names)
+                    create_table_sql = f"CREATE TABLE IF NOT EXISTS {table_name} ({column_names_sql})"
+                    cursor.execute(create_table_sql)
+            except UnicodeDecodeError as e:
+                print(f"Error in create_table decoding file '{file_path}': {e}")
+                # Handle the error as needed
+
     def process_dvd(self):
         # default to two DVDs; one East and one West
         num_sources = 2
@@ -144,7 +169,7 @@ class BuildDatabase():
                             # it's understood there's only one file; method is written so it can apply if there are >1 files
                             for file in files:
                                 file_path = os.path.join(sub_folder_path, file)
-                                utils.create_table(table_name, file_path, self.master_database_cursor, file_extension)  # Create the table
+                                self.create_table(table_name, file_path, self.master_database_cursor, file_extension)  # Create the table
                                 utils.insert_data(table_name, file_path, self.master_database_cursor, file_extension)    # Insert data into the table
                         elif file_extension == "":
                             self.create_database_textbox.emit("\nNo .txt or .csv files in this folder.")

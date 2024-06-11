@@ -11,23 +11,12 @@ from datetime import datetime
 import csv
 import chardet
 
-
 def show_warning_popup(message):
     popup = QMessageBox()
     popup.setWindowTitle("Alert")
     popup.setText(message)
     popup.setIcon(QMessageBox.Warning)
     popup.exec_()
-
-def initialize_database(database_path, target_textbox):
-    conn = sqlite3.connect(database_path)
-    cursor = conn.cursor()
-    target_textbox.emit(f"Database '{database_path}' connected")
-    return conn, cursor
-
-def get_database_connection(database_path, target_textbox):
-    conn, cursor = initialize_database(database_path, target_textbox)
-    return conn, cursor
 
 def confirm_database_deletion(rebuild_checkbox, database_path, target_textbox):
     # chs_dvd.db exists
@@ -48,11 +37,6 @@ def delete_existing_database(database_path, target_textbox):
     os.remove(database_path)
     target_textbox.emit(f"Database '{database_path}' deleted.")
 
-def close_database(target_textbox, database_conn, database_path):
-    if database_conn:
-        database_conn.close()
-    target_textbox.emit(f'\n{database_path} closed.')
-
 def process_report(data, csv_file_name, gui_text_box, current_database_folder, message=None):
     file_path = os.path.join(current_database_folder, csv_file_name)
     csv_file_path = f'{file_path}.csv'
@@ -70,30 +54,6 @@ def detect_encoding(file_path):
     encoding_result = chardet.detect(rawdata)
     return encoding_result['encoding'].lower()  # Convert to lowercase
 
-# Function to create a table with column names from a .txt or .csv file
-def create_table(table_name, file_path, cursor, file_extension):
-    if file_extension == 'txt':
-        with open(file_path, 'r', errors='ignore') as txt_file:
-            column_names = txt_file.readline().strip().split('\t')
-    else:
-        # Detect the encoding of the file
-        detected_encoding = detect_encoding(file_path)
-        #print(f'create_table detected encoding = {detected_encoding}')
-        try:
-            # Open the file using the detected encoding
-            with open(file_path, 'r', newline='', encoding=detected_encoding) as csv_file:
-                csv_reader = csv.reader(csv_file)
-                # Read the first row to get column names
-                column_names = next(csv_reader)
-                sanitized_column_names = [name.replace(".", "").strip() for name in column_names]
-                quoted_column_names = [f'"{name}"' for name in sanitized_column_names]
-                column_names_sql = ', '.join(quoted_column_names)
-                create_table_sql = f"CREATE TABLE IF NOT EXISTS {table_name} ({column_names_sql})"
-                cursor.execute(create_table_sql)
-        except UnicodeDecodeError as e:
-            print(f"Error in create_table decoding file '{file_path}': {e}")
-            # Handle the error as needed
-   
 # Function to insert data into a table from a .txt or .csv file
 def insert_data(table_name, file_path, cursor, file_extension):
     try:
