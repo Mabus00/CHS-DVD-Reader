@@ -6,8 +6,7 @@ so it makes sense to keep them together
 '''
 import os
 import sqlite3
-from PyQt5.QtWidgets import QMessageBox, QFileDialog
-from datetime import datetime
+from PyQt5.QtWidgets import QMessageBox
 import csv
 import chardet
 
@@ -95,13 +94,6 @@ def insert_data(table_name, file_path, cursor, file_extension):
     except Exception as e:
         print(f"Error inserting data: {e}")
 
-# Function to remove indicated portion from table_name
-def remove_text(table_name, part_to_replace):
-    parts = table_name.split('_')
-    new_parts = [part for part in parts if part != part_to_replace]
-    new_table_name = '_'.join(new_parts)
-    return new_table_name
-
 def insert_text(table_name, text, pos_to_insert):
     parts = table_name.split('_')
     # Check if the specified part_to_replace is within the valid range
@@ -123,30 +115,6 @@ def get_first_table_yyyymmdd(prefix, database_conn):
         first_table = tables[0][0]
         return extract_yyyymmdd(first_table)
     return None
-
-def detect_column_changes(column_index, base_table, secondary_table, table_name):
-    # using the column_index to identify the comparator, detect changes in cell content (i.e., missing cell content)
-    # base_table = primary table against which the secondary_table is being compared
-    # reset encountered column content
-    encountered_column_content = []
-    # Create a list of tuples containing (row_index, cell_content) from secondary_table for comparison
-    column_content = [(i, row[column_index].strip()) for i, row in enumerate(secondary_table)]
-    # Initialize a list to store the rows where missing cell content has been found
-    found_rows = []
-    # Iterate through rows of base_table
-    for i, row in enumerate(base_table):
-        # get base_table cell content for the current row
-        cell_content = row[column_index].strip()
-        # Check if the cell content from base_table is not in secondary_table
-        if (cell_content not in [content[1] for content in column_content]) and (cell_content not in [content[1] for content in encountered_column_content]):
-            # Append the row to the list
-            found_rows.append(row)
-        # whether or not above condition fails add it to encountered_column_content so we don't keep checking repeating cell content
-        if cell_content not in [content[1] for content in encountered_column_content]:
-            # Add the cell content to the encountered_column_content list
-            encountered_column_content.append((i, cell_content))
-    # returns a tuple consisting of the table_name and a list of tuples with the row data
-    return (table_name, found_rows) if found_rows else None
 
 ''' 
 Raster table columns:
@@ -230,17 +198,6 @@ def prep_csv_for_gui(csv_file_path):
                     csv_writer.writerow(new_row)
             else:
                 csv_writer.writerow(row)
-
-def convert_to_yyyymmdd(date_str):
-    try:
-        date_object = datetime.strptime(date_str, "%d-%b-%Y")
-        return date_object.strftime("%Y%m%d")
-    except ValueError:
-        return None  # Handle invalid date strings gracefully
-
-def tuple_to_list(tup):
-    #Convert a tuple to a list.
-    return list(tup)
 
 def yes_or_no_popup(message):
     reply = QMessageBox()
