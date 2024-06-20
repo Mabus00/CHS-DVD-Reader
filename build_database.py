@@ -25,7 +25,7 @@ class BuildDatabase():
 
         # target folders to find to process data
         self.raster_target_folder = 'BSBCHART'
-        self.vector_target_folder = 'ENCROOT'
+        self.vector_target_folder = 'ENC_ROOT'
 
     def pre_build_checks(self):
         rebuild_selected = True
@@ -184,7 +184,7 @@ class BuildDatabase():
                 
                 complete_path = os.path.dirname(complete_path)
 
-                for file_name in os.listdir(sub_folder_path):
+                for file_name in os.listdir(complete_path):
                     file_path = os.path.join(complete_path, file_name)
                     # following ignores anything that isn't a file (i.e., folders)
                     if os.path.isfile(file_path):

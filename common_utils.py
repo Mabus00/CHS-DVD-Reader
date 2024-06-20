@@ -79,10 +79,11 @@ def insert_data(table_name, file_path, cursor, file_extension):
                     for row in csv_reader:
                         if row:  # Check if the row is not empty; there seems to be an empty row at the end of the data
                             # Process the non-empty row
-                            data = row
-                            placeholders = ', '.join(['?'] * len(data))
-                            insert_sql = f"INSERT INTO {table_name} VALUES ({placeholders})"
-                            cursor.execute(insert_sql, data)
+                            if 'Cancel_Annuler' not in row[0]: 
+                                data = row
+                                placeholders = ', '.join(['?'] * len(data))
+                                insert_sql = f"INSERT INTO {table_name} VALUES ({placeholders})"
+                                cursor.execute(insert_sql, data)
             except UnicodeDecodeError as e:
                 print(f"Error in insert_data decoding file '{file_path}': {e}")
                 # Handle the error as needed
