@@ -23,6 +23,10 @@ class BuildDatabase():
         # database data input path
         self.master_database_folder = master_database_folder  # path to master database folder
 
+        # target folders to find to process data
+        self.raster_target_folder = 'BSBCHART'
+        self.vector_target_folder = 'ENCROOT'
+
     def pre_build_checks(self):
         rebuild_selected = True
         path_selected = True
@@ -152,23 +156,45 @@ class BuildDatabase():
             # Inform the user that there are more than two matching files
             print("\nThere are more than two matching files in the folder. Please remove any extras.")
 
+
+    def find_folder(self, starting_directory, target_folder_name):
+        """
+        Recursively searches for a folder with a specific name starting from the given directory.
+
+        :param starting_directory: The directory from which to start the search.
+        :param target_folder_name: The name of the folder to search for.
+        :return: The path to the target folder if found, otherwise None.
+        """
+        for root, dirs, files in os.walk(starting_directory):
+            for dir_name in dirs:
+                if dir_name == target_folder_name:
+                    return os.path.join(root, dir_name)
+        return None
+
     def process_folders(self, folders, folder_path, source_name):
         for folder in folders:
             if folder.startswith("RM") or folder.startswith("V"):
                 table_name = f"{source_name}_{folder.replace('-', '_')}"
                 sub_folder_path = os.path.join(folder_path, folder)
 
+                if folder.startswith("RM"):
+                    complete_path = self.find_folder(sub_folder_path,  self.raster_target_folder)
+                else:
+                    complete_path = self.find_folder(sub_folder_path,  self.vector_target_folder)
+                
+                complete_path = os.path.dirname(complete_path)
+
                 for file_name in os.listdir(sub_folder_path):
-                    file_path = os.path.join(sub_folder_path, file_name)
+                    file_path = os.path.join(complete_path, file_name)
                     # following ignores anything that isn't a file (i.e., folders)
                     if os.path.isfile(file_path):
                         # get the extension so file can be read correctly
                         file_extension = file_name.split('.')[-1].lower()
-                        files = self.get_files(sub_folder_path, file_extension)
+                        files = self.get_files(complete_path, file_extension)
                         if file_extension == "csv" or file_extension == "txt":
                             # it's understood there's only one file; method is written so it can apply if there are >1 files
                             for file in files:
-                                file_path = os.path.join(sub_folder_path, file)
+                                file_path = os.path.join(complete_path, file)
                                 self.create_table(table_name, file_path, self.master_database_cursor, file_extension)  # Create the table
                                 utils.insert_data(table_name, file_path, self.master_database_cursor, file_extension)    # Insert data into the table
                         elif file_extension == "":
