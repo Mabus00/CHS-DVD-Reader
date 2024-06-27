@@ -20,6 +20,30 @@ class CompareChartNumbers():
         self.master_database_cursor = master_database_cursor
         self.current_database_cursor = current_database_cursor
 
+    def detect_column_changes(self, column_index, base_table, secondary_table, table_name):
+        # using the column_index to identify the comparator, detect changes in cell content (i.e., missing cell content)
+        # base_table = primary table against which the secondary_table is being compared
+        # reset encountered column content
+        encountered_column_content = []
+        # Create a list of tuples containing (row_index, cell_content) from secondary_table for comparison
+        column_content = [(i, row[column_index].strip()) for i, row in enumerate(secondary_table)]
+        # Initialize a list to store the rows where missing cell content has been found
+        found_rows = []
+        # Iterate through rows of base_table
+        for i, row in enumerate(base_table):
+            # get base_table cell content for the current row
+            cell_content = row[column_index].strip()
+            # Check if the cell content from base_table is not in secondary_table
+            if (cell_content not in [content[1] for content in column_content]) and (cell_content not in [content[1] for content in encountered_column_content]):
+                # Append the row to the list
+                found_rows.append(row)
+            # whether or not above condition fails add it to encountered_column_content so we don't keep checking repeating cell content
+            if cell_content not in [content[1] for content in encountered_column_content]:
+                # Add the cell content to the encountered_column_content list
+                encountered_column_content.append((i, cell_content))
+        # returns a tuple consisting of the table_name and a list of tuples with the row data
+        return (table_name, found_rows) if found_rows else None
+
     def compare_chart_numbers(self, tables_master, master_yyyymmdd, current_yyyymmdd):
         charts_withdrawn_result = []
         new_charts_result = []
@@ -35,9 +59,9 @@ class CompareChartNumbers():
             current_data = self.current_database_cursor.fetchall()
             # Set the index of the table column (first column = chart number)
             chart_column_index = 1
-            result = utils.detect_column_changes(chart_column_index, master_data, current_data, temp_current_table_name)
+            result = self.detect_column_changes(chart_column_index, master_data, current_data, temp_current_table_name)
             charts_withdrawn_result.extend(result for result in [result] if result)
-            result = utils.detect_column_changes(chart_column_index, current_data, master_data, temp_current_table_name)
+            result = self.detect_column_changes(chart_column_index, current_data, master_data, temp_current_table_name)
             new_charts_result.extend(result for result in [result] if result)
         return charts_withdrawn_result, new_charts_result
 

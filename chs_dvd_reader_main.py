@@ -19,7 +19,11 @@ VIEW = chs_dvd_gui
 import sys
 import inspect
 import os
-from PyQt5.QtWidgets import QApplication, QMainWindow, QTextEdit
+import common_utils as utils
+import glob
+import sqlite3
+
+from PyQt5.QtWidgets import QApplication, QMainWindow, QTextEdit, QMessageBox, QFileDialog
 from PyQt5.QtGui import QFont
 from chs_dvd_gui import Ui_MainWindow
 from custom_signals import CreateDatabaseSignals, RunCheckerSignals, NewChartsSignals, NewEditionsSignals, WithdrawnSignals, ErrorsSignals
@@ -29,9 +33,7 @@ from compare_databases import CompareDatabases
 from compare_chart_numbers import CompareChartNumbers
 from find_data_mismatches import FindDataMismatches
 from check_folder_content import CheckFolderContent
-import common_utils as utils
 from create_pdf_report import PDFReport
-import glob
 
 class CHSDVDReaderApp(QMainWindow):
     def __init__(self):
@@ -108,21 +110,46 @@ class CHSDVDReaderApp(QMainWindow):
 
         # Connect custom signals to slots
         # run checker tab
-        self.run_checker_signals.data_input_path_button.connect(lambda: utils.open_file_explorer(self.ui.checker_data_input_path, self.current_database_path))
+        self.run_checker_signals.data_input_path_button.connect(lambda: self.open_file_explorer(self.ui.checker_data_input_path, self.current_database_path))
         self.run_checker_signals.run_checker_button.connect(self.run_checker)
         self.run_checker_signals.create_pdf_report_button.connect(self.create_pdf_report)
         # create database tab
-        self.database_signals.database_input_path_button.connect(lambda: utils.open_file_explorer(self.ui.database_input_path, self.master_database_folder))
+        self.database_signals.database_input_path_button.connect(lambda: self.open_file_explorer(self.ui.database_input_path, self.master_database_folder))
         self.database_signals.build_database_button.connect(self.build_database)
 
         # Using a lambda function to create an anonymous function that takes a single argument 'message'.
         # The lambda function is being used as an argument to the emit method of the custom signal.
-        self.run_checker_signals.run_checker_textbox.connect(lambda message: utils.update_text_browser(self.ui.runCheckerTextBrowser, message))
-        self.errors_signals.errors_textbox.connect(lambda message: utils.update_text_browser(self.ui.errorsTextBrowser, message))
-        self.new_charts_signals.new_charts_textbox.connect(lambda message: utils.update_text_browser(self.ui.newChartsTextBrowser, message))
-        self.new_editions_signals.new_editions_textbox.connect(lambda message: utils.update_text_browser(self.ui.newEditionsTextBrowser, message))
-        self.charts_withdrawn_signals.chart_withdrawn_textbox.connect(lambda message: utils.update_text_browser(self.ui.chartsWithdrawnTextBrowser, message))
-        self.database_signals.create_database_textbox.connect(lambda message: utils.update_text_browser(self.ui.createDatabaseTextBrowser, message))
+        self.run_checker_signals.run_checker_textbox.connect(lambda message: self.update_text_browser(self.ui.runCheckerTextBrowser, message))
+        self.errors_signals.errors_textbox.connect(lambda message: self.update_text_browser(self.ui.errorsTextBrowser, message))
+        self.new_charts_signals.new_charts_textbox.connect(lambda message: self.update_text_browser(self.ui.newChartsTextBrowser, message))
+        self.new_editions_signals.new_editions_textbox.connect(lambda message: self.update_text_browser(self.ui.newEditionsTextBrowser, message))
+        self.charts_withdrawn_signals.chart_withdrawn_textbox.connect(lambda message: self.update_text_browser(self.ui.chartsWithdrawnTextBrowser, message))
+        self.database_signals.create_database_textbox.connect(lambda message: self.update_text_browser(self.ui.createDatabaseTextBrowser, message))
+
+    def initialize_database(self, database_path, target_textbox):
+        conn = sqlite3.connect(database_path)
+        cursor = conn.cursor()
+        target_textbox.emit(f"Database '{database_path}' connected")
+        return conn, cursor
+
+    def get_database_connection(self, database_path, target_textbox):
+        conn, cursor = self.initialize_database(database_path, target_textbox)
+        return conn, cursor
+
+    def open_file_explorer(self, parent, input_path):
+        input_path = QFileDialog.getExistingDirectory(parent, "Select Folder")
+        input_path = input_path.replace("/", "\\")
+        parent.setText(input_path)
+
+    def update_text_browser(self, text_browser, message):
+        # updates the selected text_browser with a simple message
+        text_browser.insertPlainText(message + "\n")  # Append the message and a newline
+        text_browser.ensureCursorVisible()
+
+    def close_database(self, target_textbox, database_conn, database_path):
+        if database_conn:
+            database_conn.close()
+        target_textbox.emit(f'\n{database_path} closed.')
 
     def build_database(self):
         # instantiate create_database and pass instance of database_name, etc...
@@ -133,22 +160,33 @@ class CHSDVDReaderApp(QMainWindow):
         if all(self.create_db.pre_build_checks()):
             # establish database connections; operate under assumption that master_database won't be created each time widget is used
             # note that this can't be done earlier because pre-build-checks deletes existing databases, and this can't happen if a connection to the database has been opened
-            # utils.get_database_connection creates the master_database in the desired folder
-            self.master_database_conn, self.master_database_cursor = utils.get_database_connection(self.master_database_path, self.database_signals.create_database_textbox)
+            # self.get_database_connection creates the master_database in the desired folder
+            self.master_database_conn, self.master_database_cursor = self.get_database_connection(self.master_database_path, self.database_signals.create_database_textbox)
             self.create_db.generate_database(self.master_database_conn, self.master_database_cursor)
         else:
             return
         # close the master database so it can be opened in run_checker (assumption is that create_database isn't always used)
-        utils.close_database(self.database_signals.create_database_textbox, self.master_database_conn, self.master_database_path)
+        self.close_database(self.database_signals.create_database_textbox, self.master_database_conn, self.master_database_path)
 
+    def clear_all_text_boxes(self, text_browsers):
+        # Create a list of QTextBrowser widgets by inspecting the module
+        for text_browser in text_browsers:
+            text_browser.clear()
+
+    def delete_existing_files(self, files):
+        for file_name in files:
+            if os.path.exists(file_name):
+                os.remove(file_name)
+                print(f"Deleted existing file: {file_name}")
+    
     def run_checker(self):
         self.current_database_folder = self.ui.checker_data_input_path.text() # path to current database folder
         self.current_database_path = os.path.join(self.current_database_folder, self.current_database_path) # actual path to current database
         # clear all text boxes before running the checker
-        utils.clear_all_text_boxes(self.text_browsers)
+        self.clear_all_text_boxes(self.text_browsers)
         # delete existing csv files so they can be updated; these files are used to fill tabs and create the pdf report
-        utils.delete_existing_files(self.report_csv_files)
-        utils.delete_existing_files(self.csv_mod_files)
+        self.delete_existing_files(self.report_csv_files)
+        self.delete_existing_files(self.csv_mod_files)
         # instantiate run_checker
         self.run_checker = RunChecker(self.current_database_path, self.run_checker_signals.run_checker_textbox, self.current_database_folder)
         
@@ -157,8 +195,8 @@ class CHSDVDReaderApp(QMainWindow):
         path_selected = self.run_checker.pre_build_checks()
         if path_selected:
             # establish database connections; operate under assumption that master_database won't be created each time widget is used
-            self.master_database_conn, self.master_database_cursor = utils.get_database_connection(self.master_database_path, self.database_signals.create_database_textbox)
-            self.current_database_conn, self.current_database_cursor = utils.get_database_connection(self.current_database_path, self.database_signals.create_database_textbox)
+            self.master_database_conn, self.master_database_cursor = self.get_database_connection(self.master_database_path, self.database_signals.create_database_textbox)
+            self.current_database_conn, self.current_database_cursor = self.get_database_connection(self.current_database_path, self.database_signals.create_database_textbox)
 
             # instantiate generate_database and create the current month's database
             self.create_db = BuildDatabase(self.current_database_path, None, self.run_checker_signals.run_checker_textbox, self.current_database_folder)
@@ -243,13 +281,13 @@ class CHSDVDReaderApp(QMainWindow):
             return
         
         # close the databases
-        utils.close_database(self.database_signals.create_database_textbox, self.master_database_conn, self.master_database_path)
-        utils.close_database(self.run_checker_signals.run_checker_textbox, self.current_database_conn, self.current_database_path)
+        self.close_database(self.database_signals.create_database_textbox, self.master_database_conn, self.master_database_path)
+        self.close_database(self.run_checker_signals.run_checker_textbox, self.current_database_conn, self.current_database_path)
 
     def create_pdf_report(self):
         # establish database connections; operate under assumption that master_database won't be created each time widget is used
-        self.master_database_conn, self.master_database_cursor = utils.get_database_connection(self.master_database_path, self.database_signals.create_database_textbox)
-        self.current_database_conn, self.current_database_cursor = utils.get_database_connection(self.current_database_path, self.database_signals.create_database_textbox)
+        self.master_database_conn, self.master_database_cursor = self.get_database_connection(self.master_database_path, self.database_signals.create_database_textbox)
+        self.current_database_conn, self.current_database_cursor = self.get_database_connection(self.current_database_path, self.database_signals.create_database_textbox)
         # set report title
         report_title = f"{self.master_yyyymmdd}_VS_{self.current_yyyymmdd} CHS DVD Report"
         # establish the current folder as the folder within which to save the report
@@ -277,8 +315,8 @@ class CHSDVDReaderApp(QMainWindow):
         # Print a message to indicate that the checker has run
         self.run_checker_signals.run_checker_textbox.emit('\nThe .pdf report was created succesfully!')
         # close the databases
-        utils.close_database(self.database_signals.create_database_textbox, self.master_database_conn, self.master_database_path)
-        utils.close_database(self.run_checker_signals.run_checker_textbox, self.current_database_conn, self.current_database_path)
+        self.close_database(self.database_signals.create_database_textbox, self.master_database_conn, self.master_database_path)
+        self.close_database(self.run_checker_signals.run_checker_textbox, self.current_database_conn, self.current_database_path)
 
 def main():
     app = QApplication(sys.argv)

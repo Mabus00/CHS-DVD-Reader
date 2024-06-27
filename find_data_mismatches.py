@@ -29,6 +29,7 @@ Vector table columns:
 
 '''
 import common_utils as utils
+from datetime import datetime
 
 # Define the FindDataMismatches class
 class FindDataMismatches():
@@ -38,6 +39,18 @@ class FindDataMismatches():
         # Establish database cursors
         self.master_database_cursor = master_database_cursor
         self.current_database_cursor = current_database_cursor
+
+    def convert_to_yyyymmdd(self, date_str):
+        try:
+            date_object = datetime.strptime(date_str, "%d-%b-%Y")
+            return date_object.strftime("%Y%m%d")
+        except ValueError:
+            return None  # Handle invalid date strings gracefully
+
+
+    def tuple_to_list(self, tup):
+        #Convert a tuple to a list.
+        return list(tup)
 
     def find_mismatches(self, tables_master, master_yyyymmdd, current_yyyymmdd):
         new_editions = []
@@ -71,16 +84,16 @@ class FindDataMismatches():
                 # If a matching row is found, compare the content of the remaining columns
                 # reminder that were dealing with a lists of tuples, i.e., [(),(),()...] so need to convert to tuples to lists so we can convert dates to compare
                 if matching_current_row:
-                    master_content = utils.tuple_to_list(master_row[2:])  # Get the content of columns 2-4 in master_row
-                    current_content = utils.tuple_to_list(matching_current_row[2:])  # Get the content of columns 2-4 in current_value
+                    master_content = self.tuple_to_list(master_row[2:])  # Get the content of columns 2-4 in master_row
+                    current_content = self.tuple_to_list(matching_current_row[2:])  # Get the content of columns 2-4 in current_value
                     # The first two elements in the list are:
                     if "RM" in table_name:
-                        master_content[0] = utils.convert_to_yyyymmdd(master_content[0])
-                        current_content[0] = utils.convert_to_yyyymmdd(current_content[0])
+                        master_content[0] = self.convert_to_yyyymmdd(master_content[0])
+                        current_content[0] = self.convert_to_yyyymmdd(current_content[0])
                     else:
                         # The second and third elements in the list are:
-                        master_content[1:3] = [utils.convert_to_yyyymmdd(value) for value in master_content[1:3]]
-                        current_content[1:3] = [utils.convert_to_yyyymmdd(value) for value in current_content[1:3]]
+                        master_content[1:3] = [self.convert_to_yyyymmdd(value) for value in master_content[1:3]]
+                        current_content[1:3] = [self.convert_to_yyyymmdd(value) for value in current_content[1:3]]
                     # compare the edition information
                     if master_content[:3] != current_content[:3]:
                         # Check each field individually for inequality; ensuring that whatever doesn't match is greater (looking for errors)

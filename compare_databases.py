@@ -17,6 +17,13 @@ class CompareDatabases():
         self.master_database_cursor = master_database_cursor
         self.current_database_cursor = current_database_cursor
 
+    # Function to remove indicated portion from table_name
+    def remove_text(self, table_name, part_to_replace):
+        parts = table_name.split('_')
+        new_parts = [part for part in parts if part != part_to_replace]
+        new_table_name = '_'.join(new_parts)
+        return new_table_name
+
     def compare_databases(self):
         temp_tables_missing_in_master = []
         temp_tables_missing_in_current = []
@@ -29,8 +36,8 @@ class CompareDatabases():
         master_yyyymmdd = utils.extract_yyyymmdd(tables_master[0])
         current_yyyymmdd = utils.extract_yyyymmdd(tables_current[0])
         # Apply the function to remove the yyyymmdd from the table name
-        tables_master_temp = [utils.remove_text(table, master_yyyymmdd) for table in tables_master]
-        tables_current_temp = [utils.remove_text(table, current_yyyymmdd) for table in tables_current]
+        tables_master_temp = [self.remove_text(table, master_yyyymmdd) for table in tables_master]
+        tables_current_temp = [self.remove_text(table, current_yyyymmdd) for table in tables_current]
         # Find tables in "master" that are not in "current" and vice versa
         tables_missing_in_current = [table for table in tables_master_temp if table not in tables_current_temp]
         tables_missing_in_master = [table for table in tables_current_temp if table not in tables_master_temp]  

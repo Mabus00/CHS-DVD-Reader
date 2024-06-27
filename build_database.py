@@ -8,6 +8,9 @@ to check for errors, new charts, new editions, charts withdrawn and potential er
 
 import os
 import common_utils as utils
+import subprocess
+import time
+import csv
 
 class BuildDatabase():
 
@@ -19,6 +22,10 @@ class BuildDatabase():
 
         # database data input path
         self.master_database_folder = master_database_folder  # path to master database folder
+
+        # target folders to find to process data
+        self.raster_target_folder = 'BSBCHART'
+        self.vector_target_folder = 'ENC_ROOT'
 
     def pre_build_checks(self):
         rebuild_selected = True
@@ -48,12 +55,75 @@ class BuildDatabase():
         self.master_database_conn.commit()
         self.create_database_textbox.emit(f"\n{self.master_database_path} successfully created!")
 
+    # Function to list folders in the DVD path
+    def list_folders(self, folder_path):
+        if os.path.exists(folder_path):
+            folders = [item for item in os.listdir(folder_path) if os.path.isdir(os.path.join(folder_path, item))]
+            return folders
+        else:
+            return []
+
+    # Function to get a list of .txt or .csv files in a folder
+    def get_files(self, folder_path, file_extension):
+        files = [file for file in os.listdir(folder_path) if file.endswith(f".{file_extension}")]
+        return files
+
+    # Function to get the DVD name using the disk path; retries introduced because USB connected DVD readers can lag
+    def get_dvd_name(self, input_data_path, max_retries=5, retry_interval=1):
+        retry_count = 0
+        while retry_count < max_retries:
+            try:
+                # Attempt to retrieve DVD name
+                output = subprocess.check_output(f'wmic logicaldisk where DeviceID="{input_data_path[:2]}" get volumename', text=True)
+                lines = output.strip().split('\n')
+                dvd_name = lines[2] if len(lines) > 1 else ''
+                if dvd_name:
+                    print(f'Number of retries = {retry_count}') #number of retries
+                    dvd_name = dvd_name.replace('EAST', 'East').replace('WEST', 'West')
+                    return dvd_name.strip()
+            except subprocess.CalledProcessError as e:
+                # Handle the error if the subprocess call fails
+                print(f"Error while getting DVD name (Attempt {retry_count + 1}): {e}")
+            except Exception as e:
+                # Handle other exceptions, if any
+                print(f"An unexpected error occurred (Attempt {retry_count + 1}): {e}") 
+            # Wait for a specified interval before retrying
+            time.sleep(retry_interval)
+            retry_count += 1
+        # Return None if the maximum number of retries is reached
+        print("Maximum number of retries reached. DVD name not found.")
+        return None
+
+    # Function to create a table with column names from a .txt or .csv file
+    def create_table(self, table_name, file_path, cursor, file_extension):
+        if file_extension == 'txt':
+            with open(file_path, 'r', errors='ignore') as txt_file:
+                column_names = txt_file.readline().strip().split('\t')
+        else:
+            # Detect the encoding of the file
+            detected_encoding = utils.detect_encoding(file_path)
+            #print(f'create_table detected encoding = {detected_encoding}')
+            try:
+                # Open the file using the detected encoding
+                with open(file_path, 'r', newline='', encoding=detected_encoding) as csv_file:
+                    csv_reader = csv.reader(csv_file)
+                    # Read the first row to get column names
+                    column_names = next(csv_reader)
+                    sanitized_column_names = [name.replace(".", "").strip() for name in column_names]
+                    quoted_column_names = [f'"{name}"' for name in sanitized_column_names]
+                    column_names_sql = ', '.join(quoted_column_names)
+                    create_table_sql = f"CREATE TABLE IF NOT EXISTS {table_name} ({column_names_sql})"
+                    cursor.execute(create_table_sql)
+            except UnicodeDecodeError as e:
+                print(f"Error in create_table decoding file '{file_path}': {e}")
+                # Handle the error as needed
+
     def process_dvd(self):
         # default to two DVDs; one East and one West
         num_sources = 2
         for source_num in range(1, num_sources + 1): 
             utils.show_warning_popup(f"Insert DVD {source_num} and press Enter when ready...")
-            dvd_name = utils.get_dvd_name(self.master_database_folder)
+            dvd_name = self.get_dvd_name(self.master_database_folder)
             if dvd_name:
                 folders = utils.list_folders(self.master_database_folder)
                 if folders:
@@ -73,7 +143,7 @@ class BuildDatabase():
             for folder_name in folders:
                 # build desktop folder path
                 desktop_folder_path = os.path.join(self.master_database_folder, folder_name)
-                folders = utils.list_folders(desktop_folder_path)
+                folders = self.list_folders(desktop_folder_path)
                 if folders:
                     self.create_database_textbox.emit(f"\nAdded '{desktop_folder_path}' to the {self.master_database_path}.")
                     self.process_folders(folders, desktop_folder_path, folder_name)
@@ -86,24 +156,46 @@ class BuildDatabase():
             # Inform the user that there are more than two matching files
             print("\nThere are more than two matching files in the folder. Please remove any extras.")
 
+
+    def find_folder(self, starting_directory, target_folder_name):
+        """
+        Recursively searches for a folder with a specific name starting from the given directory.
+
+        :param starting_directory: The directory from which to start the search.
+        :param target_folder_name: The name of the folder to search for.
+        :return: The path to the target folder if found, otherwise None.
+        """
+        for root, dirs, files in os.walk(starting_directory):
+            for dir_name in dirs:
+                if dir_name == target_folder_name:
+                    return os.path.join(root, dir_name)
+        return None
+
     def process_folders(self, folders, folder_path, source_name):
         for folder in folders:
             if folder.startswith("RM") or folder.startswith("V"):
                 table_name = f"{source_name}_{folder.replace('-', '_')}"
                 sub_folder_path = os.path.join(folder_path, folder)
 
-                for file_name in os.listdir(sub_folder_path):
-                    file_path = os.path.join(sub_folder_path, file_name)
+                if folder.startswith("RM"):
+                    complete_path = self.find_folder(sub_folder_path,  self.raster_target_folder)
+                else:
+                    complete_path = self.find_folder(sub_folder_path,  self.vector_target_folder)
+                
+                complete_path = os.path.dirname(complete_path)
+
+                for file_name in os.listdir(complete_path):
+                    file_path = os.path.join(complete_path, file_name)
                     # following ignores anything that isn't a file (i.e., folders)
                     if os.path.isfile(file_path):
                         # get the extension so file can be read correctly
                         file_extension = file_name.split('.')[-1].lower()
-                        files = utils.get_files(sub_folder_path, file_extension)
+                        files = self.get_files(complete_path, file_extension)
                         if file_extension == "csv" or file_extension == "txt":
                             # it's understood there's only one file; method is written so it can apply if there are >1 files
                             for file in files:
-                                file_path = os.path.join(sub_folder_path, file)
-                                utils.create_table(table_name, file_path, self.master_database_cursor, file_extension)  # Create the table
+                                file_path = os.path.join(complete_path, file)
+                                self.create_table(table_name, file_path, self.master_database_cursor, file_extension)  # Create the table
                                 utils.insert_data(table_name, file_path, self.master_database_cursor, file_extension)    # Insert data into the table
                         elif file_extension == "":
                             self.create_database_textbox.emit("\nNo .txt or .csv files in this folder.")

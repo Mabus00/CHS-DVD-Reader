@@ -1,21 +1,14 @@
 ''' 
 
-module of common functions that are called more than once by different modules
+module of common functions that are called more than once by different modules or that share other method calls
+so it makes sense to keep them together
 
 '''
 import os
 import sqlite3
-from PyQt5.QtWidgets import QMessageBox, QFileDialog
-import subprocess
-import time
-from datetime import datetime
+from PyQt5.QtWidgets import QMessageBox
 import csv
 import chardet
-
-def open_file_explorer(parent, input_path):
-    input_path = QFileDialog.getExistingDirectory(parent, "Select Folder")
-    input_path = input_path.replace("/", "\\")
-    parent.setText(input_path)
 
 def show_warning_popup(message):
     popup = QMessageBox()
@@ -23,26 +16,6 @@ def show_warning_popup(message):
     popup.setText(message)
     popup.setIcon(QMessageBox.Warning)
     popup.exec_()
-
-def update_text_browser(text_browser, message):
-    # updates the selected text_browser with a simple message
-    text_browser.insertPlainText(message + "\n")  # Append the message and a newline
-    text_browser.ensureCursorVisible()
-
-def clear_all_text_boxes(text_browsers):
-    # Create a list of QTextBrowser widgets by inspecting the module
-    for text_browser in text_browsers:
-        text_browser.clear()
-
-def initialize_database(database_path, target_textbox):
-    conn = sqlite3.connect(database_path)
-    cursor = conn.cursor()
-    target_textbox.emit(f"Database '{database_path}' connected")
-    return conn, cursor
-
-def get_database_connection(database_path, target_textbox):
-    conn, cursor = initialize_database(database_path, target_textbox)
-    return conn, cursor
 
 def confirm_database_deletion(rebuild_checkbox, database_path, target_textbox):
     # chs_dvd.db exists
@@ -63,50 +36,6 @@ def delete_existing_database(database_path, target_textbox):
     os.remove(database_path)
     target_textbox.emit(f"Database '{database_path}' deleted.")
 
-def close_database(target_textbox, database_conn, database_path):
-    if database_conn:
-        database_conn.close()
-    target_textbox.emit(f'\n{database_path} closed.')
-
-# Function to list folders in the DVD path
-def list_folders(folder_path):
-    if os.path.exists(folder_path):
-        folders = [item for item in os.listdir(folder_path) if os.path.isdir(os.path.join(folder_path, item))]
-        return folders
-    else:
-        return []
-
-# Function to get a list of .txt or .csv files in a folder
-def get_files(folder_path, file_extension):
-    files = [file for file in os.listdir(folder_path) if file.endswith(f".{file_extension}")]
-    return files
-
-# Function to get the DVD name using the disk path; retries introduced because USB connected DVD readers can lag
-def get_dvd_name(input_data_path, max_retries=5, retry_interval=1):
-    retry_count = 0
-    while retry_count < max_retries:
-        try:
-            # Attempt to retrieve DVD name
-            output = subprocess.check_output(f'wmic logicaldisk where DeviceID="{input_data_path[:2]}" get volumename', text=True)
-            lines = output.strip().split('\n')
-            dvd_name = lines[2] if len(lines) > 1 else ''
-            if dvd_name:
-                print(f'Number of retries = {retry_count}') #number of retries
-                dvd_name = dvd_name.replace('EAST', 'East').replace('WEST', 'West')
-                return dvd_name.strip()
-        except subprocess.CalledProcessError as e:
-            # Handle the error if the subprocess call fails
-            print(f"Error while getting DVD name (Attempt {retry_count + 1}): {e}")
-        except Exception as e:
-            # Handle other exceptions, if any
-            print(f"An unexpected error occurred (Attempt {retry_count + 1}): {e}") 
-        # Wait for a specified interval before retrying
-        time.sleep(retry_interval)
-        retry_count += 1
-    # Return None if the maximum number of retries is reached
-    print("Maximum number of retries reached. DVD name not found.")
-    return None
-
 def process_report(data, csv_file_name, gui_text_box, current_database_folder, message=None):
     file_path = os.path.join(current_database_folder, csv_file_name)
     csv_file_path = f'{file_path}.csv'
@@ -124,30 +53,6 @@ def detect_encoding(file_path):
     encoding_result = chardet.detect(rawdata)
     return encoding_result['encoding'].lower()  # Convert to lowercase
 
-# Function to create a table with column names from a .txt or .csv file
-def create_table(table_name, file_path, cursor, file_extension):
-    if file_extension == 'txt':
-        with open(file_path, 'r', errors='ignore') as txt_file:
-            column_names = txt_file.readline().strip().split('\t')
-    else:
-        # Detect the encoding of the file
-        detected_encoding = detect_encoding(file_path)
-        #print(f'create_table detected encoding = {detected_encoding}')
-        try:
-            # Open the file using the detected encoding
-            with open(file_path, 'r', newline='', encoding=detected_encoding) as csv_file:
-                csv_reader = csv.reader(csv_file)
-                # Read the first row to get column names
-                column_names = next(csv_reader)
-                sanitized_column_names = [name.replace(".", "").strip() for name in column_names]
-                quoted_column_names = [f'"{name}"' for name in sanitized_column_names]
-                column_names_sql = ', '.join(quoted_column_names)
-                create_table_sql = f"CREATE TABLE IF NOT EXISTS {table_name} ({column_names_sql})"
-                cursor.execute(create_table_sql)
-        except UnicodeDecodeError as e:
-            print(f"Error in create_table decoding file '{file_path}': {e}")
-            # Handle the error as needed
-   
 # Function to insert data into a table from a .txt or .csv file
 def insert_data(table_name, file_path, cursor, file_extension):
     try:
@@ -174,10 +79,11 @@ def insert_data(table_name, file_path, cursor, file_extension):
                     for row in csv_reader:
                         if row:  # Check if the row is not empty; there seems to be an empty row at the end of the data
                             # Process the non-empty row
-                            data = row
-                            placeholders = ', '.join(['?'] * len(data))
-                            insert_sql = f"INSERT INTO {table_name} VALUES ({placeholders})"
-                            cursor.execute(insert_sql, data)
+                            if 'Cancel_Annuler' not in row[0]: 
+                                data = row
+                                placeholders = ', '.join(['?'] * len(data))
+                                insert_sql = f"INSERT INTO {table_name} VALUES ({placeholders})"
+                                cursor.execute(insert_sql, data)
             except UnicodeDecodeError as e:
                 print(f"Error in insert_data decoding file '{file_path}': {e}")
                 # Handle the error as needed
@@ -188,13 +94,6 @@ def insert_data(table_name, file_path, cursor, file_extension):
         print(f"SQLite operational error: {e}")
     except Exception as e:
         print(f"Error inserting data: {e}")
-
-# Function to remove indicated portion from table_name
-def remove_text(table_name, part_to_replace):
-    parts = table_name.split('_')
-    new_parts = [part for part in parts if part != part_to_replace]
-    new_table_name = '_'.join(new_parts)
-    return new_table_name
 
 def insert_text(table_name, text, pos_to_insert):
     parts = table_name.split('_')
@@ -217,30 +116,6 @@ def get_first_table_yyyymmdd(prefix, database_conn):
         first_table = tables[0][0]
         return extract_yyyymmdd(first_table)
     return None
-
-def detect_column_changes(column_index, base_table, secondary_table, table_name):
-    # using the column_index to identify the comparator, detect changes in cell content (i.e., missing cell content)
-    # base_table = primary table against which the secondary_table is being compared
-    # reset encountered column content
-    encountered_column_content = []
-    # Create a list of tuples containing (row_index, cell_content) from secondary_table for comparison
-    column_content = [(i, row[column_index].strip()) for i, row in enumerate(secondary_table)]
-    # Initialize a list to store the rows where missing cell content has been found
-    found_rows = []
-    # Iterate through rows of base_table
-    for i, row in enumerate(base_table):
-        # get base_table cell content for the current row
-        cell_content = row[column_index].strip()
-        # Check if the cell content from base_table is not in secondary_table
-        if (cell_content not in [content[1] for content in column_content]) and (cell_content not in [content[1] for content in encountered_column_content]):
-            # Append the row to the list
-            found_rows.append(row)
-        # whether or not above condition fails add it to encountered_column_content so we don't keep checking repeating cell content
-        if cell_content not in [content[1] for content in encountered_column_content]:
-            # Add the cell content to the encountered_column_content list
-            encountered_column_content.append((i, cell_content))
-    # returns a tuple consisting of the table_name and a list of tuples with the row data
-    return (table_name, found_rows) if found_rows else None
 
 ''' 
 Raster table columns:
@@ -325,17 +200,7 @@ def prep_csv_for_gui(csv_file_path):
             else:
                 csv_writer.writerow(row)
 
-def convert_to_yyyymmdd(date_str):
-    try:
-        date_object = datetime.strptime(date_str, "%d-%b-%Y")
-        return date_object.strftime("%Y%m%d")
-    except ValueError:
-        return None  # Handle invalid date strings gracefully
-
-def tuple_to_list(tup):
-    #Convert a tuple to a list.
-    return list(tup)
-
+# not used but keep
 def yes_or_no_popup(message):
     reply = QMessageBox()
     reply.setText(message)
@@ -343,6 +208,7 @@ def yes_or_no_popup(message):
                         QMessageBox.StandardButton.No)
     return reply.exec()
 
+# not used but keep
 def merge_files(file1_path, file2_path):
     if os.path.exists(file1_path) and os.path.exists(file2_path):
         with open(file1_path, "a") as file1, open(file2_path, "r") as file2:
@@ -351,12 +217,6 @@ def merge_files(file1_path, file2_path):
             file1.write("\n" + content2)
         os.remove(file2_path)
     return file1
-
-def delete_existing_files(files):
-    for file_name in files:
-        if os.path.exists(file_name):
-            os.remove(file_name)
-            print(f"Deleted existing file: {file_name}")
 
 def save_data_to_csv(data, message, csv_file_path):
     # Open the CSV file for writing
