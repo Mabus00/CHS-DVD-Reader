@@ -81,6 +81,10 @@ class CHSDVDReaderApp(QMainWindow):
         self.current_database_folder = ""
         self.current_database_path = "current_database.db"
 
+        # target folders to find to process data
+        self.raster_target_folder = 'BSBCHART'
+        self.vector_target_folder = 'ENC_ROOT'
+
         # Create an instance of RunCheckerSignals
         self.run_checker_signals = RunCheckerSignals()
 
@@ -162,7 +166,7 @@ class CHSDVDReaderApp(QMainWindow):
             # note that this can't be done earlier because pre-build-checks deletes existing databases, and this can't happen if a connection to the database has been opened
             # self.get_database_connection creates the master_database in the desired folder
             self.master_database_conn, self.master_database_cursor = self.get_database_connection(self.master_database_path, self.database_signals.create_database_textbox)
-            self.create_db.generate_database(self.master_database_conn, self.master_database_cursor)
+            self.create_db.generate_database(self.master_database_conn, self.master_database_cursor, self.raster_target_folder, self.vector_target_folder)
         else:
             return
         # close the master database so it can be opened in run_checker (assumption is that create_database isn't always used)

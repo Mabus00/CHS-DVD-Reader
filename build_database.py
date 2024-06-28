@@ -23,10 +23,6 @@ class BuildDatabase():
         # database data input path
         self.master_database_folder = master_database_folder  # path to master database folder
 
-        # target folders to find to process data
-        self.raster_target_folder = 'BSBCHART'
-        self.vector_target_folder = 'ENC_ROOT'
-
     def pre_build_checks(self):
         rebuild_selected = True
         path_selected = True
@@ -42,15 +38,15 @@ class BuildDatabase():
         
         return rebuild_selected, path_selected
 
-    def generate_database(self, master_database_conn, master_database_cursor):
+    def generate_database(self, master_database_conn, master_database_cursor, raster_target_folder, vector_target_folder):
         # declare master database connection and cursor
         self.master_database_conn = master_database_conn
         self.master_database_cursor = master_database_cursor
 
         if self.master_database_folder[:1] == "C": #  Case 1: the files are in a folder on the desktop
-            self.process_desktop_folder()
+            self.process_desktop_folder(raster_target_folder, vector_target_folder)
         else:# Case 2: files are on a DVD reader
-            self.process_dvd()
+            self.process_dvd(raster_target_folder, vector_target_folder)
         # Commit the changes at the end
         self.master_database_conn.commit()
         self.create_database_textbox.emit(f"\n{self.master_database_path} successfully created!")
@@ -96,29 +92,24 @@ class BuildDatabase():
 
     # Function to create a table with column names from a .txt or .csv file
     def create_table(self, table_name, file_path, cursor, file_extension):
-        if file_extension == 'txt':
-            with open(file_path, 'r', errors='ignore') as txt_file:
-                column_names = txt_file.readline().strip().split('\t')
-        else:
-            # Detect the encoding of the file
-            detected_encoding = utils.detect_encoding(file_path)
-            #print(f'create_table detected encoding = {detected_encoding}')
-            try:
-                # Open the file using the detected encoding
-                with open(file_path, 'r', newline='', encoding=detected_encoding) as csv_file:
-                    csv_reader = csv.reader(csv_file)
-                    # Read the first row to get column names
-                    column_names = next(csv_reader)
-                    sanitized_column_names = [name.replace(".", "").strip() for name in column_names]
-                    quoted_column_names = [f'"{name}"' for name in sanitized_column_names]
-                    column_names_sql = ', '.join(quoted_column_names)
-                    create_table_sql = f"CREATE TABLE IF NOT EXISTS {table_name} ({column_names_sql})"
-                    cursor.execute(create_table_sql)
-            except UnicodeDecodeError as e:
-                print(f"Error in create_table decoding file '{file_path}': {e}")
-                # Handle the error as needed
+        detected_encoding = utils.detect_encoding(file_path)
+        #print(f'create_table detected encoding = {detected_encoding}')
+        try:
+            # Open the file using the detected encoding
+            with open(file_path, 'r', newline='', encoding=detected_encoding) as csv_file:
+                csv_reader = csv.reader(csv_file)
+                # Read the first row to get column names
+                column_names = next(csv_reader)
+                sanitized_column_names = [name.replace(".", "").strip() for name in column_names]
+                quoted_column_names = [f'"{name}"' for name in sanitized_column_names]
+                column_names_sql = ', '.join(quoted_column_names)
+                create_table_sql = f"CREATE TABLE IF NOT EXISTS {table_name} ({column_names_sql})"
+                cursor.execute(create_table_sql)
+        except UnicodeDecodeError as e:
+            print(f"Error in create_table decoding file '{file_path}': {e}")
+            # Handle the error as needed
 
-    def process_dvd(self):
+    def process_dvd(self, raster_target_folder, vector_target_folder):
         # default to two DVDs; one East and one West
         num_sources = 2
         for source_num in range(1, num_sources + 1): 
@@ -135,7 +126,7 @@ class BuildDatabase():
             else:
                 self.create_database_textbox.emit(f"\nDVD not found at path '{self.master_database_folder}'.")
 
-    def process_desktop_folder(self):
+    def process_desktop_folder(self, raster_target_folder, vector_target_folder):
         # Get the list of foldernames in the subject folder
         folders = [item for item in os.listdir(self.master_database_folder) if os.path.isdir(os.path.join(self.master_database_folder, item))]
         # Check if two folders were found
@@ -146,7 +137,7 @@ class BuildDatabase():
                 folders = self.list_folders(desktop_folder_path)
                 if folders:
                     self.create_database_textbox.emit(f"\nAdded '{desktop_folder_path}' to the {self.master_database_path}.")
-                    self.process_folders(folders, desktop_folder_path, folder_name)
+                    self.process_folders(folders, desktop_folder_path, folder_name, raster_target_folder, vector_target_folder)
                 else:
                     self.create_database_textbox.emit(f"\no folders found in '{desktop_folder_path}'.")
         elif len(folders) < 2:
@@ -156,31 +147,16 @@ class BuildDatabase():
             # Inform the user that there are more than two matching files
             print("\nThere are more than two matching files in the folder. Please remove any extras.")
 
-
-    def find_folder(self, starting_directory, target_folder_name):
-        """
-        Recursively searches for a folder with a specific name starting from the given directory.
-
-        :param starting_directory: The directory from which to start the search.
-        :param target_folder_name: The name of the folder to search for.
-        :return: The path to the target folder if found, otherwise None.
-        """
-        for root, dirs, files in os.walk(starting_directory):
-            for dir_name in dirs:
-                if dir_name == target_folder_name:
-                    return os.path.join(root, dir_name)
-        return None
-
-    def process_folders(self, folders, folder_path, source_name):
+    def process_folders(self, folders, folder_path, source_name, raster_target_folder, vector_target_folder):
         for folder in folders:
             if folder.startswith("RM") or folder.startswith("V"):
                 table_name = f"{source_name}_{folder.replace('-', '_')}"
                 sub_folder_path = os.path.join(folder_path, folder)
 
                 if folder.startswith("RM"):
-                    complete_path = self.find_folder(sub_folder_path,  self.raster_target_folder)
+                    complete_path = utils.find_folder(sub_folder_path, raster_target_folder)
                 else:
-                    complete_path = self.find_folder(sub_folder_path,  self.vector_target_folder)
+                    complete_path = utils.find_folder(sub_folder_path, vector_target_folder)
                 
                 complete_path = os.path.dirname(complete_path)
 

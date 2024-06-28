@@ -278,3 +278,18 @@ def write_csv_mods_to_gui(csv_mod_file_path, target_textbox):
                         formatted_data += '\n'
     # Send formatted_data to target_textbox.emit()
     target_textbox.emit(formatted_data)
+
+
+def find_folder(starting_directory, target_folder_name):
+    """
+    Recursively searches for a folder with a specific name starting from the given directory.
+
+    :param starting_directory: The directory from which to start the search.
+    :param target_folder_name: The name of the folder to search for.
+    :return: The path to the target folder if found, otherwise None.
+    """
+    for root, dirs, files in os.walk(starting_directory):
+        for dir_name in dirs:
+            if dir_name == target_folder_name:
+                return os.path.join(root, dir_name)
+    return None
