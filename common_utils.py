@@ -1,9 +1,33 @@
 ''' 
 
-module of common functions that are called more than once by different modules or that share other method calls
+Module of common functions that are called more than once by different modules or that share other method calls
 so it makes sense to keep them together
 
+Raster table columns:
+0 BSB Chart 
+1 File
+2 Edition Date (yyyymmdd)
+3 Last NTM (yyyymmdd)
+4 Raster Edition
+5 KAP Files
+6 Region
+7 Title
+
+Vector table columns:
+0 Collection
+1 Cell Name
+2 EDTN = Edition Number
+3 UPDN = Update Number
+4 ISDT = Issue Date (dd-Mmm-yyyy)
+5 UADT = Update Application Date (dd-Mmm-yyyy)
+6 SLAT = Southern Lattitude
+7 WLON = Western Longitude
+8 NLAT= Northern Lattitude
+9 ELON = Eastern Longitude
+10 Title
+
 '''
+
 import os
 import sqlite3
 from PyQt5.QtWidgets import QMessageBox
@@ -54,41 +78,25 @@ def detect_encoding(file_path):
     return encoding_result['encoding'].lower()  # Convert to lowercase
 
 # Function to insert data into a table from a .txt or .csv file
-def insert_data(table_name, file_path, cursor, file_extension):
-    try:
-        if file_extension == 'txt':
-            with open(file_path, 'r', errors='ignore') as txt_file:
-                next(txt_file)  # Skip the first line (column names)
-                next(txt_file)  # Skip the second line
-                for line in txt_file:
-                    line = line.strip()
-                    if not line:  # Stop processing if the line is blank
-                        break
-                    data = line.split('\t')
-                    placeholders = ', '.join(['?'] * len(data))
-                    insert_sql = f"INSERT INTO {table_name} VALUES ({placeholders})"
-                    cursor.execute(insert_sql, data)
-        elif file_extension == 'csv':
-            try: # Detect the encoding of the file
-                detected_encoding = detect_encoding(file_path)
-                #print(f'insert_data {table_name} detected encoding = {detected_encoding}')
-                with open(file_path, 'r', newline='', encoding=detected_encoding) as csv_file:
-                    csv_reader = csv.reader(csv_file, delimiter=',')
-                    # Skip the first two lines (column names and extra line if needed)
-                    next(csv_reader)  
-                    for row in csv_reader:
-                        if row:  # Check if the row is not empty; there seems to be an empty row at the end of the data
-                            # Process the non-empty row
-                            if 'Cancel_Annuler' not in row[0]: 
-                                data = row
-                                placeholders = ', '.join(['?'] * len(data))
-                                insert_sql = f"INSERT INTO {table_name} VALUES ({placeholders})"
-                                cursor.execute(insert_sql, data)
-            except UnicodeDecodeError as e:
-                print(f"Error in insert_data decoding file '{file_path}': {e}")
-                # Handle the error as needed
-        else:
-            raise ValueError("Unsupported file extension in insert_data.")
+def insert_data(table_name, file_path, cursor, file_extension):        
+    try: # Detect the encoding of the file
+        detected_encoding = detect_encoding(file_path)
+        #print(f'insert_data {table_name} detected encoding = {detected_encoding}')
+        with open(file_path, 'r', newline='', encoding=detected_encoding) as csv_file:
+            csv_reader = csv.reader(csv_file, delimiter=',')
+            # Skip the first two lines (column names and extra line if needed)
+            next(csv_reader)  
+            for row in csv_reader:
+                if row:  # Check if the row is not empty; there seems to be an empty row at the end of the data
+                    # Process the non-empty row
+                    if 'Cancel_Annuler' not in row[0]: 
+                        data = row
+                        placeholders = ', '.join(['?'] * len(data))
+                        insert_sql = f"INSERT INTO {table_name} VALUES ({placeholders})"
+                        cursor.execute(insert_sql, data)
+    except UnicodeDecodeError as e:
+        print(f"Error in insert_data decoding file '{file_path}': {e}")
+        # Handle the error as needed
     # following is to capture errors if and when they occur
     except sqlite3.OperationalError as e:
         print(f"SQLite operational error: {e}")
@@ -116,32 +124,6 @@ def get_first_table_yyyymmdd(prefix, database_conn):
         first_table = tables[0][0]
         return extract_yyyymmdd(first_table)
     return None
-
-''' 
-Raster table columns:
-0 BSB Chart 
-1 File
-2 Edition Date (yyyymmdd)
-3 Last NTM (yyyymmdd)
-4 Raster Edition
-5 KAP Files
-6 Region
-7 Title
-
-Vector table columns:
-0 Collection
-1 Cell Name
-2 EDTN = Edition Number
-3 UPDN = Update Number
-4 ISDT = Issue Date (dd-Mmm-yyyy)
-5 UADT = Update Application Date (dd-Mmm-yyyy)
-6 SLAT = Southern Lattitude
-7 WLON = Western Longitude
-8 NLAT= Northern Lattitude
-9 ELON = Eastern Longitude
-10 Title
-
-'''
 
 def get_column_headers(table_type, selected_cols):
     # return the selected column headers
@@ -279,15 +261,8 @@ def write_csv_mods_to_gui(csv_mod_file_path, target_textbox):
     # Send formatted_data to target_textbox.emit()
     target_textbox.emit(formatted_data)
 
-
 def find_folder(starting_directory, target_folder_name):
-    """
-    Recursively searches for a folder with a specific name starting from the given directory.
-
-    :param starting_directory: The directory from which to start the search.
-    :param target_folder_name: The name of the folder to search for.
-    :return: The path to the target folder if found, otherwise None.
-    """
+    # Recursively searches for a folder with a specific name starting from the given directory.
     for root, dirs, files in os.walk(starting_directory):
         for dir_name in dirs:
             if dir_name == target_folder_name:

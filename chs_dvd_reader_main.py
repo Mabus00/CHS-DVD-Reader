@@ -204,7 +204,7 @@ class CHSDVDReaderApp(QMainWindow):
 
             # instantiate generate_database and create the current month's database
             self.create_db = BuildDatabase(self.current_database_path, None, self.run_checker_signals.run_checker_textbox, self.current_database_folder)
-            self.create_db.generate_database(self.current_database_conn, self.current_database_cursor)
+            self.create_db.generate_database(self.current_database_conn, self.current_database_cursor, self.raster_target_folder, self.vector_target_folder)
 
             # compliance = East and West tables within each database have the same date and the new current database is at least one month older than the master database
             # required to proceed further
