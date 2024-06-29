@@ -177,11 +177,12 @@ class CHSDVDReaderApp(QMainWindow):
         for text_browser in text_browsers:
             text_browser.clear()
 
-    def delete_existing_files(self, files):
+    def delete_existing_files(self, file_path, files):
         for file_name in files:
-            if os.path.exists(file_name):
-                os.remove(file_name)
-                print(f"Deleted existing file: {file_name}")
+            complete_path = os.path.join(file_path, file_name)
+            if os.path.exists(complete_path):
+                os.remove(complete_path)
+                print(f"Deleted existing file: {complete_path}")
     
     def run_checker(self):
         self.current_database_folder = self.ui.checker_data_input_path.text() # path to current database folder
@@ -189,8 +190,8 @@ class CHSDVDReaderApp(QMainWindow):
         # clear all text boxes before running the checker
         self.clear_all_text_boxes(self.text_browsers)
         # delete existing csv files so they can be updated; these files are used to fill tabs and create the pdf report
-        self.delete_existing_files(self.report_csv_files)
-        self.delete_existing_files(self.csv_mod_files)
+        self.delete_existing_files(self.current_database_folder, self.report_csv_files)
+        self.delete_existing_files(self.current_database_folder, self.csv_mod_files)
         # instantiate run_checker
         self.run_checker = RunChecker(self.current_database_path, self.run_checker_signals.run_checker_textbox, self.current_database_folder)
         
