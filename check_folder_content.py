@@ -8,13 +8,14 @@ e.g., for the RM-ARC folder in the EAST folder, the charts listed in the RM-ARC.
 import os
 import pandas as pd
 
+import common_utils as utils
+
 # Define the RunChecker class
 class CheckFolderContent():
 
     # Constructor for initializing the CheckFolder object
-    def __init__(self, master_database_cursor, current_database_cursor):
+    def __init__(self, current_database_cursor):
         # Establish database cursors
-        self.master_database_cursor = master_database_cursor
         self.current_database_cursor = current_database_cursor
 
         self.East_West = ['EastDVD_', 'WestDVD_']
@@ -32,51 +33,50 @@ class CheckFolderContent():
                 continue
         raise ValueError(f"Could not read the file {file_path} with available encodings.")
 
-    def check_folders(self, base_folder):
+    def check_folders(self, database_folder, raster_target_folder, vector_target_folder):
         missing_files = []
         extra_files = []
-        # start at base_folder
-        for sub_folder in os.listdir(base_folder):
-            if any(sub_folder.startswith(prefix) for prefix in self.East_West):
-                sub_folder_path = os.path.join(base_folder, sub_folder)
-                # now in EastDVD or WestDVD folder
-                for sub_sub_folder in os.listdir(sub_folder_path):
-                    if any(sub_sub_folder.startswith(prefix) for prefix in self.RM_V):
-                        # now in an R- or V- folder
-                        sub_sub_folder_path = os.path.join(sub_folder_path, sub_sub_folder)
-                        # Find the CSV file and the BSB or ENC folder in the sub-sub-folder
-                        csv_file = None
-                        sub_sub_sub_folder = None
-                        for item in os.listdir(sub_sub_folder_path):
-                            if item.endswith('.csv'):
-                                csv_file = os.path.join(sub_sub_folder_path, item)
-                            elif any(item.startswith(prefix) for prefix in self.BSB_ENC):
-                                sub_sub_sub_folder = os.path.join(sub_sub_folder_path, item)
 
-                        if csv_file and sub_sub_sub_folder:
-                            # Read the second column from the CSV file
-                            try:
-                                # read the extracted second column of the CSV file to extract the list of expected_files
-                                df = self.read_csv_with_fallback(csv_file)
-                                expected_files = df.iloc[:, 0].tolist()
-                                
-                                if "BSB" in sub_sub_sub_folder:
-                                    # Get the list of actual files in the sub-sub-sub-folder
-                                    content = [file for file in os.listdir(sub_sub_sub_folder) if file.endswith('.BSB')]
-                                else:
-                                    # List of all directories within sub_sub_sub_folder
-                                    content = [item for item in os.listdir(sub_sub_sub_folder) if os.path.isdir(os.path.join(sub_sub_sub_folder, item))]
+        self.current_database_cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+        tables_current = [row[0] for row in self.current_database_cursor.fetchall()]
 
-                                # Check for missing and extra files
-                                missing = [file for file in expected_files if file not in content]
-                                extra = [file for file in content if file not in expected_files]
-                                
-                                if missing:
-                                    missing_files.append(f"Missing files in {sub_sub_folder}: {missing}")
-                                if extra:
-                                    extra_files.appen(f"Extra files in {sub_sub_folder}: {extra}")
-                            except ValueError as e:
-                                print(f"Error reading CSV file {csv_file}: {e}")
+        # Get the list of foldernames in the subject folder
+        folders = [item for item in os.listdir(database_folder) if os.path.isdir(os.path.join(database_folder, item))]
+
+        for folder in folders:
+            # Get the list of sub-foldernames in the subject folder
+            sub_folders = [item for item in os.listdir(folder) if os.path.isdir(os.path.join(folder, item))]
+
+            for sub_folders in folder:
+
+                if sub_folders.startswith("RM"):
+                    complete_path = utils.find_folder(sub_folders, raster_target_folder)
+                else:
+                    complete_path = utils.find_folder(sub_folders, vector_target_folder)
+                
+                complete_path = os.path.dirname(complete_path)
+
+                for item in os.listdir(complete_path):
+                    if item.endswith('.csv'):
+                        csv_file = os.path.join(complete_path, item)
+
+                        try:
+                            # read the extracted second column of the CSV file to extract the list of expected_files
+                            df = self.read_csv_with_fallback(csv_file)
+                            expected_files = df.iloc[:, 0].tolist()
+
+                            print('here')
+
+                            # # Check for missing and extra files
+                            # missing = [file for file in expected_files if file not in content]
+                            # extra = [file for file in content if file not in expected_files]
+                            
+                            # if missing:
+                            #     missing_files.append(f"Missing files in {sub_sub_folder}: {missing}")
+                            # if extra:
+                            #     extra_files.appen(f"Extra files in {sub_sub_folder}: {extra}")
+                        except ValueError as e:
+                            print(f"Error reading CSV file {csv_file}: {e}")
 
         return missing_files, extra_files
     
