@@ -159,14 +159,14 @@ class CHSDVDReaderApp(QMainWindow):
         # instantiate create_database and pass instance of database_name, etc...
         self.master_database_folder = self.ui.database_input_path.text() # path to master database folder
         self.master_database_path = os.path.join(self.master_database_folder, self.master_database_path) # actual path to master database
-        self.create_db = BuildDatabase(self.master_database_path, self.ui.rebuild_checkbox, self.database_signals.create_database_textbox, self.master_database_folder)
+        self.create_db = BuildDatabase(self.master_database_path, self.ui.rebuild_checkbox, self.database_signals.create_database_textbox, self.master_database_folder, self.raster_target_folder, self.vector_target_folder)
         # confirm that pre-build checks are met before proceeding
         if all(self.create_db.pre_build_checks()):
             # establish database connections; operate under assumption that master_database won't be created each time widget is used
             # note that this can't be done earlier because pre-build-checks deletes existing databases, and this can't happen if a connection to the database has been opened
             # self.get_database_connection creates the master_database in the desired folder
             self.master_database_conn, self.master_database_cursor = self.get_database_connection(self.master_database_path, self.database_signals.create_database_textbox)
-            self.create_db.generate_database(self.master_database_conn, self.master_database_cursor, self.raster_target_folder, self.vector_target_folder)
+            self.create_db.generate_database(self.master_database_conn, self.master_database_cursor)
         else:
             return
         # close the master database so it can be opened in run_checker (assumption is that create_database isn't always used)
@@ -203,8 +203,8 @@ class CHSDVDReaderApp(QMainWindow):
             self.current_database_conn, self.current_database_cursor = self.get_database_connection(self.current_database_path, self.database_signals.create_database_textbox)
 
             # instantiate generate_database and create the current month's database
-            self.create_db = BuildDatabase(self.current_database_path, None, self.run_checker_signals.run_checker_textbox, self.current_database_folder)
-            self.create_db.generate_database(self.current_database_conn, self.current_database_cursor, self.raster_target_folder, self.vector_target_folder)
+            self.create_db = BuildDatabase(self.current_database_path, None, self.run_checker_signals.run_checker_textbox, self.current_database_folder, self.raster_target_folder, self.vector_target_folder)
+            self.create_db.generate_database(self.current_database_conn, self.current_database_cursor)
 
             # compliance = East and West tables within each database have the same date and the new current database is at least one month older than the master database
             # required to proceed further
@@ -217,7 +217,7 @@ class CHSDVDReaderApp(QMainWindow):
                 # e.g., for the RM-ARC folder in the EAST folder, the charts listed in the RM-ARC.csv are in the associated BSBCHART folder
                 # note - not needed for the master database; assumption is that this was confirmed in the previous month (the master in month X was the current in month X-1)
                 self.check_folder_content = CheckFolderContent(self.master_database_cursor, self.current_database_cursor)
-                missing_files, extra_files = self.check_folder_content.check_folders(self.current_database_folder)
+                missing_files, extra_files = self.check_folder_content.check_folders(self.current_database_cursor)
                 # report charts_missing
                 if missing_files or extra_files:
                     utils.show_warning_popup("Possible errors were noted. See the Misc. Results tab.")

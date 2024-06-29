@@ -14,7 +14,7 @@ import csv
 
 class BuildDatabase():
 
-    def __init__(self, master_database_path, rebuild_checkbox, create_database_textbox, master_database_folder):
+    def __init__(self, master_database_path, rebuild_checkbox, create_database_textbox, master_database_folder, raster_target_folder, vector_target_folder):
         self.master_database_path = master_database_path  # actual path to master database
         # Create custom_signals connections
         self.rebuild_checkbox = rebuild_checkbox
@@ -22,6 +22,9 @@ class BuildDatabase():
 
         # database data input path
         self.master_database_folder = master_database_folder  # path to master database folder
+
+        self.raster_target_folder = raster_target_folder
+        self.vector_target_folder = vector_target_folder
 
     def pre_build_checks(self):
         rebuild_selected = True
@@ -38,15 +41,15 @@ class BuildDatabase():
         
         return rebuild_selected, path_selected
 
-    def generate_database(self, master_database_conn, master_database_cursor, raster_target_folder, vector_target_folder):
+    def generate_database(self, master_database_conn, master_database_cursor):
         # declare master database connection and cursor
         self.master_database_conn = master_database_conn
         self.master_database_cursor = master_database_cursor
 
         if self.master_database_folder[:1] == "C": #  Case 1: the files are in a folder on the desktop
-            self.process_desktop_folder(raster_target_folder, vector_target_folder)
+            self.process_desktop_folder()
         else:# Case 2: files are on a DVD reader
-            self.process_dvd(raster_target_folder, vector_target_folder)
+            self.process_dvd()
         # Commit the changes at the end
         self.master_database_conn.commit()
         self.create_database_textbox.emit(f"\n{self.master_database_path} successfully created!")
@@ -109,7 +112,7 @@ class BuildDatabase():
             print(f"Error in create_table decoding file '{file_path}': {e}")
             # Handle the error as needed
 
-    def process_dvd(self, raster_target_folder, vector_target_folder):
+    def process_dvd(self):
         # default to two DVDs; one East and one West
         num_sources = 2
         for source_num in range(1, num_sources + 1): 
@@ -126,7 +129,7 @@ class BuildDatabase():
             else:
                 self.create_database_textbox.emit(f"\nDVD not found at path '{self.master_database_folder}'.")
 
-    def process_desktop_folder(self, raster_target_folder, vector_target_folder):
+    def process_desktop_folder(self):
         # Get the list of foldernames in the subject folder
         folders = [item for item in os.listdir(self.master_database_folder) if os.path.isdir(os.path.join(self.master_database_folder, item))]
         # Check if two folders were found
@@ -137,7 +140,7 @@ class BuildDatabase():
                 folders = self.list_folders(desktop_folder_path)
                 if folders:
                     self.create_database_textbox.emit(f"\nAdded '{desktop_folder_path}' to the {self.master_database_path}.")
-                    self.process_folders(folders, desktop_folder_path, folder_name, raster_target_folder, vector_target_folder)
+                    self.process_folders(folders, desktop_folder_path, folder_name,)
                 else:
                     self.create_database_textbox.emit(f"\no folders found in '{desktop_folder_path}'.")
         elif len(folders) < 2:
@@ -147,16 +150,16 @@ class BuildDatabase():
             # Inform the user that there are more than two matching files
             print("\nThere are more than two matching files in the folder. Please remove any extras.")
 
-    def process_folders(self, folders, folder_path, source_name, raster_target_folder, vector_target_folder):
+    def process_folders(self, folders, folder_path, source_name):
         for folder in folders:
             if folder.startswith("RM") or folder.startswith("V"):
                 table_name = f"{source_name}_{folder.replace('-', '_')}"
                 sub_folder_path = os.path.join(folder_path, folder)
 
                 if folder.startswith("RM"):
-                    complete_path = utils.find_folder(sub_folder_path, raster_target_folder)
+                    complete_path = utils.find_folder(sub_folder_path, self.raster_target_folder)
                 else:
-                    complete_path = utils.find_folder(sub_folder_path, vector_target_folder)
+                    complete_path = utils.find_folder(sub_folder_path, self.vector_target_folder)
                 
                 complete_path = os.path.dirname(complete_path)
 
