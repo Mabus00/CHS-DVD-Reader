@@ -29,10 +29,7 @@ Vector table columns:
 '''
 
 import os
-import sqlite3
 from PyQt5.QtWidgets import QMessageBox
-import csv
-import chardet
 
 def show_warning_popup(message):
     popup = QMessageBox()
@@ -51,39 +48,6 @@ def delete_existing_database(database_path, target_textbox):
     os.remove(database_path)
     target_textbox.emit(f"Database '{database_path}' deleted.")
     
-# Function to detect file encoding using chardet
-def detect_encoding(file_path):
-    with open(file_path, 'rb') as f:
-        rawdata = f.read()
-    encoding_result = chardet.detect(rawdata)
-    return encoding_result['encoding'].lower()  # Convert to lowercase
-
-# Function to insert data into a table from a .txt or .csv file
-def insert_data(table_name, file_path, cursor, file_extension):        
-    try: # Detect the encoding of the file
-        detected_encoding = detect_encoding(file_path)
-        #print(f'insert_data {table_name} detected encoding = {detected_encoding}')
-        with open(file_path, 'r', newline='', encoding=detected_encoding) as csv_file:
-            csv_reader = csv.reader(csv_file, delimiter=',')
-            # Skip the first two lines (column names and extra line if needed)
-            next(csv_reader)  
-            for row in csv_reader:
-                if row:  # Check if the row is not empty; there seems to be an empty row at the end of the data
-                    # Process the non-empty row
-                    if 'Cancel_Annuler' not in row[0]: 
-                        data = row
-                        placeholders = ', '.join(['?'] * len(data))
-                        insert_sql = f"INSERT INTO {table_name} VALUES ({placeholders})"
-                        cursor.execute(insert_sql, data)
-    except UnicodeDecodeError as e:
-        print(f"Error in insert_data decoding file '{file_path}': {e}")
-        # Handle the error as needed
-    # following is to capture errors if and when they occur
-    except sqlite3.OperationalError as e:
-        print(f"SQLite operational error: {e}")
-    except Exception as e:
-        print(f"Error inserting data: {e}")
-
 def insert_text(table_name, text, pos_to_insert):
     parts = table_name.split('_')
     # Check if the specified part_to_replace is within the valid range
