@@ -160,16 +160,16 @@ class CHSDVDReaderApp(QMainWindow):
         # instantiate create_database and pass instance of database_name, etc...
         self.master_database_folder = self.ui.database_input_path.text() # path to master database folder
         self.master_database_path = os.path.join(self.master_database_folder, self.master_database_path) # actual path to master database
-        self.create_db = BuildDatabase(self.master_database_path, self.ui.rebuild_checkbox, self.database_signals.create_database_textbox, self.master_database_folder, self.raster_target_folder, self.vector_target_folder)
+        self.create_db = BuildDatabase(self.master_database_path, self.database_signals.create_database_textbox, self.master_database_folder, self.raster_target_folder, self.vector_target_folder)
         # confirm that pre-build checks are met before proceeding
-        if all(self.create_db.pre_build_checks()):
+        if self.ui.rebuild_checkbox.isChecked() and utils.pre_build_checks(self.master_database_path, self.master_database_folder, self.database_signals.create_database_textbox):
             # establish database connections; operate under assumption that master_database won't be created each time widget is used
             # note that this can't be done earlier because pre-build-checks deletes existing databases, and this can't happen if a connection to the database has been opened
             # self.get_database_connection creates the master_database in the desired folder
             self.master_database_conn, self.master_database_cursor = self.get_database_connection(self.master_database_path, self.database_signals.create_database_textbox)
             self.create_db.generate_database(self.master_database_conn, self.master_database_cursor)
         else:
-            return
+            utils.show_warning_popup("Database exists. Check the 'Confirm deletion of database' box to proceed")
         # close the master database so it can be opened in run_checker (assumption is that create_database isn't always used)
         self.close_database(self.database_signals.create_database_textbox, self.master_database_conn, self.master_database_path)
 
@@ -243,12 +243,12 @@ class CHSDVDReaderApp(QMainWindow):
                             col_indices = [0,3,7]
                             table_type = "raster"
                             # set header row column tabs
-                            col_headers = utils.get_column_headers(table_type, col_indices)
+                            col_headers = self.get_column_headers(table_type, col_indices)
                         else:
                             col_indices = [1,5,10]
                             table_type = "vector"
                             # set header row column tabs; needs an extra tab to line things up
-                            col_headers = utils.get_column_headers(table_type, col_indices)
+                            col_headers = self.get_column_headers(table_type, col_indices)
                         if folder_title: # will only happen after the initial folder data is entered (I.e., the second go round)
                             csv_writer.writerow([])
                         folder_title = row
@@ -300,6 +300,19 @@ class CHSDVDReaderApp(QMainWindow):
         # Send formatted_data to target_textbox.emit()
         target_textbox.emit(formatted_data)
 
+    def get_column_headers(self, table_type, selected_cols):
+        # return the selected column headers
+        raster_table_columns = ["BSB Chart", "File", "Edition Date", "Last NTM", "Raster Edition", "Kap FIles", "Region", "Title"]
+        vector_table_columns = ["Collection", "Cell_Name", "EDTN", "UPDN", "ISDT", "UADT", "SLAT", "WLON", "NLAT", "ELON", "Title"]
+        # Select appropriate columns based on table_type
+        if table_type == "raster":
+            selected_columns = [raster_table_columns[idx] for idx in selected_cols if idx < len(raster_table_columns)]
+        elif table_type == "vector":
+            selected_columns = [vector_table_columns[idx] for idx in selected_cols if idx < len(vector_table_columns)]
+        else:
+            return []  # Return an empty list for an invalid table_type
+        return selected_columns
+
     def run_checker(self):
         self.current_database_folder = self.ui.checker_data_input_path.text() # path to current database folder
         self.current_database_path = os.path.join(self.current_database_folder, self.current_database_path) # actual path to current database
@@ -313,14 +326,14 @@ class CHSDVDReaderApp(QMainWindow):
         
         # FOUR PARTS TO RUN CHECKING
         # before starting confirm pre-build checks; checking whether a valid path was provided for new current database
-        path_selected = self.run_checker.pre_build_checks()
+        path_selected = utils.pre_build_checks(self.current_database_path, self.current_database_folder, self.run_checker_signals.run_checker_textbox)
         if path_selected:
             # establish database connections; operate under assumption that master_database won't be created each time widget is used
             self.master_database_conn, self.master_database_cursor = self.get_database_connection(self.master_database_path, self.database_signals.create_database_textbox)
             self.current_database_conn, self.current_database_cursor = self.get_database_connection(self.current_database_path, self.database_signals.create_database_textbox)
 
             # instantiate generate_database and create the current month's database
-            self.create_db = BuildDatabase(self.current_database_path, None, self.run_checker_signals.run_checker_textbox, self.current_database_folder, self.raster_target_folder, self.vector_target_folder)
+            self.create_db = BuildDatabase(self.current_database_path, self.run_checker_signals.run_checker_textbox, self.current_database_folder, self.raster_target_folder, self.vector_target_folder)
             self.create_db.generate_database(self.current_database_conn, self.current_database_cursor)
 
             # compliance = East and West tables within each database have the same date and the new current database is at least one month older than the master database

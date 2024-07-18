@@ -70,20 +70,6 @@ def get_first_table_yyyymmdd(prefix, database_conn):
         return extract_yyyymmdd(first_table)
     return None
 
-def get_column_headers(table_type, selected_cols):
-    # return the selected column headers
-    raster_table_columns = ["BSB Chart", "File", "Edition Date", "Last NTM", "Raster Edition", "Kap FIles", "Region", "Title"]
-    vector_table_columns = ["Collection", "Cell_Name", "EDTN", "UPDN", "ISDT", "UADT", "SLAT", "WLON", "NLAT", "ELON", "Title"]
-    # Select appropriate columns based on table_type
-    if table_type == "raster":
-        selected_columns = [raster_table_columns[idx] for idx in selected_cols if idx < len(raster_table_columns)]
-    elif table_type == "vector":
-        selected_columns = [vector_table_columns[idx] for idx in selected_cols if idx < len(vector_table_columns)]
-    else:
-        return []  # Return an empty list for an invalid table_type
-    return selected_columns
-
-
 # not used but keep
 def yes_or_no_popup(message):
     reply = QMessageBox()
@@ -92,18 +78,6 @@ def yes_or_no_popup(message):
                         QMessageBox.StandardButton.No)
     return reply.exec()
 
-# not used but keep
-def merge_files(file1_path, file2_path):
-    if os.path.exists(file1_path) and os.path.exists(file2_path):
-        with open(file1_path, "a") as file1, open(file2_path, "r") as file2:
-            content2 = file2.read()
-
-            file1.write("\n" + content2)
-        os.remove(file2_path)
-    return file1
-
-
-
 def find_folder(starting_directory, target_folder_name):
     # Recursively searches for a folder with a specific name starting from the given directory.
     for root, dirs, files in os.walk(starting_directory):
@@ -111,3 +85,17 @@ def find_folder(starting_directory, target_folder_name):
             if dir_name == target_folder_name:
                 return os.path.join(root, dir_name)
     return None
+
+# similar method in
+def pre_build_checks(database_path, database_folder, textbox):
+    path_selected = True
+
+    # delete if necessary; database will be rebuilt
+    if os.path.exists(database_path):
+        delete_existing_database(database_path, textbox)
+
+    # ensure user has selected a data input path
+    if not confirm_data_path(database_folder):
+        path_selected = False
+    
+    return path_selected
