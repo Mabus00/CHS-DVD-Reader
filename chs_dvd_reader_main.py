@@ -22,6 +22,7 @@ import os
 import common_utils as utils
 import glob
 import sqlite3
+import csv
 
 from PyQt5.QtWidgets import QApplication, QMainWindow, QTextEdit, QMessageBox, QFileDialog
 from PyQt5.QtGui import QFont
@@ -183,7 +184,122 @@ class CHSDVDReaderApp(QMainWindow):
             if os.path.exists(complete_path):
                 os.remove(complete_path)
                 print(f"Deleted existing file: {complete_path}")
-    
+
+    def process_report(self, data, csv_file_name, gui_text_box, current_database_folder, message=None):
+        file_path = os.path.join(current_database_folder, csv_file_name)
+        csv_file_path = f'{file_path}.csv'
+        csv_mod_file_path = f'{file_path}_mod.csv'
+        # Save data to CSV file
+        self.save_data_to_csv(data, message, csv_file_path)
+        # Prepare data for GUI tab
+        self.prep_csv_for_gui(csv_file_path)
+        self.write_csv_mods_to_gui(csv_mod_file_path, gui_text_box)
+
+    def save_data_to_csv(self, data, message, csv_file_path):
+        # Open the CSV file for writing
+        with open(csv_file_path, 'w', newline='') as csv_file:
+            writer = csv.writer(csv_file)
+            # Write the message at the beginning of the file (only for misc report type 2)
+            if message:
+                writer.writerow([message])
+            # Write each entry of the data list to the CSV file
+            for entry in data:
+                # Check if the entry is a tuple (data structure) or a single value
+                if isinstance(entry, tuple):
+                    text, data_list = entry
+                    # Write the text as a header
+                    if text:
+                        writer.writerow([text])
+                    # Write each row in the data list as a separate record
+                    for row in data_list:
+                        row_stripped = [str(cell).strip() for cell in row]
+                        writer.writerow(row_stripped)
+                else:
+                    writer.writerow([entry])  # Write a single value to the CSV file
+
+    def prep_csv_for_gui(self, csv_file_path):
+        # extracts .csv file data and keeps only those fields needed for gui tab display
+        # these files will also be used to create .pdf report but note the order of columns is specifically for the gui; need to keep title last so everything looks good and lined up
+        # Extract the file name and extension from the input file path
+        file_name, file_extension = os.path.splitext(csv_file_path)
+        # Construct the output file path by appending "_mod" before the file extension
+        output_csv_file = file_name + "_mod" + file_extension
+        folder_title = None
+        # Open the input CSV file for reading and the output CSV file for writing
+        with open(csv_file_path, 'r', newline='') as input_file, open(output_csv_file, 'w', newline='') as output_file:
+            # Create a CSV reader object for the input file
+            csv_reader = csv.reader(input_file)
+            # Create a CSV writer object for the output file
+            csv_writer = csv.writer(output_file)
+            # Iterate over each row in the CSV file
+            for row in csv_reader:
+                if "misc" not in csv_file_path:
+                    # Check the number of columns in the row
+                    num_columns = len(row)
+                    # Keep rows with only one column
+                    if num_columns == 1:
+                        if "RM" in row[0]:
+                            # only show these columns
+                            col_indices = [0,3,7]
+                            table_type = "raster"
+                            # set header row column tabs
+                            col_headers = utils.get_column_headers(table_type, col_indices)
+                        else:
+                            col_indices = [1,5,10]
+                            table_type = "vector"
+                            # set header row column tabs; needs an extra tab to line things up
+                            col_headers = utils.get_column_headers(table_type, col_indices)
+                        if folder_title: # will only happen after the initial folder data is entered (I.e., the second go round)
+                            csv_writer.writerow([])
+                        folder_title = row
+                        csv_writer.writerow(folder_title)
+                        csv_writer.writerow(col_headers)
+                    # Keep columns 0, 4, and 5 for rows with more than one column
+                    else:
+                        new_row = [row[col_indices[0]], row[col_indices[1]], row[col_indices[2]]]
+                        csv_writer.writerow(new_row)
+                else:
+                    csv_writer.writerow(row)
+
+    def write_csv_mods_to_gui(self, csv_mod_file_path, target_textbox):
+        formatted_data = ''
+        #current_folder_title = None
+        # Open the CSV file for reading
+        with open(csv_mod_file_path, 'r', newline='') as csv_file:
+            # Create a CSV reader object for the input file
+            csv_reader = csv.reader(csv_file)
+            if "misc" in csv_mod_file_path:
+                # Read each row of the CSV file
+                for i, row in enumerate(csv_reader):
+                    if i == 0:
+                        formatted_data = f"{row[0]}\n"  # Extract folder title from the first row
+                    else:
+                        formatted_data += str(row[0]) + '\n'  # Process data rows
+            else:
+                # Read each row of the CSV file
+                for i, row in enumerate(csv_reader):
+                    if len(row) == 1: # this is a folder title
+                        folder_title = row[0]
+                        formatted_data += f"{folder_title}\n"  # Add folder title
+                    else:  # Ensure there is a folder title before adding data
+                        if row:
+                            if not row[1]:
+                                row[1] = "            "
+                            if "RM" in folder_title:
+                                if any(any(char.isdigit() for char in string) for string in row): # digits means it's a line of data
+                                    formatted_data += row[0] + '\t\t' + row[1] + '\t\t' + row[2] + '\n'
+                                else: # no digits means it's a header row
+                                    formatted_data += row[0] + '\t' + row[1] + '\t\t' + row[2] + '\n'
+                            else:
+                                if any(any(char.isdigit() for char in string) for string in row): # digits means it's a line of data
+                                    formatted_data += row[0] + '\t\t' + row[1] + '\t' + row[2] + '\n'
+                                else: # no digits means it's a header row
+                                    formatted_data += row[0] + '\t' + row[1] + '\t\t' + row[2] + '\n'
+                        else:
+                            formatted_data += '\n'
+        # Send formatted_data to target_textbox.emit()
+        target_textbox.emit(formatted_data)
+
     def run_checker(self):
         self.current_database_folder = self.ui.checker_data_input_path.text() # path to current database folder
         self.current_database_path = os.path.join(self.current_database_folder, self.current_database_path) # actual path to current database
@@ -225,10 +341,10 @@ class CHSDVDReaderApp(QMainWindow):
                     # Determine which list to pass: missing_files or extra_files
                     # Process missing files if any
                     if missing_files:
-                        utils.process_report(missing_files, 'misc_findings_type2', self.errors_signals.errors_textbox, self.current_database_folder)
+                       self.process_report(missing_files, 'misc_findings_type2', self.errors_signals.errors_textbox, self.current_database_folder)
                     # Process extra files if any
                     if extra_files:
-                        utils.process_report(extra_files, 'misc_findings_type2', self.errors_signals.errors_textbox, self.current_database_folder)
+                       self.process_report(extra_files, 'misc_findings_type2', self.errors_signals.errors_textbox, self.current_database_folder)
 
                 # PART 2 OF 4 - compare the folder content of the master and current databases and report new (i.e., not in master but in current) or missing / withdrawn
                 # (i.e., in master but not in current) folders on the appropriate gui tab
@@ -248,7 +364,7 @@ class CHSDVDReaderApp(QMainWindow):
                     for error_type, table_list in {"missing_current": temp_tables_missing_in_current, "missing_master": temp_tables_missing_in_master}.items():
                         if table_list:
                             message = error_messages[error_type]
-                            utils.process_report(table_list, 'misc_findings_type2', self.errors_signals.errors_textbox, self.current_database_folder, message)
+                            self.process_report(table_list, 'misc_findings_type2', self.errors_signals.errors_textbox, self.current_database_folder, message)
 
                 # PART 3 OF 4 - compare master and current databases and report charts withdrawn and new charts
                 # Remove tables_missing_from_current from tables_master so table content matches; no need to check tables_missing_in_master because these are newly added
@@ -258,10 +374,10 @@ class CHSDVDReaderApp(QMainWindow):
                 charts_withdrawn, new_charts = self.compare_chart_numbers.compare_chart_numbers(tables_master_temp, self.master_yyyymmdd, self.current_yyyymmdd)
                 # Report missing charts on missing charts tab; can't use same process as above because of filenames and textbox identification
                 if charts_withdrawn:
-                    utils.process_report(charts_withdrawn, 'charts_withdrawn', self.charts_withdrawn_signals.chart_withdrawn_textbox, self.current_database_folder)
+                   self.process_report(charts_withdrawn, 'charts_withdrawn', self.charts_withdrawn_signals.chart_withdrawn_textbox, self.current_database_folder)
                # Report new charts on new charts tab
                 if new_charts:
-                    utils.process_report(new_charts, 'new_charts', self.new_charts_signals.new_charts_textbox, self.current_database_folder)
+                   self.process_report(new_charts, 'new_charts', self.new_charts_signals.new_charts_textbox, self.current_database_folder)
                 
                # PART 4 OF 4 - find data mismatches
                 # instantiate FindDataMismatches
@@ -269,11 +385,11 @@ class CHSDVDReaderApp(QMainWindow):
                 new_editions, misc_findings = self.find_data_mismatches.find_mismatches(tables_master_temp, self.master_yyyymmdd, self.current_yyyymmdd)
                 # report new_editions
                 if new_editions:
-                    utils.process_report(new_editions, 'new_editions', self.new_editions_signals.new_editions_textbox, self.current_database_folder)
+                   self.process_report(new_editions, 'new_editions', self.new_editions_signals.new_editions_textbox, self.current_database_folder)
                 # Report misc. findings (findings that couldn't be categorized as New Charts, New Editions or Charts Withdrawn)
                 if misc_findings:
                     message = "Uncategorized Findings"
-                    utils.process_report(misc_findings, 'misc_findings_type1', self.errors_signals.errors_textbox, self.current_database_folder, message)
+                    self.process_report(misc_findings, 'misc_findings_type1', self.errors_signals.errors_textbox, self.current_database_folder, message)
                     utils.show_warning_popup("Possible errors were noted. See the Misc. Results tab.")
                 
                 # Print a message to indicate that the checker has run

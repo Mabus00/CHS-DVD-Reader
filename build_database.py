@@ -26,13 +26,22 @@ class BuildDatabase():
         self.raster_target_folder = raster_target_folder
         self.vector_target_folder = vector_target_folder
 
+    def confirm_database_deletion(self, rebuild_checkbox, database_path, target_textbox):
+        # chs_dvd.db exists
+        while not rebuild_checkbox.isChecked():
+            utils.show_warning_popup("Database exists. Check the 'Confirm deletion of database' box to proceed")
+            return False
+        else:
+            utils.delete_existing_database(database_path, target_textbox)
+            return True
+    
     def pre_build_checks(self):
         rebuild_selected = True
         path_selected = True
 
         # delete if necessary; database will be rebuilt
         if os.path.exists(self.database_path):
-            if not utils.confirm_database_deletion(self.rebuild_checkbox, self.database_path, self.create_database_textbox):
+            if not self.confirm_database_deletion(self.rebuild_checkbox, self.database_path, self.create_database_textbox):
                 rebuild_selected = False
         
         # ensure user has selected a data input path
