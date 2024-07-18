@@ -322,7 +322,7 @@ class CHSDVDReaderApp(QMainWindow):
         self.delete_existing_files(self.current_database_folder, self.report_csv_files)
         self.delete_existing_files(self.current_database_folder, self.csv_mod_files)
         # instantiate run_checker
-        self.run_checker = RunChecker(self.current_database_path, self.run_checker_signals.run_checker_textbox, self.current_database_folder)
+        self.run_checker = RunChecker(self.run_checker_signals.run_checker_textbox)
         
         # FOUR PARTS TO RUN CHECKING
         # before starting confirm pre-build checks; checking whether a valid path was provided for new current database

@@ -89,13 +89,10 @@ def find_folder(starting_directory, target_folder_name):
 # similar method in
 def pre_build_checks(database_path, database_folder, textbox):
     path_selected = True
-
     # delete if necessary; database will be rebuilt
     if os.path.exists(database_path):
         delete_existing_database(database_path, textbox)
-
     # ensure user has selected a data input path
     if not confirm_data_path(database_folder):
         path_selected = False
-    
     return path_selected

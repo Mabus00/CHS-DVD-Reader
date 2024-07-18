@@ -17,23 +17,8 @@ import common_utils as utils
 class RunChecker():
 
     # Constructor for initializing the RunChecker object
-    def __init__(self, current_database_path, run_checker_textbox, current_database_folder):
-        self.current_database_path = current_database_path
-        # Create an instance of CreateDatabaseSignals (not shown in code, assuming it's an imported class)
+    def __init__(self, run_checker_textbox):
         self.run_checker_textbox = run_checker_textbox
-
-        # database data input path
-        self.current_database_folder = current_database_folder
-
-    def pre_build_checks(self):
-        path_selected = True
-        # delete if necessary; database will be rebuilt
-        if os.path.exists(self.current_database_path):
-            utils.delete_existing_database(self.current_database_path, self.run_checker_textbox)
-        # ensure user has selected a data input path
-        if not utils.confirm_data_path(self.current_database_folder):
-            path_selected = False
-        return path_selected
     
     # Method to compare databases
     def confirm_database_compliance(self, master_database_conn, current_database_conn):

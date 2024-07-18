@@ -83,16 +83,6 @@ class CheckFolderContent():
         
         return final_name
 
-    def fetch_table_data(self, cursor, formatted_name):
-        try:
-            cursor.execute(f"SELECT File FROM {formatted_name}")  # Assuming col2 is the column to fetch
-            table_files = cursor.fetchall()  # Fetch all rows
-            table_files = [row[0] for row in table_files]  # Extract values from rows
-            return table_files
-        except sqlite3.OperationalError as e:
-            print(f"Error fetching data from {formatted_name}: {e}")
-            return []
-
     def check_folders(self, database_folder, raster_target_folder, vector_target_folder):
         missing_files = []
         extra_files = []
