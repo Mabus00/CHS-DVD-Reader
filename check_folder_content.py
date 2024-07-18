@@ -7,8 +7,6 @@ e.g., for the RM-ARC folder in the EAST folder, the charts listed in the RM-ARC.
 
 import os
 import pandas as pd
-import sqlite3
-import common_utils as utils
 
 # Define the RunChecker class
 class CheckFolderContent():

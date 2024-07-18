@@ -99,10 +99,6 @@ class PDFReport(BaseDocTemplate):
         heading._bookmarkName = bn
         self.elements.append(heading)
 
-    def add_folder_title(self, title_text):
-        title = Paragraph(title_text, self.styles[2])
-        self.elements.append(title)
-
     def add_folder_data(self, content):
         paragraph = Paragraph(content, self.styles[3])
         self.elements.append(paragraph)
@@ -113,15 +109,6 @@ class PDFReport(BaseDocTemplate):
         page_num = self.canv.getPageNumber()
         self.canv.drawString(1.5 * cm, 0.75 * cm, f"Page {page_num}")
         self.canv.restoreState()
-
-    def custom_sort(self, row):
-        # Extract the first column value
-        first_column_value = row[0]
-        # Check if the first column value is numeric
-        if isinstance(first_column_value, int) or first_column_value.isdigit():
-            return int(first_column_value)  # Convert to integer for sorting
-        else:
-            return first_column_value  # Sorting as string
        
     def process_block_data(self, block_data):
         table_data = []
