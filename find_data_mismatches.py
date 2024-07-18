@@ -47,7 +47,6 @@ class FindDataMismatches():
         except ValueError:
             return None  # Handle invalid date strings gracefully
 
-
     def tuple_to_list(self, tup):
         #Convert a tuple to a list.
         return list(tup)
