@@ -30,6 +30,7 @@ Vector table columns:
 
 import os
 from PyQt5.QtWidgets import QMessageBox
+import sqlite3
 
 def show_warning_popup(message):
     popup = QMessageBox()
@@ -96,3 +97,18 @@ def pre_build_checks(database_path, database_folder, textbox):
     if not confirm_data_path(database_folder):
         path_selected = False
     return path_selected
+
+def initialize_database(database_path, target_textbox):
+    conn = sqlite3.connect(database_path)
+    cursor = conn.cursor()
+    target_textbox.emit(f"Database '{database_path}' connected")
+    return conn, cursor
+    
+def get_database_connection(database_path, target_textbox):
+    conn, cursor = initialize_database(database_path, target_textbox)
+    return conn, cursor
+
+def close_database(target_textbox, database_conn, database_path):
+    if database_conn:
+        database_conn.close()
+    target_textbox.emit(f'\n{database_path} closed.')

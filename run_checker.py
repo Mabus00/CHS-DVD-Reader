@@ -10,7 +10,6 @@ Updated to streamline.
 '''
 
 # Import necessary modules
-import os
 import common_utils as utils
 
 # Define the RunChecker class

@@ -13,10 +13,14 @@ import time
 import csv
 import chardet
 import sqlite3
+from PyQt5.QtCore import QObject, pyqtSignal
 
-class BuildDatabase():
-
-    def __init__(self, database_path, create_database_textbox, database_folder, raster_target_folder, vector_target_folder):
+class BuildDatabase(QObject):
+    finished = pyqtSignal(str)  # used to return self.database_path
+    
+    def __init__(self, ui , database_path, create_database_textbox, database_folder, raster_target_folder, vector_target_folder):
+        super().__init__() # call __init__ of the parent class chs_dvd_reader_main
+        self.ui = ui
         self.database_path = database_path  # actual path to master database
         # Create custom_signals connections
         self.create_database_textbox = create_database_textbox
@@ -26,6 +30,9 @@ class BuildDatabase():
 
         self.raster_target_folder = raster_target_folder
         self.vector_target_folder = vector_target_folder
+
+        self.master_database_conn = ''
+        self.master_database_cursor = ''
 
     # Function to detect file encoding using chardet
     def detect_encoding(self, file_path):
@@ -159,7 +166,7 @@ class BuildDatabase():
                 folders = self.list_folders(desktop_folder_path)
                 if folders:
                     self.create_database_textbox.emit(f"\nAdded '{desktop_folder_path}' to the {self.database_path}.")
-                    self.process_folders(folders, desktop_folder_path, folder_name,)
+                    self.process_folders(folders, desktop_folder_path, folder_name)
                 else:
                     self.create_database_textbox.emit(f"\no folders found in '{desktop_folder_path}'.")
         elif len(folders) < 2:
@@ -197,6 +204,23 @@ class BuildDatabase():
                                 self.insert_data(table_name, file_path, self.master_database_cursor, file_extension)    # Insert data into the table
                         elif file_extension == "":
                             self.create_database_textbox.emit("\nNo .txt or .csv files in this folder.")
-   
+
+    def build_database(self):
+        # instantiate create_database and pass instance of database_name, etc...
+        self.database_folder = self.ui.database_input_path.text() # path to master database folder
+        self.database_path = os.path.join(self.database_folder, self.database_path) # actual path to master database
+        # confirm that pre-build checks are met before proceeding
+        if self.ui.rebuild_checkbox.isChecked() and utils.pre_build_checks(self.database_path, self.database_folder, self.create_database_textbox):
+            # establish database connections; operate under assumption that master_database won't be created each time widget is used
+            # note that this can't be done earlier because pre-build-checks deletes existing databases, and this can't happen if a connection to the database has been opened
+            # self.get_database_connection creates the master_database in the desired folder
+            database_conn, database_cursor = utils.get_database_connection(self.database_path, self.create_database_textbox)
+            self.generate_database(database_conn, database_cursor)
+        else:
+            utils.show_warning_popup("Database exists. Check the 'Confirm deletion of database' box to proceed")
+        # close the master database so it can be opened in run_checker (assumption is that create_database isn't always used)
+        utils.close_database(self.create_database_textbox, database_conn, self.database_path)
+        self.finished.emit(self.database_path)  # Emit the result through the signal
+
 if __name__ == "__main__":
    pass
