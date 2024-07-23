@@ -20,8 +20,11 @@ from compare_chart_numbers import CompareChartNumbers
 from find_data_mismatches import FindDataMismatches
 from check_folder_content import CheckFolderContent
 
+from PyQt5.QtCore import QObject, pyqtSignal
+
 # Define the RunChecker class
-class RunChecker():
+class RunChecker(QObject):
+    finished = pyqtSignal(str, str, str)  # used to return self.database_path
 
     # Constructor for initializing the RunChecker object
     def __init__(self, ui , master_database_path, current_database_path, run_checker_textbox, errors_textbox, create_database_textbox, chart_withdrawn_textbox, new_charts_textbox, new_editions_textbox, master_database_folder, current_database_folder, raster_target_folder, vector_target_folder):
@@ -360,6 +363,7 @@ class RunChecker():
         # close the databases
         utils.close_database(self.create_database_textbox, self.master_database_conn, self.master_database_path)
         utils.close_database(self.run_checker_textbox, self.current_database_conn, self.current_database_path)
+        self.finished.emit(self.master_yyyymmdd, self.current_yyyymmdd, self.current_database_folder)  # Emit the result through the signal
 
 # Main execution block (can be used for testing)
 if __name__ == "__main__":
