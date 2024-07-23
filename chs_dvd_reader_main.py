@@ -17,7 +17,6 @@ VIEW = chs_dvd_gui
 '''
 
 import sys
-import inspect
 import os
 import common_utils as utils
 import glob
@@ -37,9 +36,6 @@ class CHSDVDReaderApp(QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.setWindowTitle("CHS DVD Reader")
-
-        # create list of text browsers so they can be cleared en masse
-        self.text_browsers = [obj for name, obj in inspect.getmembers(self.ui) if isinstance(obj, QTextEdit)]
 
         # create an ordered list of csv files so I can prioritize selection for the pdf report
         self.report_csv_files = [
@@ -149,6 +145,11 @@ class CHSDVDReaderApp(QMainWindow):
     def handle_build_database_result(self, result):
         self.master_database_path = result
 
+    def clear_all_text_boxes(self, text_browsers):
+        # Create a list of QTextBrowser widgets by inspecting the module
+        for text_browser in text_browsers:
+            text_browser.clear()
+
     # def handle_run_che_result(self, result):
     #     self.master_database_path = result
 
@@ -198,7 +199,10 @@ def main():
     for browser in window.text_browsers:
         browser.verticalScrollBar().minimum()
         browser.setFont(font)
-        
+
+    # clear all text boxes before running the checker
+    window.clear_all_text_boxes(window.text_browsers)
+
     sys.exit(app.exec_())
 
 if __name__ == "__main__":

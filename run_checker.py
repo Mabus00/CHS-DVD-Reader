@@ -124,11 +124,6 @@ class RunChecker():
             self.run_checker_textbox.emit("\nCurrent East & West DVD dates are not a month or more later than the Master Database dates.")
         return month_result
 
-    def clear_all_text_boxes(self, text_browsers):
-        # Create a list of QTextBrowser widgets by inspecting the module
-        for text_browser in text_browsers:
-            text_browser.clear()
-
     def delete_existing_files(self, file_path, files):
         for file_name in files:
             complete_path = os.path.join(file_path, file_name)
@@ -267,8 +262,6 @@ class RunChecker():
     def run_checker(self):
         self.current_database_folder = self.ui.checker_data_input_path.text() # path to current database folder
         self.current_database_path = os.path.join(self.current_database_folder, self.current_database_path) # actual path to current database
-        # clear all text boxes before running the checker
-        self.clear_all_text_boxes(self.text_browsers)
         # delete existing csv files so they can be updated; these files are used to fill tabs and create the pdf report
         self.delete_existing_files(self.current_database_folder, self.report_csv_files)
         self.delete_existing_files(self.current_database_folder, self.csv_mod_files)
