@@ -259,7 +259,8 @@ class RunChecker():
         # Send formatted_data to target_textbox.emit()
         target_textbox.emit(formatted_data)
 
-    def run_checker(self):
+    def run_checker(self, master_database_path):
+        self.master_database_path = master_database_path
         self.current_database_folder = self.ui.checker_data_input_path.text() # path to current database folder
         self.current_database_path = os.path.join(self.current_database_folder, self.current_database_path) # actual path to current database
         # delete existing csv files so they can be updated; these files are used to fill tabs and create the pdf report

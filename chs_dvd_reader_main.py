@@ -20,6 +20,7 @@ import sys
 import os
 import common_utils as utils
 import glob
+import inspect
 
 from PyQt5.QtWidgets import QApplication, QMainWindow, QTextEdit, QFileDialog
 from PyQt5.QtGui import QFont
@@ -36,6 +37,9 @@ class CHSDVDReaderApp(QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.setWindowTitle("CHS DVD Reader")
+
+        # create list of text browsers so they can be cleared en masse
+        self.text_browsers = [obj for name, obj in inspect.getmembers(self.ui) if isinstance(obj, QTextEdit)]
 
         # create an ordered list of csv files so I can prioritize selection for the pdf report
         self.report_csv_files = [
@@ -112,7 +116,7 @@ class CHSDVDReaderApp(QMainWindow):
         # Connect custom signals to slots
         # run checker tab
         self.run_checker_signals.data_input_path_button.connect(lambda: self.open_file_explorer(self.ui.checker_data_input_path, self.current_database_path))
-        self.run_checker_signals.run_checker_button.connect(self.run_checker_instance.run_checker)
+        self.run_checker_signals.run_checker_button.connect(self.run_checker_instance.run_checker(self.master_database_path))
         # Connect the finished signal to handle_run_checker_result
         # self.self.run_checker_instance.finished.connect(self.handle_run_checker_result)
         self.run_checker_signals.create_pdf_report_button.connect(self.create_pdf_report)
