@@ -116,7 +116,8 @@ class CHSDVDReaderApp(QMainWindow):
         # Connect custom signals to slots
         # run checker tab
         self.run_checker_signals.data_input_path_button.connect(lambda: self.open_file_explorer(self.ui.checker_data_input_path, self.current_database_path))
-        self.run_checker_signals.run_checker_button.connect(self.run_checker_instance.run_checker(self.master_database_path))
+        self.run_checker_signals.run_checker_button.connect(lambda: self.run_checker_instance.run_checker(self.master_database_path))
+
         # Connect the finished signal to handle_run_checker_result
         # self.self.run_checker_instance.finished.connect(self.handle_run_checker_result)
         self.run_checker_signals.create_pdf_report_button.connect(self.create_pdf_report)
@@ -153,9 +154,6 @@ class CHSDVDReaderApp(QMainWindow):
         # Create a list of QTextBrowser widgets by inspecting the module
         for text_browser in text_browsers:
             text_browser.clear()
-
-    # def handle_run_che_result(self, result):
-    #     self.master_database_path = result
 
     def create_pdf_report(self):
         # establish database connections; operate under assumption that master_database won't be created each time widget is used
