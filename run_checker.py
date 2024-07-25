@@ -27,11 +27,11 @@ class RunChecker(QObject):
     finished = pyqtSignal(str, str, str)  # used to return self.database_path
 
     # Constructor for initializing the RunChecker object
-    def __init__(self, ui , master_database_path, current_database_path, run_checker_textbox, errors_textbox, create_database_textbox, chart_withdrawn_textbox, new_charts_textbox, new_editions_textbox, master_database_folder, current_database_folder, raster_target_folder, vector_target_folder):
+    def __init__(self, ui, current_database_path, run_checker_textbox, errors_textbox, create_database_textbox, chart_withdrawn_textbox, new_charts_textbox, new_editions_textbox, master_database_folder, current_database_folder, raster_target_folder, vector_target_folder):
         super().__init__() # call __init__ of the parent class chs_dvd_reader_main
 
         self.ui = ui
-        self.master_database_path = master_database_path  # path to master database
+        self.master_database_path = None  # path to master database
         self.current_database_path = current_database_path
 
         # Create custom_signals connections
@@ -262,8 +262,10 @@ class RunChecker(QObject):
         # Send formatted_data to target_textbox.emit()
         target_textbox.emit(formatted_data)
 
-    def run_checker(self, master_database_path):
-        self.master_database_path = master_database_path
+    def update_master_database_path(self, path):
+        self.master_database_path = path
+
+    def run_checker(self):
         self.current_database_folder = self.ui.checker_data_input_path.text() # path to current database folder
         self.current_database_path = os.path.join(self.current_database_folder, self.current_database_path) # actual path to current database
         # delete existing csv files so they can be updated; these files are used to fill tabs and create the pdf report

@@ -15,49 +15,35 @@ from reportlab.lib.units import cm
 from hashlib import sha1
 import csv
 import os
+import glob
 
-class PDFReport(BaseDocTemplate):
-    def __init__(self, path, **kw):
-        self.path = path
+class CreatePDFReport(BaseDocTemplate):
+    def __init__(self, run_checker_textbox, **kw):
+
+        self.master_yyyymmdd = None
+        self.current_yyyymmdd = None
+        self.current_database_folder = None
+        self.path = None
+        self.report_title = None
+        self.kw = kw
+
+        self.run_checker_textbox = run_checker_textbox
+
         self.elements = []
 
         self.pageSize = landscape(letter)
-        # Create a canvas object
-        self.canv = canvas.Canvas(path, pagesize=self.pageSize)
 
         # define document page template
         self.allowSplitting = 0
-        super().__init__(self.path, **kw)
-        
-        # set template for document
-        template = PageTemplate('normal', [Frame(2*cm, 2*cm, 20*cm, 18*cm, id='F1')], onPageEnd=self.footer)
-        self.addPageTemplates(template)
-        
-        # set styles for document
-        self.styles = [
-            PS(fontSize=20, name='Title', spaceAfter=40),
-            PS(fontSize=16, name='TOC', spaceBefore = 10, spaceAfter=10),
-            PS(fontSize=12, name='Folder Title', spaceBefore = 15, spaceAfter=20),
-            PS(fontSize=10, name='Folder Data', spaceBefore = 10, spaceAfter=10, leftIndent = 10),
-        ]
 
-        # set styles for toc
-        self.toc = TableOfContents()
-
-        # set styles for TOC headers; these also apply to headers in document as well
-        self.toc.levelStyles = [
-            PS(fontSize=16, name='TOCHeading1', spaceBefore=5, spaceAfter=15),
-            PS(fontSize=12, name='TOCHeading2', spaceBefore=5, spaceAfter=15),
+        # these files are pre-formatted versions of the above files; used for the gui windows and pdf report
+        self.csv_mod_files = [
+            "misc_findings_type1_mod.csv",
+            "misc_findings_type2_mod.csv",
+            "new_editions_mod.csv",
+            "new_charts_mod.csv",
+            "charts_withdrawn_mod.csv"
         ]
-        
-        # set style for tables
-        self.table_style = TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),  # First row shading
-            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-            ('GRID', (0, 0), (-1, -1), 1, colors.black),
-            ('WORDWRAP', (0, 0), (-1, -1), 1),  # Enable word wrap for the third column
-        ])
 
     # code that allows the addition of text/tables/content to the document after the creation of the document
     def afterFlowable(self, flowable):
@@ -77,8 +63,8 @@ class PDFReport(BaseDocTemplate):
                 E.append(anchor)
                 self.notify('TOCEntry', tuple(E))
 
-    def add_report_title(self, title_text):
-        title = Paragraph(title_text, self.styles[0])
+    def add_report_title(self):
+        title = Paragraph(self.report_title, self.styles[0])
         self.elements.append(title)
 
     def add_toc(self, toc_title):
@@ -103,7 +89,7 @@ class PDFReport(BaseDocTemplate):
         paragraph = Paragraph(content, self.styles[3])
         self.elements.append(paragraph)
 
-    def footer(self, canvas, doc):
+    def footer(self):
         self.canv.saveState()
         self.canv.setFont('Times-Roman', 9)
         page_num = self.canv.getPageNumber()
@@ -185,8 +171,73 @@ class PDFReport(BaseDocTemplate):
             self.process_block_data(vector_block_data)
 
     def save_report(self):
-        pdf_report = PDFReport(self.path, pagesize=self.pageSize)
-        pdf_report.multiBuild(self.elements)
+        self.multiBuild(self.elements)
+
+    def update_paths(self, master_yyyymmdd, current_yyyymmdd, current_database_folder):
+        self.master_yyyymmdd = master_yyyymmdd
+        self.current_yyyymmdd = current_yyyymmdd
+        self.current_database_folder = current_database_folder
+        # set report title
+        self.report_title = f"{self.master_yyyymmdd}_VS_{self.current_yyyymmdd} CHS DVD Report"
+        # establish the current folder as the folder within which to save the report
+        self.path = os.path.join(self.current_database_folder, f"{self.report_title}.pdf")
+        # Reinitialize the parent class with the updated path
+        self.init_path()
+
+    def init_path(self):
+        # Initialize the BaseDocTemplate with the correct path
+        super().__init__(self.path, **self.kw)
+        # Initialize document-specific attributes like page templates
+        self.setup_document()
+
+    def setup_document(self):
+        # Create a canvas object
+        self.canv = canvas.Canvas(self.path, pagesize=self.pageSize)
+        # Set template for document
+        template = PageTemplate('normal', [Frame(2*cm, 2*cm, 20*cm, 18*cm, id='F1')], onPageEnd=self.footer)
+        self.addPageTemplates(template)
+        
+        # Set styles, TOC, table styles, etc.
+        self.styles = [
+            PS(fontSize=20, name='Title', spaceAfter=40),
+            PS(fontSize=16, name='TOC', spaceBefore = 10, spaceAfter=10),
+            PS(fontSize=12, name='Folder Title', spaceBefore = 15, spaceAfter=20),
+            PS(fontSize=10, name='Folder Data', spaceBefore = 10, spaceAfter=10, leftIndent = 10),
+        ]
+        self.toc = TableOfContents()
+        self.toc.levelStyles = [
+            PS(fontSize=16, name='TOCHeading1', spaceBefore=5, spaceAfter=15),
+            PS(fontSize=12, name='TOCHeading2', spaceBefore=5, spaceAfter=15),
+        ]
+        self.table_style = TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+            ('WORDWRAP', (0, 0), (-1, -1), 1),
+        ])
+
+    def create_pdf_report(self):
+        # Add title to the report
+        self.add_report_title()
+        # Add toc to the report
+        self.add_toc('Table of Contents')
+        # Filter only the _mod.csv files; formatted csv for gui window and pdf report
+        csv_files = glob.glob(self.current_database_folder + "/*_mod.csv") 
+        # Create a set of filenames from csv_files for faster lookup
+        csv_files_set = set(map(lambda x: x.split('\\')[-1], csv_files))
+        # Filter out filenames from csv_files that are not in self.csv_mod_files; possible not all files were created (e.g., no misc findings so no misc files)
+        csv_files_filtered = [filename for filename in csv_files_set if filename in self.csv_mod_files]
+        # Sort csv_files_filtered to match the order of self.csv_mod_files
+        csv_files_sorted = sorted(csv_files_filtered, key=lambda x: self.csv_mod_files.index(x))
+        for file in csv_files_sorted:
+            csv_file_path = os.path.join(self.current_database_folder, file)
+            # Add the content as a table to the PDF report
+            self.add_table(csv_file_path)
+        # Save the report
+        self.save_report()
+        # Print a message to indicate that the checker has run
+        self.run_checker_textbox.emit('\nThe .pdf report was created succesfully!')
 
 # Main execution block (can be used for testing)
 if __name__ == "__main__":

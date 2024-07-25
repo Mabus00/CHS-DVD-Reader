@@ -18,7 +18,7 @@ from PyQt5.QtCore import QObject, pyqtSignal
 class BuildDatabase(QObject):
     finished = pyqtSignal(str)  # used to return self.database_path
     
-    def __init__(self, ui , database_path, create_database_textbox, database_folder, raster_target_folder, vector_target_folder):
+    def __init__(self, ui, database_path, create_database_textbox, database_folder, raster_target_folder, vector_target_folder):
         super().__init__() # call __init__ of the parent class chs_dvd_reader_main
         self.ui = ui
         self.database_path = database_path  # actual path to master database
