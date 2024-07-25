@@ -20,22 +20,17 @@ import glob
 class CreatePDFReport(BaseDocTemplate):
     def __init__(self, run_checker_textbox, **kw):
 
+        self.kw = kw
+        self.run_checker_textbox = run_checker_textbox
+
         self.master_yyyymmdd = None
         self.current_yyyymmdd = None
         self.current_database_folder = None
         self.path = None
         self.report_title = None
-        self.kw = kw
 
-        self.run_checker_textbox = run_checker_textbox
-
-        self.elements = []
-
-        self.pageSize = landscape(letter)
-
-        # define document page template
-        self.allowSplitting = 0
-
+        self.pageSize = landscape(letter) # Default to letter if not provided
+        
         # these files are pre-formatted versions of the above files; used for the gui windows and pdf report
         self.csv_mod_files = [
             "misc_findings_type1_mod.csv",
@@ -89,7 +84,7 @@ class CreatePDFReport(BaseDocTemplate):
         paragraph = Paragraph(content, self.styles[3])
         self.elements.append(paragraph)
 
-    def footer(self):
+    def footer(self, canvas, doc): # canvas and doc are provided on creation of the pdf
         self.canv.saveState()
         self.canv.setFont('Times-Roman', 9)
         page_num = self.canv.getPageNumber()
@@ -109,10 +104,10 @@ class CreatePDFReport(BaseDocTemplate):
         # Add the header row to the sorted data
         table_data = [block_data[0]] + sorted_table_data     
         # Width of letter-sized paper minus margins and paddings
-        available_width = self.pageSize[0] - 72  # Subtracting 72 points as a margin
+        available_width = self.pageSize[0] - 50  # Subtracting 72 points as a margin
         # Adjusting column widths as needed
         # You can adjust the factors below as per your requirement
-        col_widths = [available_width * 0.10, available_width * 0.10, available_width * 0.55, available_width * 0.23]
+        col_widths = [available_width * 0.10, available_width * 0.10, available_width * 0.55, available_width * 0.20]
         table = Table(table_data, colWidths=col_widths, hAlign='LEFT', style=self.table_style, repeatRows=1)           
         self.elements.append(table)
         self.elements.append(Spacer(1, 10))  # Add space after each table
@@ -182,19 +177,22 @@ class CreatePDFReport(BaseDocTemplate):
         # establish the current folder as the folder within which to save the report
         self.path = os.path.join(self.current_database_folder, f"{self.report_title}.pdf")
         # Reinitialize the parent class with the updated path
-        self.init_path()
+        self.init_document()
 
-    def init_path(self):
-        # Initialize the BaseDocTemplate with the correct path
-        super().__init__(self.path, **self.kw)
-        # Initialize document-specific attributes like page templates
-        self.setup_document()
-
-    def setup_document(self):
+    def init_document(self):
         # Create a canvas object
         self.canv = canvas.Canvas(self.path, pagesize=self.pageSize)
+        
+        # define document page template
+        self.allowSplitting = 0
+        
+        # Initialize the BaseDocTemplate with the correct path
+        super().__init__(self.path, **self.kw)
+
         # Set template for document
-        template = PageTemplate('normal', [Frame(2*cm, 2*cm, 20*cm, 18*cm, id='F1')], onPageEnd=self.footer)
+        self.elements = []
+        frame_width, frame_height = self.pageSize[0] - 4*cm, self.pageSize[1] - 4*cm
+        template = PageTemplate('normal', [Frame(2*cm, 2*cm, frame_width, frame_height, id='F1')], onPageEnd=self.footer)
         self.addPageTemplates(template)
         
         # Set styles, TOC, table styles, etc.
