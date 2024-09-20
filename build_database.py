@@ -14,13 +14,17 @@ import csv
 import chardet
 import sqlite3
 from PyQt5.QtCore import QObject, pyqtSignal
+from spinner import SpinnerUtility
 
 class BuildDatabase(QObject):
     finished = pyqtSignal(str)  # used to return self.database_path
     
-    def __init__(self, ui, database_path, create_database_textbox, database_folder, raster_target_folder, vector_target_folder):
+    def __init__(self, ui, database_path, create_database_textbox, database_folder, raster_target_folder, vector_target_folder, spinner):
         super().__init__() # call __init__ of the parent class chs_dvd_reader_main
         self.ui = ui
+
+        self.spinner = spinner
+
         self.database_path = database_path  # actual path to master database
         # Create custom_signals connections
         self.create_database_textbox = create_database_textbox
@@ -206,6 +210,7 @@ class BuildDatabase(QObject):
                             self.create_database_textbox.emit("\nNo .txt or .csv files in this folder.")
 
     def build_database(self):
+        self.spinner.start_spinner()
         # instantiate create_database and pass instance of database_name, etc...
         self.database_folder = self.ui.database_input_path.text() # path to master database folder
         self.database_path = os.path.join(self.database_folder, self.database_path) # actual path to master database
@@ -221,6 +226,7 @@ class BuildDatabase(QObject):
         # close the master database so it can be opened in run_checker (assumption is that create_database isn't always used)
         utils.close_database(self.create_database_textbox, database_conn, self.database_path)
         self.finished.emit(self.database_path)  # Emit the result through the signal
+        self.spinner.stop_spinner()
 
-if __name__ == "__main__":
+if __name__ == "__mtartain__":
    pass

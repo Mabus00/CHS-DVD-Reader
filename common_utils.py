@@ -31,9 +31,6 @@ Vector table columns:
 import os
 from PyQt5.QtWidgets import QMessageBox
 import sqlite3
-import time
-from tqdm import tqdm
-import sys
 
 def show_warning_popup(message):
     popup = QMessageBox()
@@ -116,6 +113,3 @@ def close_database(target_textbox, database_conn, database_path):
         database_conn.close()
     target_textbox.emit(f'\n{database_path} closed.')
 
-def long_running_task():
-    for _ in tqdm(range(100), bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt}'):
-        time.sleep(0.1)  # Simulate work being done
