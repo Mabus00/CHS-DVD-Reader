@@ -20,7 +20,6 @@ import sys
 import inspect
 from PyQt5.QtWidgets import QApplication, QMainWindow, QTextEdit, QFileDialog, QVBoxLayout, QPushButton, QWidget
 from PyQt5.QtGui import QFont
-from spinner import SpinnerUtility  # Import the spinner module
 
 from chs_dvd_gui import Ui_MainWindow
 from custom_signals import CreateDatabaseSignals, RunCheckerSignals, NewChartsSignals, NewEditionsSignals, WithdrawnSignals, ErrorsSignals
@@ -35,9 +34,6 @@ class CHSDVDReaderApp(QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.setWindowTitle("CHS DVD Reader")
-
-        # Initialize SpinnerUtility
-        self.spinner = SpinnerUtility(self)
 
         # create list of text browsers so they can be cleared en masse
         self.text_browsers = [obj for name, obj in inspect.getmembers(self.ui) if isinstance(obj, QTextEdit)]
@@ -81,7 +77,7 @@ class CHSDVDReaderApp(QMainWindow):
         self.raster_target_folder = 'BSBCHART'
         self.vector_target_folder = 'ENC_ROOT'
 
-        # Create an instance of RunCheckerSignals
+        # Create an instance of RunCheckerSignals 
         self.run_checker_signals = RunCheckerSignals()
 
         # Create an instance of NewChartsSignals
@@ -100,7 +96,7 @@ class CHSDVDReaderApp(QMainWindow):
         self.database_signals = CreateDatabaseSignals()
 
         # Create an instance of BuildDatabase
-        self.build_database_instance = BuildDatabase(self.ui, self.master_database_path, self.database_signals.create_database_textbox, self.master_database_folder, self.raster_target_folder, self.vector_target_folder, self.spinner)
+        self.build_database_instance = BuildDatabase(self.ui, self.master_database_path, self.database_signals.create_database_textbox, self.master_database_folder, self.raster_target_folder, self.vector_target_folder)
         
         # Create an instance of RunChecker
         self.run_checker_instance = RunChecker(self.ui, self.current_database_path, self.run_checker_signals.run_checker_textbox, self.errors_signals.errors_textbox, self.database_signals.create_database_textbox, self.charts_withdrawn_signals.chart_withdrawn_textbox, self.new_charts_signals.new_charts_textbox, self.new_editions_signals.new_editions_textbox, self.master_database_folder, self.current_database_folder, self.raster_target_folder, self.vector_target_folder)
