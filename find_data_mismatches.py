@@ -83,6 +83,7 @@ class FindDataMismatches():
                 # If a matching row is found, compare the content of the remaining columns
                 # reminder that were dealing with a lists of tuples, i.e., [(),(),()...] so need to convert to tuples to lists so we can convert dates to compare
                 if matching_current_row:
+                    # still works given recent .csv format changes
                     master_content = self.tuple_to_list(master_row[2:])  # Get the content of columns 2-4 in master_row
                     current_content = self.tuple_to_list(matching_current_row[2:])  # Get the content of columns 2-4 in current_value
                     # The first two elements in the list are:
