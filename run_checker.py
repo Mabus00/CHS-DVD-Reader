@@ -284,6 +284,9 @@ class RunChecker(QObject):
             self.create_db = BuildDatabase(self.ui, self.current_database_path, self.run_checker_textbox, self.current_database_folder, self.raster_target_folder, self.vector_target_folder)
             self.create_db.generate_database(self.current_database_conn, self.current_database_cursor)
 
+            # new process to check all .csv in vector folders to ensure they're the same
+            print('here')
+
             # compliance = East and West tables within each database have the same date and the new current database is at least one month older than the master database
             # required to proceed further
             compliance = self.confirm_database_compliance(self.master_database_conn, self.current_database_conn)
@@ -291,10 +294,6 @@ class RunChecker(QObject):
             if not compliance:
                 utils.show_warning_popup('You have error messages that need to be addressed.  See the Progress Report window.')
             else:
-                # new process to confirm the .csv files in vector folders are all the same
-
-
-
                 # PART 1 OF 4 - check the .csv in the EAST and WEST folders against "Files" listed in the dB; confirm all files listed are present
                 # e.g., for RM-ARC folder in the EAST folder, compare charts listed in the RM-ARC.csv to the database EastDVD_yyyymmdd_RM_ARC "File" list and report missing or extra
                 # note - not needed for the master database; assumption is that this was confirmed in the previous month (the master in month X was the current in month X-1)
