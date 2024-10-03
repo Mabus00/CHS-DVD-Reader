@@ -195,33 +195,33 @@ class RunChecker(QObject):
             csv_writer = csv.writer(output_file)
             # Iterate over each row in the CSV file
             for row in csv_reader:
-                if "misc" not in csv_file_path:
-                    # Check the number of columns in the row
-                    num_columns = len(row)
-                    # Keep rows with only one column
-                    if num_columns == 1:
-                        if "RM" in row[0]:
-                            # only show these columns
-                            col_indices = [0,3,7]
-                            table_type = "raster"
-                            # set header row column tabs
-                            col_headers = self.get_column_headers(table_type, col_indices)
-                        else:
-                            col_indices = [1,5,10]
-                            table_type = "vector"
-                            # set header row column tabs; needs an extra tab to line things up
-                            col_headers = self.get_column_headers(table_type, col_indices)
-                        if folder_title: # will only happen after the initial folder data is entered (I.e., the second go round)
-                            csv_writer.writerow([])
-                        folder_title = row
-                        csv_writer.writerow(folder_title)
-                        csv_writer.writerow(col_headers)
-                    # Keep columns 0, 4, and 5 for rows with more than one column
+                # if "misc" not in csv_file_path:
+                # Check the number of columns in the row
+                num_columns = len(row)
+                # Keep rows with only one column
+                if num_columns == 1:
+                    if "RM" in row[0]:
+                        # only show these columns
+                        col_indices = [0,3,7]
+                        table_type = "raster"
+                        # set header row column tabs
+                        col_headers = self.get_column_headers(table_type, col_indices)
                     else:
-                        new_row = [row[col_indices[0]], row[col_indices[1]], row[col_indices[2]]]
-                        csv_writer.writerow(new_row)
+                        col_indices = [1,5,10]
+                        table_type = "vector"
+                        # set header row column tabs; needs an extra tab to line things up
+                        col_headers = self.get_column_headers(table_type, col_indices)
+                    if folder_title: # will only happen after the initial folder data is entered (I.e., the second go round)
+                        csv_writer.writerow([])
+                    folder_title = row
+                    csv_writer.writerow(folder_title)
+                    csv_writer.writerow(col_headers)
+                # Keep columns 0, 4, and 5 for rows with more than one column
                 else:
-                    csv_writer.writerow(row)
+                    new_row = [row[col_indices[0]], row[col_indices[1]], row[col_indices[2]]]
+                    csv_writer.writerow(new_row)
+                # else:
+                #     csv_writer.writerow(row)
 
     def write_csv_mods_to_gui(self, csv_mod_file_path, target_textbox):
         formatted_data = ''
@@ -230,35 +230,35 @@ class RunChecker(QObject):
         with open(csv_mod_file_path, 'r', newline='') as csv_file:
             # Create a CSV reader object for the input file
             csv_reader = csv.reader(csv_file)
-            if "misc" in csv_mod_file_path:
-                # Read each row of the CSV file
-                for i, row in enumerate(csv_reader):
-                    if i == 0:
-                        formatted_data = f"{row[0]}\n"  # Extract folder title from the first row
-                    else:
-                        formatted_data += str(row[0]) + '\n'  # Process data rows
-            else:
-                # Read each row of the CSV file
-                for i, row in enumerate(csv_reader):
-                    if len(row) == 1: # this is a folder title
-                        folder_title = row[0]
-                        formatted_data += f"{folder_title}\n"  # Add folder title
-                    else:  # Ensure there is a folder title before adding data
-                        if row:
-                            if not row[1]:
-                                row[1] = "            "
-                            if "RM" in folder_title:
-                                if any(any(char.isdigit() for char in string) for string in row): # digits means it's a line of data
-                                    formatted_data += row[0] + '\t\t' + row[1] + '\t\t' + row[2] + '\n'
-                                else: # no digits means it's a header row
-                                    formatted_data += row[0] + '\t' + row[1] + '\t\t' + row[2] + '\n'
-                            else:
-                                if any(any(char.isdigit() for char in string) for string in row): # digits means it's a line of data
-                                    formatted_data += row[0] + '\t\t' + row[1] + '\t' + row[2] + '\n'
-                                else: # no digits means it's a header row
-                                    formatted_data += row[0] + '\t' + row[1] + '\t\t' + row[2] + '\n'
+            # if "misc" in csv_mod_file_path:
+            #     # Read each row of the CSV file
+            #     for i, row in enumerate(csv_reader):
+            #         if i == 0:
+            #             formatted_data = f"{row[0]}\n"  # Extract folder title from the first row
+            #         else:
+            #             formatted_data += str(row[0]) + '\n'  # Process data rows
+            # else:
+            # Read each row of the CSV file
+            for i, row in enumerate(csv_reader):
+                if len(row) == 1: # this is a folder title
+                    folder_title = row[0]
+                    formatted_data += f"{folder_title}\n"  # Add folder title
+                else:  # Ensure there is a folder title before adding data
+                    if row:
+                        if not row[1]:
+                            row[1] = "            "
+                        if "RM" in folder_title:
+                            if any(any(char.isdigit() for char in string) for string in row): # digits means it's a line of data
+                                formatted_data += row[0] + '\t\t' + row[1] + '\t\t' + row[2] + '\n'
+                            else: # no digits means it's a header row
+                                formatted_data += row[0] + '\t' + row[1] + '\t\t' + row[2] + '\n'
                         else:
-                            formatted_data += '\n'
+                            if any(any(char.isdigit() for char in string) for string in row): # digits means it's a line of data
+                                formatted_data += row[0] + '\t\t' + row[1] + '\t' + row[2] + '\n'
+                            else: # no digits means it's a header row
+                                formatted_data += row[0] + '\t' + row[1] + '\t\t' + row[2] + '\n'
+                    else:
+                        formatted_data += '\n'
         # Send formatted_data to target_textbox.emit()
         target_textbox.emit(formatted_data)
 
