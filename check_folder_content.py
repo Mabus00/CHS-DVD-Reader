@@ -30,14 +30,16 @@ class CheckFolderContent():
             # Get the list of sub-foldernames in the subject folder
             sub_folders = [item for item in os.listdir(folder_path) if os.path.isdir(os.path.join(folder_path, item))]
             for sub_folder in sub_folders:
-                sub_folder_path = os.path.join(folder_path, sub_folder)
+                # Check if 'z-' is in the folder name
+                if 'Z_' not in sub_folder:
+                    sub_folder_path = os.path.join(folder_path, sub_folder)
 
-                if "RM" in sub_folder_path:
-                    temp_path = self.find_folder(sub_folder_path, raster_target_folder)
-                else:
-                    temp_path = self.find_folder(sub_folder_path, vector_target_folder)
-            
-                complete_paths.append(os.path.dirname(temp_path))
+                    if "RM" in sub_folder_path:
+                        temp_path = self.find_folder(sub_folder_path, raster_target_folder)
+                    else:
+                        temp_path = self.find_folder(sub_folder_path, vector_target_folder)
+                
+                    complete_paths.append(os.path.dirname(temp_path))
             
         return complete_paths
 

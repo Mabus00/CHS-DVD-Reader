@@ -190,21 +190,23 @@ class BuildDatabase(QObject):
                 
                 complete_path = os.path.dirname(complete_path)
 
-                for file_name in os.listdir(complete_path):
-                    file_path = os.path.join(complete_path, file_name)
-                    # following ignores anything that isn't a file (i.e., folders)
-                    if os.path.isfile(file_path):
-                        # get the extension so file can be read correctly
-                        file_extension = file_name.split('.')[-1].lower()
-                        files = self.get_files(complete_path, file_extension)
-                        if file_extension == "csv" or file_extension == "txt":
-                            # it's understood there's only one file; method is written so it can apply if there are >1 files
-                            for file in files:
-                                file_path = os.path.join(complete_path, file)
-                                self.create_table(table_name, file_path, self.master_database_cursor, file_extension)  # Create the table
-                                self.insert_data(table_name, file_path, self.master_database_cursor, file_extension)    # Insert data into the table
-                        elif file_extension == "":
-                            self.create_database_textbox.emit("\nNo .txt or .csv files in this folder.")
+                # Check if 'z-' is in the folder name
+                if 'Z_' not in complete_path:
+                    for file_name in os.listdir(complete_path):
+                        file_path = os.path.join(complete_path, file_name)
+                        # following ignores anything that isn't a file (i.e., folders)
+                        if os.path.isfile(file_path):
+                            # get the extension so file can be read correctly
+                            file_extension = file_name.split('.')[-1].lower()
+                            files = self.get_files(complete_path, file_extension)
+                            if file_extension == "csv" or file_extension == "txt":
+                                # it's understood there's only one file; method is written so it can apply if there are >1 files
+                                for file in files:
+                                    file_path = os.path.join(complete_path, file)
+                                    self.create_table(table_name, file_path, self.master_database_cursor, file_extension)  # Create the table
+                                    self.insert_data(table_name, file_path, self.master_database_cursor, file_extension)    # Insert data into the table
+                            elif file_extension == "":
+                                self.create_database_textbox.emit("\nNo .txt or .csv files in this folder.")
 
     def build_database(self):
         # instantiate create_database and pass instance of database_name, etc...
