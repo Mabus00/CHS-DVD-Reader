@@ -18,7 +18,7 @@ VIEW = chs_dvd_gui
 
 import sys
 import inspect
-from PyQt5.QtWidgets import QApplication, QMainWindow, QTextEdit, QFileDialog, QVBoxLayout, QPushButton, QWidget
+from PyQt5.QtWidgets import QApplication, QMainWindow, QTextEdit, QFileDialog
 from PyQt5.QtGui import QFont
 
 from chs_dvd_gui import Ui_MainWindow

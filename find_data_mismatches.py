@@ -99,7 +99,7 @@ class FindDataMismatches():
                         # Check each field individually for inequality; ensuring that whatever doesn't match is greater (looking for errors)
                         if any(m is not None and c is not None and m != c and c > m for m, c in zip(master_content[:4], current_content[:4])):
                             found_new_edition.append(matching_current_row)
-                        elif any(m != c for m, c in zip(master_content[:4], current_content[:4])):
+                        else:
                             misc_finding.append(matching_current_row)
 
             if found_new_edition:

@@ -31,7 +31,7 @@ Vector table columns:
 import os
 from PyQt5.QtWidgets import QMessageBox
 import sqlite3
-from datetime import datetime, timedelta
+from datetime import datetime
 
 def show_warning_popup(message):
     popup = QMessageBox()
