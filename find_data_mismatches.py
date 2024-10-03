@@ -87,20 +87,21 @@ class FindDataMismatches():
                     master_content = self.tuple_to_list(master_row[2:])  # Get the content of columns 2-4 in master_row
                     current_content = self.tuple_to_list(matching_current_row[2:])  # Get the content of columns 2-4 in current_value
                     # The first two elements in the list are:
-                    # if "RM" in table_name:
-                    #     master_content[0] = self.convert_to_yyyymmdd(master_content[0])
-                    #     current_content[0] = self.convert_to_yyyymmdd(current_content[0])
-                    # else:
-                    #     # The second and third elements in the list are:
-                    #     master_content[1:3] = [self.convert_to_yyyymmdd(value) for value in master_content[1:3]]
-                    #     current_content[1:3] = [self.convert_to_yyyymmdd(value) for value in current_content[1:3]]
-                    # # compare the edition information
-                    if master_content[:3] != current_content[:3]:
+                    if "RM" in table_name:
+                        master_content[0] = utils.convert_date_format(master_content[0])
+                        current_content[0] = utils.convert_date_format(current_content[0])
+                    else:
+                        # The second and third elements in the list are:
+                        master_content[2:4] = [utils.convert_date_format(value) for value in master_content[2:4]]
+                        current_content[2:4] = [utils.convert_date_format(value) for value in current_content[2:4]]
+                    # compare the edition information
+                    if master_content[:4] != current_content[:4]:
                         # Check each field individually for inequality; ensuring that whatever doesn't match is greater (looking for errors)
-                        if any(m != c and c > m for m, c in zip(master_content[:3], current_content[:3])):
+                        if any(m is not None and c is not None and m != c and c > m for m, c in zip(master_content[:4], current_content[:4])):
                             found_new_edition.append(matching_current_row)
-                        if any(m != c and c < m for m, c in zip(master_content[:3], current_content[:3])):
+                        elif any(m != c for m, c in zip(master_content[:4], current_content[:4])):
                             misc_finding.append(matching_current_row)
+
             if found_new_edition:
                 new_editions.append((temp_current_table_name, found_new_edition))
             if misc_finding:

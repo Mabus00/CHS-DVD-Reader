@@ -116,14 +116,15 @@ def close_database(target_textbox, database_conn, database_path):
 
 def convert_date_format(date_str):
     # List of possible date formats; easiest approach no guessing involved, and there is more than one format in the data
-    date_formats = ['%m/%d/%Y %H:%M', '%m/%d/%Y %H:%M:%S', '%Y-%m-%d %H:%M', '%Y-%m-%d %H:%M:%S', '%Y-%m-%d', '%m/%d/%Y', '%Y%m%dT%H%M%SZ']
-    for fmt in date_formats:
-        try:
-            # Try to parse the date string with the current format
-            dt = datetime.strptime(date_str, fmt)
-            return dt
-        except ValueError:
-            # If parsing fails, move to the next format
-            continue
-    # If none of the formats work, raise an error
-    raise ValueError(f"Date format for '{date_str}' not recognized.")
+    date_formats = ['%m/%d/%Y %H:%M', '%m/%d/%Y %H:%M:%S', '%Y-%m-%d %H:%M', '%Y-%m-%d %H:%M:%S', '%Y-%m-%d', '%m/%d/%Y', '%Y%m%dT%H%M%SZ', "%d-%b-%Y", "%Y%m%d"]
+    if date_str:
+        for fmt in date_formats:
+            try:
+                # Try to parse the date string with the current format
+                dt = datetime.strptime(date_str, fmt)
+                return dt
+            except ValueError:
+                # If parsing fails, move to the next format
+                continue
+        # If none of the formats work, raise an error
+        raise ValueError(f"Date format for '{date_str}' not recognized.")
