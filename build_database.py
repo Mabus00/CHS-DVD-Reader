@@ -13,6 +13,7 @@ import time
 import csv
 import chardet
 import sqlite3
+
 from PyQt5.QtCore import QObject, pyqtSignal
 
 class BuildDatabase(QObject):
