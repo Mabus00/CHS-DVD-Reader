@@ -46,7 +46,7 @@
    <widget class="QTabWidget" name="mainWidget">
     <property name="geometry">
      <rect>
-      <x>40</x>
+      <x>50</x>
       <y>60</y>
       <width>981</width>
       <height>741</height>
@@ -73,9 +73,9 @@
     </property>
     <widget class="QWidget" name="mainTab">
      <attribute name="title">
-      <string>Page</string>
+      <string>Main Page</string>
      </attribute>
-     <widget class="QTextEdit" name="createDatabaseTextBrowser_2">
+     <widget class="QTextEdit" name="mainPageTextBrowser">
       <property name="geometry">
        <rect>
         <x>40</x>
@@ -106,7 +106,7 @@
        <string>Progress Report:</string>
       </property>
      </widget>
-     <widget class="QPushButton" name="executeChecker">
+     <widget class="QPushButton" name="executeCheckerButton">
       <property name="geometry">
        <rect>
         <x>40</x>
