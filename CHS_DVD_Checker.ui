@@ -116,7 +116,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>Run CHS DVD Checker</string>
+       <string>Process Selected Files</string>
       </property>
      </widget>
      <widget class="QListWidget" name="listWidgetTextBrowser">

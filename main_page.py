@@ -29,28 +29,17 @@ class MainPage(QWidget):
         self.master_database_conn = ''
         self.master_database_cursor = ''
 
-
-
-        # # Set up the layout and widgets
-        # self.layout = QVBoxLayout()
-
-        # self.layout.addWidget(self.select_folder_button)
-
-        # self.file_list_widget = QListWidget()
-        # self.layout.addWidget(self.file_list_widget)
-
-        # self.setLayout(self.layout)
-        # self.setWindowTitle('File Selector')
+        self.folder_path_list = []
 
     def open_folder_dialog(self):
         folder_path = QFileDialog.getExistingDirectory(self, 'Select Folder')
         if folder_path:
+            self.folder_path_list.append(folder_path)
             self.populate_file_list(folder_path)
+        if len(self.folder_path_list) == 2:
+            print(f'2 folders selected -> {self.folder_path_list}')
 
     def populate_file_list(self, folder_path):
-        # Clear existing items
-        # self.select_files_textbox.clear()
-
         # Get the list of files in the folder
         try:
             self.select_files_textbox.emit(folder_path)  # Emit the file name directly
@@ -58,18 +47,7 @@ class MainPage(QWidget):
             QMessageBox.critical(self, 'Error', f'Error reading folder: {str(e)}')
 
     def process_selected_files(self):
-        # Get selected files
-        selected_items = self.file_list_widget.selectedItems()
-        if selected_items:
-            selected_files = [item.text() for item in selected_items]
-            QMessageBox.information(self, 'Selected Files', f'Files selected for processing: {", ".join(selected_files)}')
-            # Add your file processing logic here
-        else:
-            QMessageBox.warning(self, 'No Selection', 'No files selected for processing.')
-
-    def run_dvd_checker(self):
-        print('running dvd checker')
-        self.open_folder_dialog()
+        print('processing selected files')
 
 # Main application loop
 if __name__ == '__main__':

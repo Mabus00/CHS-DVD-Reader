@@ -126,7 +126,7 @@ class CHSDVDReaderApp(QMainWindow):
 
         # Connect custom signals to slots
         # main page tab
-        self.main_page_signals.run_dvd_checker_button.connect(lambda: self.main_page_instance.run_dvd_checker())
+        self.main_page_signals.run_dvd_checker_button.connect(lambda: self.main_page_instance.process_selected_files())
         self.main_page_signals.select_folders_button.connect(lambda: self.main_page_instance.open_folder_dialog())
 
         # run checker tab
