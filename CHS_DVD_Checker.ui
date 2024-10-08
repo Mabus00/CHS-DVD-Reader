@@ -46,7 +46,7 @@
    <widget class="QTabWidget" name="mainWidget">
     <property name="geometry">
      <rect>
-      <x>50</x>
+      <x>60</x>
       <y>60</y>
       <width>981</width>
       <height>741</height>
@@ -119,20 +119,7 @@
        <string>Run CHS DVD Checker</string>
       </property>
      </widget>
-     <widget class="QLabel" name="newChartsLabel_5">
-      <property name="geometry">
-       <rect>
-        <x>40</x>
-        <y>20</y>
-        <width>391</width>
-        <height>61</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Select the two folders you want to compare:</string>
-      </property>
-     </widget>
-     <widget class="QListWidget" name="listWidget">
+     <widget class="QListWidget" name="listWidgetTextBrowser">
       <property name="geometry">
        <rect>
         <x>40</x>
@@ -140,6 +127,19 @@
         <width>881</width>
         <height>192</height>
        </rect>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="selectFoldersButton">
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>20</y>
+        <width>301</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Select Folders</string>
       </property>
      </widget>
     </widget>

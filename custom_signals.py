@@ -47,5 +47,6 @@ class CreateDatabaseSignals(QObject):
 class MainPageSignals(QObject):
     # Custom signals specific to the "Main Page" tab
     run_dvd_checker_button = pyqtSignal()
+    select_folders_button = pyqtSignal()
     progress_textbox = pyqtSignal(str)
     select_files_textbox = pyqtSignal(str)

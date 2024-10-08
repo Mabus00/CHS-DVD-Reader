@@ -230,14 +230,6 @@ class RunChecker(QObject):
         with open(csv_mod_file_path, 'r', newline='') as csv_file:
             # Create a CSV reader object for the input file
             csv_reader = csv.reader(csv_file)
-            # if "misc" in csv_mod_file_path:
-            #     # Read each row of the CSV file
-            #     for i, row in enumerate(csv_reader):
-            #         if i == 0:
-            #             formatted_data = f"{row[0]}\n"  # Extract folder title from the first row
-            #         else:
-            #             formatted_data += str(row[0]) + '\n'  # Process data rows
-            # else:
             # Read each row of the CSV file
             for i, row in enumerate(csv_reader):
                 if len(row) == 1: # this is a folder title

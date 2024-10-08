@@ -1,6 +1,5 @@
-import sys
 import os
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QListWidget, QFileDialog, QMessageBox
+from PyQt5.QtWidgets import QWidget, QListWidgetItem, QFileDialog, QMessageBox
 
 class MainPage(QWidget):
     def __init__(self, ui, master_database_path, current_database_path, select_files_textbox, progress_textbox, errors_textbox, chart_withdrawn_textbox, new_charts_textbox, new_editions_textbox, master_database_folder, current_database_folder, raster_target_folder, vector_target_folder):
@@ -32,22 +31,16 @@ class MainPage(QWidget):
 
 
 
-        # Set up the layout and widgets
-        self.layout = QVBoxLayout()
+        # # Set up the layout and widgets
+        # self.layout = QVBoxLayout()
 
-        self.select_folder_button = QPushButton('Select Folder')
-        self.select_folder_button.clicked.connect(self.open_folder_dialog)
-        self.layout.addWidget(self.select_folder_button)
+        # self.layout.addWidget(self.select_folder_button)
 
-        self.file_list_widget = QListWidget()
-        self.layout.addWidget(self.file_list_widget)
+        # self.file_list_widget = QListWidget()
+        # self.layout.addWidget(self.file_list_widget)
 
-        self.process_button = QPushButton('Process Selected Files')
-        self.process_button.clicked.connect(self.process_selected_files)
-        self.layout.addWidget(self.process_button)
-
-        self.setLayout(self.layout)
-        self.setWindowTitle('File Selector')
+        # self.setLayout(self.layout)
+        # self.setWindowTitle('File Selector')
 
     def open_folder_dialog(self):
         folder_path = QFileDialog.getExistingDirectory(self, 'Select Folder')
@@ -56,14 +49,11 @@ class MainPage(QWidget):
 
     def populate_file_list(self, folder_path):
         # Clear existing items
-        self.file_list_widget.clear()
+        # self.select_files_textbox.clear()
 
         # Get the list of files in the folder
         try:
-            files = os.listdir(folder_path)
-            for file in files:
-                # Add file to QListWidget
-                self.file_list_widget.addItem(file)
+            self.select_files_textbox.emit(folder_path)  # Emit the file name directly
         except Exception as e:
             QMessageBox.critical(self, 'Error', f'Error reading folder: {str(e)}')
 
@@ -79,6 +69,7 @@ class MainPage(QWidget):
 
     def run_dvd_checker(self):
         print('running dvd checker')
+        self.open_folder_dialog()
 
 # Main application loop
 if __name__ == '__main__':
