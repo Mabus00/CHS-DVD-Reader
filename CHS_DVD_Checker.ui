@@ -73,9 +73,9 @@
     </property>
     <widget class="QWidget" name="mainTab">
      <attribute name="title">
-      <string>Page</string>
+      <string>Main Page</string>
      </attribute>
-     <widget class="QTextEdit" name="createDatabaseTextBrowser_2">
+     <widget class="QTextEdit" name="mainPageTextBrowser">
       <property name="geometry">
        <rect>
         <x>40</x>

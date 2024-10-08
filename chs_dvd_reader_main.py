@@ -22,7 +22,8 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QTextEdit, QFileDialog
 from PyQt5.QtGui import QFont
 
 from chs_dvd_gui import Ui_MainWindow
-from custom_signals import CreateDatabaseSignals, RunCheckerSignals, NewChartsSignals, NewEditionsSignals, WithdrawnSignals, ErrorsSignals
+from custom_signals import MainPageSignals, CreateDatabaseSignals, RunCheckerSignals, NewChartsSignals, NewEditionsSignals, WithdrawnSignals, ErrorsSignals
+from main_page import FileSelector
 from build_database import BuildDatabase
 from run_checker import RunChecker
 from create_pdf_report import CreatePDFReport
@@ -76,6 +77,9 @@ class CHSDVDReaderApp(QMainWindow):
         # target folders to find to process data
         self.raster_target_folder = 'BSBCHART'
         self.vector_target_folder = 'ENC_ROOT'
+
+        # Create an instance of MainPageSignals 
+        self.run_checker_signals = MainPageSignals()
 
         # Create an instance of RunCheckerSignals 
         self.run_checker_signals = RunCheckerSignals()
