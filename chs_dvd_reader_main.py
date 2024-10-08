@@ -23,7 +23,7 @@ from PyQt5.QtGui import QFont
 
 from chs_dvd_gui import Ui_MainWindow
 from custom_signals import MainPageSignals, CreateDatabaseSignals, RunCheckerSignals, NewChartsSignals, NewEditionsSignals, WithdrawnSignals, ErrorsSignals
-from main_page import FileSelector
+from main_page import MainPage
 from build_database import BuildDatabase
 from run_checker import RunChecker
 from create_pdf_report import CreatePDFReport
@@ -79,7 +79,7 @@ class CHSDVDReaderApp(QMainWindow):
         self.vector_target_folder = 'ENC_ROOT'
 
         # Create an instance of MainPageSignals 
-        self.run_checker_signals = MainPageSignals()
+        self.main_page_signals = MainPageSignals()
 
         # Create an instance of RunCheckerSignals 
         self.run_checker_signals = RunCheckerSignals()
@@ -100,6 +100,9 @@ class CHSDVDReaderApp(QMainWindow):
         self.database_signals = CreateDatabaseSignals()
 
         # Create an instance of BuildDatabase
+        self.main_page_instance = MainPage(self.ui, self.master_database_path, self.current_database_path, self.main_page_signals.select_files_textbox, self.main_page_signals.progress_textbox, self.errors_signals.errors_textbox, self.charts_withdrawn_signals.chart_withdrawn_textbox, self.new_charts_signals.new_charts_textbox, self.new_editions_signals.new_editions_textbox, self.master_database_folder, self.current_database_folder, self.raster_target_folder, self.vector_target_folder)
+          
+        # Create an instance of BuildDatabase
         self.build_database_instance = BuildDatabase(self.ui, self.master_database_path, self.database_signals.create_database_textbox, self.master_database_folder, self.raster_target_folder, self.vector_target_folder)
         
         # Create an instance of RunChecker
@@ -109,6 +112,10 @@ class CHSDVDReaderApp(QMainWindow):
         self.create_pdf_report_instance = CreatePDFReport(self.run_checker_signals.run_checker_textbox)
 
         # Connect UI signals to custom signals using object names
+        # main page tab
+        self.ui.executeCheckerButton.clicked.connect(self.main_page_signals.run_dvd_checker_button.emit)
+
+        
         # run checker tab
         self.ui.selectCheckerDataPathButton.clicked.connect(self.run_checker_signals.data_input_path_button.emit)
         self.ui.runCheckerButton.clicked.connect(self.run_checker_signals.run_checker_button.emit)
@@ -118,6 +125,9 @@ class CHSDVDReaderApp(QMainWindow):
         self.ui.buildDatabaseButton.clicked.connect(self.database_signals.build_database_button.emit)
 
         # Connect custom signals to slots
+        # main page tab
+        self.main_page_signals.run_dvd_checker_button.connect(lambda: self.main_page_instance.run_dvd_checker())
+
         # run checker tab
         self.run_checker_signals.data_input_path_button.connect(lambda: self.open_file_explorer(self.ui.checker_data_input_path, self.current_database_path))
         self.run_checker_signals.run_checker_button.connect(lambda: self.run_checker_instance.run_checker())

@@ -2,9 +2,35 @@ import sys
 import os
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QListWidget, QFileDialog, QMessageBox
 
-class FileSelector(QWidget):
-    def __init__(self):
+class MainPage(QWidget):
+    def __init__(self, ui, master_database_path, current_database_path, select_files_textbox, progress_textbox, errors_textbox, chart_withdrawn_textbox, new_charts_textbox, new_editions_textbox, master_database_folder, current_database_folder, raster_target_folder, vector_target_folder):
         super().__init__()
+        self.ui = ui
+
+        self.master_database_path = master_database_path  # actual path to master database
+        self.current_database_path = current_database_path  # actual path to current database
+
+        # Create custom_signals connections
+        self.select_files_textbox = select_files_textbox
+        self.progress_textbox = progress_textbox
+
+        # Create custom_signals connections
+        self.errors_textbox = errors_textbox
+        self.chart_withdrawn_textbox = chart_withdrawn_textbox
+        self.new_charts_textbox = new_charts_textbox
+        self.new_editions_textbox = new_editions_textbox
+
+        # database data input path
+        self.master_database_folder = master_database_folder  # path to master database folder
+        self.current_database_folder = current_database_folder
+
+        self.raster_target_folder = raster_target_folder
+        self.vector_target_folder = vector_target_folder
+
+        self.master_database_conn = ''
+        self.master_database_cursor = ''
+
+
 
         # Set up the layout and widgets
         self.layout = QVBoxLayout()
@@ -50,6 +76,9 @@ class FileSelector(QWidget):
             # Add your file processing logic here
         else:
             QMessageBox.warning(self, 'No Selection', 'No files selected for processing.')
+
+    def run_dvd_checker(self):
+        print('running dvd checker')
 
 # Main application loop
 if __name__ == '__main__':
