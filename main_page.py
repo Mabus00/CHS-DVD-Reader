@@ -1,8 +1,8 @@
 import os
-from PyQt5.QtWidgets import QWidget, QListWidgetItem, QFileDialog, QMessageBox
+from PyQt5.QtWidgets import QWidget, QFileDialog, QMessageBox
 
 class MainPage(QWidget):
-    def __init__(self, ui, master_database_path, current_database_path, select_files_textbox, progress_textbox, errors_textbox, chart_withdrawn_textbox, new_charts_textbox, new_editions_textbox, master_database_folder, current_database_folder, raster_target_folder, vector_target_folder):
+    def __init__(self, ui, master_database_path, current_database_path, select_files_textbox):
         super().__init__()
         self.ui = ui
 
@@ -11,23 +11,6 @@ class MainPage(QWidget):
 
         # Create custom_signals connections
         self.select_files_textbox = select_files_textbox
-        self.progress_textbox = progress_textbox
-
-        # Create custom_signals connections
-        self.errors_textbox = errors_textbox
-        self.chart_withdrawn_textbox = chart_withdrawn_textbox
-        self.new_charts_textbox = new_charts_textbox
-        self.new_editions_textbox = new_editions_textbox
-
-        # database data input path
-        self.master_database_folder = master_database_folder  # path to master database folder
-        self.current_database_folder = current_database_folder
-
-        self.raster_target_folder = raster_target_folder
-        self.vector_target_folder = vector_target_folder
-
-        self.master_database_conn = ''
-        self.master_database_cursor = ''
 
         self.folder_path_list = []
 

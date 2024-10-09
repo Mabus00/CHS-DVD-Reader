@@ -100,7 +100,7 @@ class CHSDVDReaderApp(QMainWindow):
         self.database_signals = CreateDatabaseSignals()
 
         # Create an instance of BuildDatabase
-        self.main_page_instance = MainPage(self.ui, self.master_database_path, self.current_database_path, self.main_page_signals.select_files_textbox, self.main_page_signals.progress_textbox, self.errors_signals.errors_textbox, self.charts_withdrawn_signals.chart_withdrawn_textbox, self.new_charts_signals.new_charts_textbox, self.new_editions_signals.new_editions_textbox, self.master_database_folder, self.current_database_folder, self.raster_target_folder, self.vector_target_folder)
+        self.main_page_instance = MainPage(self.ui, self.master_database_path, self.current_database_path, self.main_page_signals.select_files_textbox)
           
         # Create an instance of BuildDatabase
         self.build_database_instance = BuildDatabase(self.ui, self.master_database_path, self.database_signals.create_database_textbox, self.master_database_folder, self.raster_target_folder, self.vector_target_folder)
@@ -113,9 +113,9 @@ class CHSDVDReaderApp(QMainWindow):
 
         # Connect UI signals to custom signals using object names
         # main page tab
-        self.ui.executeCheckerButton.clicked.connect(self.main_page_signals.run_dvd_checker_button.emit)
         self.ui.selectFoldersButton.clicked.connect(self.main_page_signals.select_folders_button.emit)
-
+        self.ui.deleteSelectedFoldersButton.clicked.connect(self.main_page_signals.clear_folders_button.emit)
+        self.ui.executeCheckerButton.clicked.connect(self.main_page_signals.run_dvd_checker_button.emit)
         # run checker tab
         self.ui.selectCheckerDataPathButton.clicked.connect(self.run_checker_signals.data_input_path_button.emit)
         self.ui.runCheckerButton.clicked.connect(self.run_checker_signals.run_checker_button.emit)
@@ -126,9 +126,9 @@ class CHSDVDReaderApp(QMainWindow):
 
         # Connect custom signals to slots
         # main page tab
-        self.main_page_signals.run_dvd_checker_button.connect(lambda: self.main_page_instance.process_selected_files())
         self.main_page_signals.select_folders_button.connect(lambda: self.main_page_instance.open_folder_dialog())
-
+        self.main_page_signals.clear_folders_button.connect(self.clear_list_widget)
+        self.main_page_signals.run_dvd_checker_button.connect(lambda: self.main_page_instance.process_selected_files())
         # run checker tab
         self.run_checker_signals.data_input_path_button.connect(lambda: self.open_file_explorer(self.ui.checker_data_input_path, self.current_database_path))
         self.run_checker_signals.run_checker_button.connect(lambda: self.run_checker_instance.run_checker())
@@ -136,7 +136,6 @@ class CHSDVDReaderApp(QMainWindow):
         self.run_checker_instance.finished.connect(self.handle_run_checker_result)
         # create_pdf_report custom signal
         self.run_checker_signals.create_pdf_report_button.connect(lambda: self.create_pdf_report_instance.create_pdf_report())
-
         # create database tab
         self.database_signals.database_input_path_button.connect(lambda: self.open_file_explorer(self.ui.database_input_path, self.master_database_folder))
         self.database_signals.build_database_button.connect(self.build_database_instance.build_database)
@@ -157,6 +156,10 @@ class CHSDVDReaderApp(QMainWindow):
         # This method will handle adding items to the QListWidget
         item = QListWidgetItem(message)  # Create a QListWidgetItem from the message
         self.ui.listWidgetTextBrowser.addItem(item)  # Add the item to the QListWidget
+
+    def clear_list_widget(self):
+        # Clear all items from the QListWidget
+        self.ui.listWidgetTextBrowser.clear()
 
     def open_file_explorer(self, parent, input_path):
         input_path = QFileDialog.getExistingDirectory(parent, "Select Folder")

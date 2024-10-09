@@ -142,6 +142,19 @@
        <string>Select Folders</string>
       </property>
      </widget>
+     <widget class="QPushButton" name="deleteSelectedFoldersButton">
+      <property name="geometry">
+       <rect>
+        <x>590</x>
+        <y>20</y>
+        <width>301</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Delete Selected Folders</string>
+      </property>
+     </widget>
     </widget>
     <widget class="QWidget" name="rebuild_database">
      <attribute name="title">
