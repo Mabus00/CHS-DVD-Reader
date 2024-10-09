@@ -1,7 +1,10 @@
 import os
 from PyQt5.QtWidgets import QWidget, QFileDialog, QMessageBox
+from PyQt5.QtCore import QObject, pyqtSignal
 
-class MainPage(QWidget):
+class MainPage(QWidget, QObject):
+    finished = pyqtSignal(list)  # used to return self.database_path
+
     def __init__(self, ui, master_database_path, current_database_path, select_files_textbox):
         super().__init__()
         self.ui = ui
@@ -20,7 +23,7 @@ class MainPage(QWidget):
             self.folder_path_list.append(folder_path)
             self.populate_file_list(folder_path)
         if len(self.folder_path_list) == 2:
-            print(f'2 folders selected -> {self.folder_path_list}')
+            self.finished.emit(self.folder_path_list)  # Emit the result through the signal
 
     def populate_file_list(self, folder_path):
         # Get the list of files in the folder

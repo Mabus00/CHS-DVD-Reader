@@ -129,6 +129,8 @@ class CHSDVDReaderApp(QMainWindow):
         self.main_page_signals.select_folders_button.connect(lambda: self.main_page_instance.open_folder_dialog())
         self.main_page_signals.clear_folders_button.connect(self.clear_list_widget)
         self.main_page_signals.run_dvd_checker_button.connect(lambda: self.main_page_instance.process_selected_files())
+        # Connect the finished signal to handle_build_database_result
+        self.main_page_instance.finished.connect(self.handle_main_page_result)
         # run checker tab
         self.run_checker_signals.data_input_path_button.connect(lambda: self.open_file_explorer(self.ui.checker_data_input_path, self.current_database_path))
         self.run_checker_signals.run_checker_button.connect(lambda: self.run_checker_instance.run_checker())
@@ -181,6 +183,9 @@ class CHSDVDReaderApp(QMainWindow):
 
     def handle_run_checker_result(self, master_yyyymmdd, current_yyyymmdd, current_database_folder):
         self.create_pdf_report_instance.update_paths(master_yyyymmdd, current_yyyymmdd, current_database_folder)
+
+    def handle_main_page_result(self, folder_path_list):
+        print(folder_path_list) 
 
 def main():
     app = QApplication(sys.argv)
