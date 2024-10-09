@@ -100,7 +100,7 @@ class CHSDVDReaderApp(QMainWindow):
         self.database_signals = CreateDatabaseSignals()
 
         # Create an instance of BuildDatabase
-        self.main_page_instance = MainPage(self.ui, self.master_database_path, self.current_database_path, self.main_page_signals.select_files_textbox)
+        self.main_page_instance = MainPage(self.ui, self.master_database_path, self.current_database_path, self.main_page_signals.select_files_textbox,  self.ui.listWidgetTextBrowser, self.main_page_signals.clear_folders_button)
           
         # Create an instance of BuildDatabase
         self.build_database_instance = BuildDatabase(self.ui, self.master_database_path, self.database_signals.create_database_textbox, self.master_database_folder, self.raster_target_folder, self.vector_target_folder)
@@ -127,7 +127,7 @@ class CHSDVDReaderApp(QMainWindow):
         # Connect custom signals to slots
         # main page tab
         self.main_page_signals.select_folders_button.connect(lambda: self.main_page_instance.open_folder_dialog())
-        self.main_page_signals.clear_folders_button.connect(self.clear_list_widget)
+        self.main_page_signals.clear_folders_button.connect(lambda: self.main_page_instance.clear_list_widget_textbox())
         self.main_page_signals.run_dvd_checker_button.connect(lambda: self.main_page_instance.process_selected_files())
         # Connect the finished signal to handle_build_database_result
         self.main_page_instance.finished.connect(self.handle_main_page_result)
@@ -146,22 +146,12 @@ class CHSDVDReaderApp(QMainWindow):
 
         # Using a lambda function to create an anonymous function that takes a single argument 'message'.
         # The lambda function is being used as an argument to the emit method of the custom signal.
-        self.main_page_signals.select_files_textbox.connect(self.add_item_to_list_widget)
         self.run_checker_signals.run_checker_textbox.connect(lambda message: self.update_text_browser(self.ui.runCheckerTextBrowser, message))
         self.errors_signals.errors_textbox.connect(lambda message: self.update_text_browser(self.ui.errorsTextBrowser, message))
         self.new_charts_signals.new_charts_textbox.connect(lambda message: self.update_text_browser(self.ui.newChartsTextBrowser, message))
         self.new_editions_signals.new_editions_textbox.connect(lambda message: self.update_text_browser(self.ui.newEditionsTextBrowser, message))
         self.charts_withdrawn_signals.chart_withdrawn_textbox.connect(lambda message: self.update_text_browser(self.ui.chartsWithdrawnTextBrowser, message))
         self.database_signals.create_database_textbox.connect(lambda message: self.update_text_browser(self.ui.createDatabaseTextBrowser, message))
-
-    def add_item_to_list_widget(self, message):
-        # This method will handle adding items to the QListWidget
-        item = QListWidgetItem(message)  # Create a QListWidgetItem from the message
-        self.ui.listWidgetTextBrowser.addItem(item)  # Add the item to the QListWidget
-
-    def clear_list_widget(self):
-        # Clear all items from the QListWidget
-        self.ui.listWidgetTextBrowser.clear()
 
     def open_file_explorer(self, parent, input_path):
         input_path = QFileDialog.getExistingDirectory(parent, "Select Folder")
