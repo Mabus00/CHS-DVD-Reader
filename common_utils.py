@@ -99,20 +99,18 @@ def pre_build_checks(database_path, database_folder, textbox):
         path_selected = False
     return path_selected
 
-def initialize_database(database_path, target_textbox):
+def initialize_database(database_path):
     conn = sqlite3.connect(database_path)
     cursor = conn.cursor()
-    target_textbox.emit(f"Database '{database_path}' connected")
     return conn, cursor
     
-def get_database_connection(database_path, target_textbox):
-    conn, cursor = initialize_database(database_path, target_textbox)
+def get_database_connection(database_path):
+    conn, cursor = initialize_database(database_path)
     return conn, cursor
 
-def close_database(target_textbox, database_conn, database_path):
+def close_database(database_conn):
     if database_conn:
         database_conn.close()
-    target_textbox.emit(f'\n{database_path} closed.')
 
 def convert_date_format(date_str):
     # List of possible date formats; easiest approach no guessing involved, and there is more than one format in the data

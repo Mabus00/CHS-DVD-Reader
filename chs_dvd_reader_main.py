@@ -67,11 +67,11 @@ class CHSDVDReaderApp(QMainWindow):
         self.current_yyyymmdd = ""
 
         # set master database input path to nothing; user must select path manually 
-        self.master_database_folder = ""
+        self.master_database_path = ""
         self.master_database = "master_database.db"
 
         # set current month database input path to nothing; user must select path manually 
-        self.current_database_folder = ""
+        self.current_database_path = ""
         self.current_database = "current_database.db"
 
         # target folders to find to process data
@@ -103,10 +103,10 @@ class CHSDVDReaderApp(QMainWindow):
         self.main_page_instance = MainPage(self.ui, self.ui.listWidgetTextBrowser)
           
         # Create an instance of BuildDatabase
-        self.build_database_instance = BuildDatabase(self.ui, self.master_database, self.master_database_folder, self.database_signals.create_database_textbox, self.raster_target_folder, self.vector_target_folder)
+        self.build_database_instance = BuildDatabase(self.ui, self.master_database, self.main_page_signals.progress_textbox, self.raster_target_folder, self.vector_target_folder)
         
         # Create an instance of RunChecker
-        self.run_checker_instance = RunChecker(self.ui, self.current_database, self.current_database_folder, self.run_checker_signals.run_checker_textbox, self.errors_signals.errors_textbox, self.database_signals.create_database_textbox, self.charts_withdrawn_signals.chart_withdrawn_textbox, self.new_charts_signals.new_charts_textbox, self.new_editions_signals.new_editions_textbox, self.raster_target_folder, self.vector_target_folder)
+        self.run_checker_instance = RunChecker(self.ui, self.current_database, self.main_page_signals.progress_textbox, self.errors_signals.errors_textbox, self.charts_withdrawn_signals.chart_withdrawn_textbox, self.new_charts_signals.new_charts_textbox, self.new_editions_signals.new_editions_textbox, self.raster_target_folder, self.vector_target_folder)
 
         # Create an instance of CreatePDFReport
         self.create_pdf_report_instance = CreatePDFReport(self.run_checker_signals.run_checker_textbox)
@@ -120,9 +120,6 @@ class CHSDVDReaderApp(QMainWindow):
         self.ui.selectCheckerDataPathButton.clicked.connect(self.run_checker_signals.data_input_path_button.emit)
         self.ui.runCheckerButton.clicked.connect(self.run_checker_signals.run_checker_button.emit)
         self.ui.createPDFReportButton.clicked.connect(self.run_checker_signals.create_pdf_report_button.emit)
-        # create database tab
-        self.ui.selectDataPathButton.clicked.connect(self.database_signals.database_input_path_button.emit)
-        self.ui.buildDatabaseButton.clicked.connect(self.database_signals.build_database_button.emit)
 
         # Connect custom signals to slots
         # main page tab
@@ -134,26 +131,20 @@ class CHSDVDReaderApp(QMainWindow):
 
         # run checker tab
         self.run_checker_signals.data_input_path_button.connect(lambda: self.open_file_explorer(self.ui.checker_data_input_path, self.current_database))
-        self.run_checker_signals.run_checker_button.connect(lambda: self.run_checker_instance.run_checker())
+
         # Connect the finished signal to handle_build_database_result
         self.run_checker_instance.finished.connect(self.handle_run_checker_result)
         # create_pdf_report custom signal
         self.run_checker_signals.create_pdf_report_button.connect(lambda: self.create_pdf_report_instance.create_pdf_report())
-        
-        # create database tab
-        self.database_signals.database_input_path_button.connect(lambda: self.open_file_explorer(self.ui.database_input_path, self.master_database_folder))
-        self.database_signals.build_database_button.connect(self.build_database_instance.build_database)
-        # Connect the finished signal to handle_build_database_result
-        self.build_database_instance.finished.connect(self.handle_build_database_result)
 
         # Using a lambda function to create an anonymous function that takes a single argument 'message'.
         # The lambda function is being used as an argument to the emit method of the custom signal.
+        self.main_page_signals.progress_textbox.connect(lambda message: self.update_text_browser(self.ui.mainPageTextBrowser, message))
         self.run_checker_signals.run_checker_textbox.connect(lambda message: self.update_text_browser(self.ui.runCheckerTextBrowser, message))
         self.errors_signals.errors_textbox.connect(lambda message: self.update_text_browser(self.ui.errorsTextBrowser, message))
         self.new_charts_signals.new_charts_textbox.connect(lambda message: self.update_text_browser(self.ui.newChartsTextBrowser, message))
         self.new_editions_signals.new_editions_textbox.connect(lambda message: self.update_text_browser(self.ui.newEditionsTextBrowser, message))
         self.charts_withdrawn_signals.chart_withdrawn_textbox.connect(lambda message: self.update_text_browser(self.ui.chartsWithdrawnTextBrowser, message))
-        self.database_signals.create_database_textbox.connect(lambda message: self.update_text_browser(self.ui.createDatabaseTextBrowser, message))
 
     def open_file_explorer(self, parent, input_path):
         input_path = QFileDialog.getExistingDirectory(parent, "Select Folder")
@@ -169,16 +160,15 @@ class CHSDVDReaderApp(QMainWindow):
         # Create a list of QTextBrowser widgets by inspecting the module
         for text_browser in text_browsers:
             text_browser.clear()
-    
-    def handle_build_database_result(self, master_database_path):
-        self.run_checker_instance.update_master_database_path(master_database_path)
 
-    def handle_run_checker_result(self, master_yyyymmdd, current_yyyymmdd, current_database_folder):
-        self.create_pdf_report_instance.update_paths(master_yyyymmdd, current_yyyymmdd, current_database_folder)
+    def handle_run_checker_result(self, master_yyyymmdd, current_yyyymmdd):
+        self.create_pdf_report_instance.update_paths(master_yyyymmdd, current_yyyymmdd)
 
     def handle_main_page_result(self, database_paths):
-        self.master_database_folder = database_paths[0]
-        self.current_database_folder = database_paths[1]
+        self.master_database_path = database_paths[0]
+        self.current_database_path = database_paths[1]
+        self.build_database_instance.build_database(self.master_database_path)
+        self.run_checker_instance.run_checker(self.current_database_path, self.master_database)
         print(f'selected folders')
         
 def main():

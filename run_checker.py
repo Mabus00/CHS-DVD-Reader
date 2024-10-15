@@ -27,7 +27,7 @@ class RunChecker(QObject):
     finished = pyqtSignal(str, str, str)  # used to return self.database_path
 
     # Constructor for initializing the RunChecker object
-    def __init__(self, ui, current_database, current_database_path, run_checker_textbox, errors_textbox, create_database_textbox, chart_withdrawn_textbox, new_charts_textbox, new_editions_textbox, raster_target_folder, vector_target_folder):
+    def __init__(self, ui, current_database, main_page_textbox, errors_textbox, chart_withdrawn_textbox, new_charts_textbox, new_editions_textbox, raster_target_folder, vector_target_folder):
         super().__init__() # call __init__ of the parent class chs_dvd_reader_main
 
         self.ui = ui
@@ -35,15 +35,14 @@ class RunChecker(QObject):
         self.current_database = current_database
 
         # Create custom_signals connections
-        self.run_checker_textbox = run_checker_textbox
-        self.create_database_textbox = create_database_textbox
+        self.main_page_textbox = main_page_textbox
         self.errors_textbox = errors_textbox
         self.chart_withdrawn_textbox = chart_withdrawn_textbox
         self.new_charts_textbox = new_charts_textbox
         self.new_editions_textbox = new_editions_textbox
 
         # database data input path
-        self.current_database_path = current_database_path
+        self.current_database_path = ''
 
         self.raster_target_folder = raster_target_folder
         self.vector_target_folder = vector_target_folder
@@ -79,10 +78,10 @@ class RunChecker(QObject):
         match_result = self.compare_tables_east_west_dates(master_dates, current_dates)
         month_result = self.compare_database_dates(master_dates, current_dates)
         if match_result and month_result:
-            self.run_checker_textbox.emit("\nThe Master and Current databases are in compliance with the date matching criteria. ")
+            self.main_page_textbox.emit("\nThe Master and Current databases are in compliance with the date matching criteria. ")
             return True
         else:
-            self.run_checker_textbox.emit("\nThe Master and Current databases are not in compliance with the date matching criteria. Please review the results and address the indicated issues.")
+            self.main_page_textbox.emit("\nThe Master and Current databases are not in compliance with the date matching criteria. Please review the results and address the indicated issues.")
             return False
 
     def get_databases_yyyymmdd(self, master_database_conn, current_database_conn, table_prefixes):
@@ -109,10 +108,10 @@ class RunChecker(QObject):
             master_dates.get('EastDVD') == master_dates.get('WestDVD') and
             current_dates.get('EastDVD') == current_dates.get('WestDVD')
         ):
-            self.run_checker_textbox.emit("\nEast & West DVD dates match within one or both databases.")
+            self.main_page_textbox.emit("\nEast & West DVD dates match within one or both databases.")
             match_result = True
         else:
-            self.run_checker_textbox.emit("\nEast & West DVD dates do not match within one or both databases.")
+            self.main_page_textbox.emit("\nEast & West DVD dates do not match within one or both databases.")
         return match_result
 
     def compare_database_dates(self, master_dates, current_dates):
@@ -120,10 +119,10 @@ class RunChecker(QObject):
         # only using EastDVD because the compare_tables_east_west_dates check comfirmed they're the same
         month_result = False
         if current_dates['EastDVD'] > master_dates['EastDVD'] :
-            self.run_checker_textbox.emit("\nCurrent East & West DVD dates are a month or more later than the Master Database dates.")
+            self.main_page_textbox.emit("\nCurrent East & West DVD dates are a month or more later than the Master Database dates.")
             month_result = True
         else:
-            self.run_checker_textbox.emit("\nCurrent East & West DVD dates are not a month or more later than the Master Database dates.")
+            self.main_page_textbox.emit("\nCurrent East & West DVD dates are not a month or more later than the Master Database dates.")
         return month_result
 
     def delete_existing_files(self, file_path, files):
@@ -253,11 +252,9 @@ class RunChecker(QObject):
         # Send formatted_data to target_textbox.emit()
         target_textbox.emit(formatted_data)
 
-    def update_master_database_path(self, path):
-        self.master_database = path
-
-    def run_checker(self):
-        self.current_database_path = self.ui.checker_data_input_path.text() # path to current database folder
+    def run_checker(self, current_database_path, master_database):
+        self.current_database_path = current_database_path
+        self.master_database = master_database
         self.current_database = os.path.join(self.current_database_path, self.current_database) # actual path to current database
         # delete existing csv files so they can be updated; these files are used to fill tabs and create the pdf report
         self.delete_existing_files(self.current_database_path, self.report_csv_files)
@@ -265,14 +262,14 @@ class RunChecker(QObject):
         
         # FOUR PARTS TO RUN CHECKING
         # before starting confirm pre-build checks; checking whether a valid path was provided for new current database
-        path_selected = utils.pre_build_checks(self.current_database, self.current_database_path, self.run_checker_textbox)
+        path_selected = utils.pre_build_checks(self.current_database, self.current_database_path, self.main_page_textbox)
         if path_selected:
             # establish database connections; operate under assumption that master_database won't be created each time widget is used
-            self.master_database_conn, self.master_database_cursor = utils.get_database_connection(self.master_database, self.create_database_textbox)
-            self.current_database_conn, self.current_database_cursor = utils.get_database_connection(self.current_database, self.create_database_textbox)
+            self.master_database_conn, self.master_database_cursor = utils.get_database_connection(self.master_database)
+            self.current_database_conn, self.current_database_cursor = utils.get_database_connection(self.current_database)
 
             # instantiate generate_database and create the current month's database
-            self.create_db = BuildDatabase(self.ui, self.current_database, self.current_database_path, self.run_checker_textbox, self.raster_target_folder, self.vector_target_folder)
+            self.create_db = BuildDatabase(self.ui, self.current_database, self.main_page_textbox, self.raster_target_folder, self.vector_target_folder)
             self.create_db.generate_database(self.current_database_conn, self.current_database_cursor)
 
             # new process to check all .csv in vector folders to ensure they're the same
@@ -348,7 +345,7 @@ class RunChecker(QObject):
                     utils.show_warning_popup("Possible errors were noted. See the Misc. Results tab.")
                 
                 # Print a message to indicate that the checker has run
-                self.run_checker_textbox.emit('\nThe Checker ran succesfully!')
+                self.main_page_textbox.emit('\nThe Checker ran succesfully!')
         else:
             if not path_selected:
                 utils.show_warning_popup("The path selected for the current month is invalid.")
@@ -357,9 +354,9 @@ class RunChecker(QObject):
             return
         
         # close the databases
-        utils.close_database(self.create_database_textbox, self.master_database_conn, self.master_database)
-        utils.close_database(self.run_checker_textbox, self.current_database_conn, self.current_database)
-        self.finished.emit(self.master_yyyymmdd, self.current_yyyymmdd, self.current_database_path)  # Emit the result through the signal
+        utils.close_database(self.master_database_conn)
+        utils.close_database(self.current_database_conn)
+        self.finished.emit(self.master_yyyymmdd, self.current_yyyymmdd)  # Emit the result through the signal
 
 # Main execution block (can be used for testing)
 if __name__ == "__main__":

@@ -14,21 +14,21 @@ import csv
 import chardet
 import sqlite3
 
-from PyQt5.QtCore import QObject, pyqtSignal
+from PyQt5.QtCore import QObject, pyqtSignal, QCoreApplication
 
 class BuildDatabase(QObject):
     finished = pyqtSignal(str)  # used to return self.database
     
-    def __init__(self, ui, database, database_path, create_database_textbox, raster_target_folder, vector_target_folder):
+    def __init__(self, ui, database, main_page_textbox, raster_target_folder, vector_target_folder):
         super().__init__() # call __init__ of the parent class chs_dvd_reader_main
         self.ui = ui
 
         self.database = database  # actual path to master database
         # Create custom_signals connections
-        self.create_database_textbox = create_database_textbox
+        self.main_page_textbox = main_page_textbox
 
         # database data input path
-        self.database_path = database_path  # path to master database folder
+        self.database_path = ''  # path to database folder
 
         self.raster_target_folder = raster_target_folder
         self.vector_target_folder = vector_target_folder
@@ -68,6 +68,7 @@ class BuildDatabase(QObject):
             print(f"SQLite operational error: {e}")
         except Exception as e:
             print(f"Error inserting data: {e}")
+        QCoreApplication.processEvents()
 
     def generate_database(self, master_database_conn, master_database_cursor):
         # declare master database connection and cursor
@@ -80,7 +81,6 @@ class BuildDatabase(QObject):
             self.process_dvd()
         # Commit the changes at the end
         self.master_database_conn.commit()
-        self.create_database_textbox.emit(f"\n{self.database} successfully created!")
 
     # Function to list folders in the DVD path
     def list_folders(self, folder_path):
@@ -138,6 +138,7 @@ class BuildDatabase(QObject):
                 cursor.execute(create_table_sql)
         except UnicodeDecodeError as e:
             print(f"Error in create_table decoding file '{file_path}': {e}")
+            QCoreApplication.processEvents()
             # Handle the error as needed
 
     def process_dvd(self):
@@ -147,15 +148,15 @@ class BuildDatabase(QObject):
             utils.show_warning_popup(f"Insert DVD {source_num} and press Enter when ready...")
             dvd_name = self.get_dvd_name(self.database_path)
             if dvd_name:
-                folders = utils.list_folders(self.database_path)
+                folders = self.list_folders(self.database_path)
                 if folders:
-                    self.create_database_textbox.emit(f"\nAdded '{dvd_name}' to the {self.database}.")
+                    self.main_page_textbox.emit(f"\nAdded '{dvd_name}' to the {self.database}.")
                     # database data input path is self.input_data_path
                     self.process_folders(folders, self.database_path, dvd_name)
                 else:
-                    self.create_database_textbox.emit(f"\nNo folders found in '{dvd_name}'.")
+                    self.main_page_textbox.emit(f"\nNo folders found in '{dvd_name}'.")
             else:
-                self.create_database_textbox.emit(f"\nDVD not found at path '{self.database_path}'.")
+                self.main_page_textbox.emit(f"\nDVD not found at path '{self.database_path}'.")
 
     def process_desktop_folder(self):
         # Get the list of foldernames in the subject folder
@@ -167,18 +168,20 @@ class BuildDatabase(QObject):
                 desktop_folder_path = os.path.join(self.database_path, folder_name)
                 folders = self.list_folders(desktop_folder_path)
                 if folders:
-                    self.create_database_textbox.emit(f"\nAdded '{desktop_folder_path}' to the {self.database}.")
                     self.process_folders(folders, desktop_folder_path, folder_name)
                 else:
-                    self.create_database_textbox.emit(f"\no folders found in '{desktop_folder_path}'.")
+                    self.main_page_textbox.emit(f"\no folders found in '{desktop_folder_path}'.")
         elif len(folders) < 2:
             # Inform the user that not enough matching files were found
             print("\nNot enough matching files were found in the folder. Need at least two.")
         else:
             # Inform the user that there are more than two matching files
             print("\nThere are more than two matching files in the folder. Please remove any extras.")
+        QCoreApplication.processEvents()
 
     def process_folders(self, folders, folder_path, source_name):
+        self.main_page_textbox.emit(f"\nProcessing '{source_name}'.")
+        QCoreApplication.processEvents()
         for folder in folders:
             if folder.startswith("RM") or folder.startswith("V"):
                 table_name = f"{source_name}_{folder.replace('-', '_')}"
@@ -207,24 +210,21 @@ class BuildDatabase(QObject):
                                     self.create_table(table_name, file_path, self.master_database_cursor, file_extension)  # Create the table
                                     self.insert_data(table_name, file_path, self.master_database_cursor, file_extension)    # Insert data into the table
                             elif file_extension == "":
-                                self.create_database_textbox.emit("\nNo .txt or .csv files in this folder.")
+                                self.main_page_textbox.emit("\nNo .txt or .csv files in this folder.")
+        self.main_page_textbox.emit(f"\nFinished processing '{source_name}'.")
+        QCoreApplication.processEvents()
 
-    def build_database(self):
-        # instantiate create_database and pass instance of database_name, etc...
-        self.database_path = self.ui.database_input_path.text() # path to master database folder
+    def build_database(self, database_path):
+        self.main_page_textbox.emit(f"Building {self.database}.")
+        QCoreApplication.processEvents() # forces the textbox to update with message
+        self.database_path = database_path
         self.database = os.path.join(self.database_path, self.database) # actual path to master database
-        # confirm that pre-build checks are met before proceeding
-        if self.ui.rebuild_checkbox.isChecked() and utils.pre_build_checks(self.database, self.database_path, self.create_database_textbox):
-            # establish database connections; operate under assumption that master_database won't be created each time widget is used
-            # note that this can't be done earlier because pre-build-checks deletes existing databases, and this can't happen if a connection to the database has been opened
-            # self.get_database_connection creates the master_database in the desired folder
-            database_conn, database_cursor = utils.get_database_connection(self.database, self.create_database_textbox)
-            self.generate_database(database_conn, database_cursor)
-        else:
-            utils.show_warning_popup("Database exists. Check the 'Confirm deletion of database' box to proceed")
+        database_conn, database_cursor = utils.get_database_connection(self.database)
+        self.generate_database(database_conn, database_cursor)
         # close the master database so it can be opened in run_checker (assumption is that create_database isn't always used)
-        utils.close_database(self.create_database_textbox, database_conn, self.database)
-        self.finished.emit(self.database)  # Emit the result through the signal
+        utils.close_database(database_conn)
+        self.main_page_textbox.emit(f"\nSuccessfully built {self.database}!")
+        QCoreApplication.processEvents() # forces the textbox to update with message
 
 if __name__ == "__mtartain__":
    pass
