@@ -17,18 +17,18 @@ import sqlite3
 from PyQt5.QtCore import QObject, pyqtSignal
 
 class BuildDatabase(QObject):
-    finished = pyqtSignal(str)  # used to return self.database_path
+    finished = pyqtSignal(str)  # used to return self.database
     
-    def __init__(self, ui, database_path, create_database_textbox, database_folder, raster_target_folder, vector_target_folder):
+    def __init__(self, ui, database, database_path, create_database_textbox, raster_target_folder, vector_target_folder):
         super().__init__() # call __init__ of the parent class chs_dvd_reader_main
         self.ui = ui
 
-        self.database_path = database_path  # actual path to master database
+        self.database = database  # actual path to master database
         # Create custom_signals connections
         self.create_database_textbox = create_database_textbox
 
         # database data input path
-        self.database_folder = database_folder  # path to master database folder
+        self.database_path = database_path  # path to master database folder
 
         self.raster_target_folder = raster_target_folder
         self.vector_target_folder = vector_target_folder
@@ -74,13 +74,13 @@ class BuildDatabase(QObject):
         self.master_database_conn = master_database_conn
         self.master_database_cursor = master_database_cursor
 
-        if self.database_folder[:1] == "C": #  Case 1: the files are in a folder on the desktop
+        if self.database_path[:1] == "C": #  Case 1: the files are in a folder on the desktop
             self.process_desktop_folder()
         else:# Case 2: files are on a DVD reader
             self.process_dvd()
         # Commit the changes at the end
         self.master_database_conn.commit()
-        self.create_database_textbox.emit(f"\n{self.database_path} successfully created!")
+        self.create_database_textbox.emit(f"\n{self.database} successfully created!")
 
     # Function to list folders in the DVD path
     def list_folders(self, folder_path):
@@ -145,29 +145,29 @@ class BuildDatabase(QObject):
         num_sources = 2
         for source_num in range(1, num_sources + 1): 
             utils.show_warning_popup(f"Insert DVD {source_num} and press Enter when ready...")
-            dvd_name = self.get_dvd_name(self.database_folder)
+            dvd_name = self.get_dvd_name(self.database_path)
             if dvd_name:
-                folders = utils.list_folders(self.database_folder)
+                folders = utils.list_folders(self.database_path)
                 if folders:
-                    self.create_database_textbox.emit(f"\nAdded '{dvd_name}' to the {self.database_path}.")
+                    self.create_database_textbox.emit(f"\nAdded '{dvd_name}' to the {self.database}.")
                     # database data input path is self.input_data_path
-                    self.process_folders(folders, self.database_folder, dvd_name)
+                    self.process_folders(folders, self.database_path, dvd_name)
                 else:
                     self.create_database_textbox.emit(f"\nNo folders found in '{dvd_name}'.")
             else:
-                self.create_database_textbox.emit(f"\nDVD not found at path '{self.database_folder}'.")
+                self.create_database_textbox.emit(f"\nDVD not found at path '{self.database_path}'.")
 
     def process_desktop_folder(self):
         # Get the list of foldernames in the subject folder
-        folders = [item for item in os.listdir(self.database_folder) if os.path.isdir(os.path.join(self.database_folder, item))]
+        folders = [item for item in os.listdir(self.database_path) if os.path.isdir(os.path.join(self.database_path, item))]
         # Check if two folders were found
         if len(folders) == 2:
             for folder_name in folders:
                 # build desktop folder path
-                desktop_folder_path = os.path.join(self.database_folder, folder_name)
+                desktop_folder_path = os.path.join(self.database_path, folder_name)
                 folders = self.list_folders(desktop_folder_path)
                 if folders:
-                    self.create_database_textbox.emit(f"\nAdded '{desktop_folder_path}' to the {self.database_path}.")
+                    self.create_database_textbox.emit(f"\nAdded '{desktop_folder_path}' to the {self.database}.")
                     self.process_folders(folders, desktop_folder_path, folder_name)
                 else:
                     self.create_database_textbox.emit(f"\no folders found in '{desktop_folder_path}'.")
@@ -211,20 +211,20 @@ class BuildDatabase(QObject):
 
     def build_database(self):
         # instantiate create_database and pass instance of database_name, etc...
-        self.database_folder = self.ui.database_input_path.text() # path to master database folder
-        self.database_path = os.path.join(self.database_folder, self.database_path) # actual path to master database
+        self.database_path = self.ui.database_input_path.text() # path to master database folder
+        self.database = os.path.join(self.database_path, self.database) # actual path to master database
         # confirm that pre-build checks are met before proceeding
-        if self.ui.rebuild_checkbox.isChecked() and utils.pre_build_checks(self.database_path, self.database_folder, self.create_database_textbox):
+        if self.ui.rebuild_checkbox.isChecked() and utils.pre_build_checks(self.database, self.database_path, self.create_database_textbox):
             # establish database connections; operate under assumption that master_database won't be created each time widget is used
             # note that this can't be done earlier because pre-build-checks deletes existing databases, and this can't happen if a connection to the database has been opened
             # self.get_database_connection creates the master_database in the desired folder
-            database_conn, database_cursor = utils.get_database_connection(self.database_path, self.create_database_textbox)
+            database_conn, database_cursor = utils.get_database_connection(self.database, self.create_database_textbox)
             self.generate_database(database_conn, database_cursor)
         else:
             utils.show_warning_popup("Database exists. Check the 'Confirm deletion of database' box to proceed")
         # close the master database so it can be opened in run_checker (assumption is that create_database isn't always used)
-        utils.close_database(self.create_database_textbox, database_conn, self.database_path)
-        self.finished.emit(self.database_path)  # Emit the result through the signal
+        utils.close_database(self.create_database_textbox, database_conn, self.database)
+        self.finished.emit(self.database)  # Emit the result through the signal
 
 if __name__ == "__mtartain__":
    pass

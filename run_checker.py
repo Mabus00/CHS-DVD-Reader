@@ -27,12 +27,12 @@ class RunChecker(QObject):
     finished = pyqtSignal(str, str, str)  # used to return self.database_path
 
     # Constructor for initializing the RunChecker object
-    def __init__(self, ui, current_database_path, run_checker_textbox, errors_textbox, create_database_textbox, chart_withdrawn_textbox, new_charts_textbox, new_editions_textbox, master_database_folder, current_database_folder, raster_target_folder, vector_target_folder):
+    def __init__(self, ui, current_database, current_database_path, run_checker_textbox, errors_textbox, create_database_textbox, chart_withdrawn_textbox, new_charts_textbox, new_editions_textbox, raster_target_folder, vector_target_folder):
         super().__init__() # call __init__ of the parent class chs_dvd_reader_main
 
         self.ui = ui
-        self.master_database_path = None  # path to master database
-        self.current_database_path = current_database_path
+        self.master_database = None  # path to master database
+        self.current_database = current_database
 
         # Create custom_signals connections
         self.run_checker_textbox = run_checker_textbox
@@ -43,8 +43,7 @@ class RunChecker(QObject):
         self.new_editions_textbox = new_editions_textbox
 
         # database data input path
-        self.master_database_folder = master_database_folder  # path to master database folder
-        self.current_database_folder = current_database_folder
+        self.current_database_path = current_database_path
 
         self.raster_target_folder = raster_target_folder
         self.vector_target_folder = vector_target_folder
@@ -255,25 +254,25 @@ class RunChecker(QObject):
         target_textbox.emit(formatted_data)
 
     def update_master_database_path(self, path):
-        self.master_database_path = path
+        self.master_database = path
 
     def run_checker(self):
-        self.current_database_folder = self.ui.checker_data_input_path.text() # path to current database folder
-        self.current_database_path = os.path.join(self.current_database_folder, self.current_database_path) # actual path to current database
+        self.current_database_path = self.ui.checker_data_input_path.text() # path to current database folder
+        self.current_database = os.path.join(self.current_database_path, self.current_database) # actual path to current database
         # delete existing csv files so they can be updated; these files are used to fill tabs and create the pdf report
-        self.delete_existing_files(self.current_database_folder, self.report_csv_files)
-        self.delete_existing_files(self.current_database_folder, self.csv_mod_files)
+        self.delete_existing_files(self.current_database_path, self.report_csv_files)
+        self.delete_existing_files(self.current_database_path, self.csv_mod_files)
         
         # FOUR PARTS TO RUN CHECKING
         # before starting confirm pre-build checks; checking whether a valid path was provided for new current database
-        path_selected = utils.pre_build_checks(self.current_database_path, self.current_database_folder, self.run_checker_textbox)
+        path_selected = utils.pre_build_checks(self.current_database, self.current_database_path, self.run_checker_textbox)
         if path_selected:
             # establish database connections; operate under assumption that master_database won't be created each time widget is used
-            self.master_database_conn, self.master_database_cursor = utils.get_database_connection(self.master_database_path, self.create_database_textbox)
-            self.current_database_conn, self.current_database_cursor = utils.get_database_connection(self.current_database_path, self.create_database_textbox)
+            self.master_database_conn, self.master_database_cursor = utils.get_database_connection(self.master_database, self.create_database_textbox)
+            self.current_database_conn, self.current_database_cursor = utils.get_database_connection(self.current_database, self.create_database_textbox)
 
             # instantiate generate_database and create the current month's database
-            self.create_db = BuildDatabase(self.ui, self.current_database_path, self.run_checker_textbox, self.current_database_folder, self.raster_target_folder, self.vector_target_folder)
+            self.create_db = BuildDatabase(self.ui, self.current_database, self.current_database_path, self.run_checker_textbox, self.raster_target_folder, self.vector_target_folder)
             self.create_db.generate_database(self.current_database_conn, self.current_database_cursor)
 
             # new process to check all .csv in vector folders to ensure they're the same
@@ -290,17 +289,17 @@ class RunChecker(QObject):
                 # e.g., for RM-ARC folder in the EAST folder, compare charts listed in the RM-ARC.csv to the database EastDVD_yyyymmdd_RM_ARC "File" list and report missing or extra
                 # note - not needed for the master database; assumption is that this was confirmed in the previous month (the master in month X was the current in month X-1)
                 self.check_folder_content = CheckFolderContent(self.current_database_cursor)
-                missing_files, extra_files = self.check_folder_content.check_folders(self.current_database_folder, self.raster_target_folder, self.vector_target_folder)
+                missing_files, extra_files = self.check_folder_content.check_folders(self.current_database_path, self.raster_target_folder, self.vector_target_folder)
                 # report charts_missing
                 if missing_files or extra_files:
                     utils.show_warning_popup("Possible errors were noted. See the Misc. Results tab.")
                     # Determine which list to pass: missing_files or extra_files
                     # Process missing files if any
                     if missing_files:
-                       self.process_report(missing_files, 'misc_findings_type2', self.errors_textbox, self.current_database_folder)
+                       self.process_report(missing_files, 'misc_findings_type2', self.errors_textbox, self.current_database_path)
                     # Process extra files if any
                     if extra_files:
-                       self.process_report(extra_files, 'misc_findings_type2', self.errors_textbox, self.current_database_folder)
+                       self.process_report(extra_files, 'misc_findings_type2', self.errors_textbox, self.current_database_path)
 
                 # PART 2 OF 4 - compare the folder content of the master and current databases and report new (i.e., not in master but in current) or missing / withdrawn
                 # (i.e., in master but not in current) folders on the appropriate gui tab
@@ -320,7 +319,7 @@ class RunChecker(QObject):
                     for error_type, table_list in {"missing_current": temp_tables_missing_in_current, "missing_master": temp_tables_missing_in_master}.items():
                         if table_list:
                             message = error_messages[error_type]
-                            self.process_report(table_list, 'misc_findings_type2', self.errors_textbox, self.current_database_folder, message)
+                            self.process_report(table_list, 'misc_findings_type2', self.errors_textbox, self.current_database_path, message)
 
                 # PART 3 OF 4 - compare master and current databases and report charts withdrawn and new charts
                 # Remove tables_missing_from_current from tables_master so table content matches; no need to check tables_missing_in_master because these are newly added
@@ -330,10 +329,10 @@ class RunChecker(QObject):
                 charts_withdrawn, new_charts = self.compare_chart_numbers.compare_chart_numbers(tables_master_temp, self.master_yyyymmdd, self.current_yyyymmdd)
                 # Report missing charts on missing charts tab; can't use same process as above because of filenames and textbox identification
                 if charts_withdrawn:
-                   self.process_report(charts_withdrawn, 'charts_withdrawn', self.chart_withdrawn_textbox, self.current_database_folder)
+                   self.process_report(charts_withdrawn, 'charts_withdrawn', self.chart_withdrawn_textbox, self.current_database_path)
                # Report new charts on new charts tab
                 if new_charts:
-                   self.process_report(new_charts, 'new_charts', self.new_charts_textbox, self.current_database_folder)
+                   self.process_report(new_charts, 'new_charts', self.new_charts_textbox, self.current_database_path)
                 
                # PART 4 OF 4 - find data mismatches
                 # instantiate FindDataMismatches
@@ -341,11 +340,11 @@ class RunChecker(QObject):
                 new_editions, misc_findings = self.find_data_mismatches.find_mismatches(tables_master_temp, self.master_yyyymmdd, self.current_yyyymmdd)
                 # report new_editions
                 if new_editions:
-                   self.process_report(new_editions, 'new_editions', self.new_editions_textbox, self.current_database_folder)
+                   self.process_report(new_editions, 'new_editions', self.new_editions_textbox, self.current_database_path)
                 # Report misc. findings (findings that couldn't be categorized as New Charts, New Editions or Charts Withdrawn)
                 if misc_findings:
                     message = "Uncategorized Findings"
-                    self.process_report(misc_findings, 'misc_findings_type1', self.errors_textbox, self.current_database_folder, message)
+                    self.process_report(misc_findings, 'misc_findings_type1', self.errors_textbox, self.current_database_path, message)
                     utils.show_warning_popup("Possible errors were noted. See the Misc. Results tab.")
                 
                 # Print a message to indicate that the checker has run
@@ -353,14 +352,14 @@ class RunChecker(QObject):
         else:
             if not path_selected:
                 utils.show_warning_popup("The path selected for the current month is invalid.")
-            elif self.master_database_path == '':
+            elif self.master_database == '':
                 utils.show_warning_popup("You need to create a master database before conducting the current month comparison.")
             return
         
         # close the databases
-        utils.close_database(self.create_database_textbox, self.master_database_conn, self.master_database_path)
-        utils.close_database(self.run_checker_textbox, self.current_database_conn, self.current_database_path)
-        self.finished.emit(self.master_yyyymmdd, self.current_yyyymmdd, self.current_database_folder)  # Emit the result through the signal
+        utils.close_database(self.create_database_textbox, self.master_database_conn, self.master_database)
+        utils.close_database(self.run_checker_textbox, self.current_database_conn, self.current_database)
+        self.finished.emit(self.master_yyyymmdd, self.current_yyyymmdd, self.current_database_path)  # Emit the result through the signal
 
 # Main execution block (can be used for testing)
 if __name__ == "__main__":

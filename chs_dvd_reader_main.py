@@ -68,11 +68,11 @@ class CHSDVDReaderApp(QMainWindow):
 
         # set master database input path to nothing; user must select path manually 
         self.master_database_folder = ""
-        self.master_database_path = "master_database.db"
+        self.master_database = "master_database.db"
 
         # set current month database input path to nothing; user must select path manually 
         self.current_database_folder = ""
-        self.current_database_path = "current_database.db"
+        self.current_database = "current_database.db"
 
         # target folders to find to process data
         self.raster_target_folder = 'BSBCHART'
@@ -100,13 +100,13 @@ class CHSDVDReaderApp(QMainWindow):
         self.database_signals = CreateDatabaseSignals()
 
         # Create an instance of BuildDatabase
-        self.main_page_instance = MainPage(self.ui, self.master_database_path, self.current_database_path, self.main_page_signals.select_files_textbox,  self.ui.listWidgetTextBrowser, self.main_page_signals.clear_folders_button)
+        self.main_page_instance = MainPage(self.ui, self.ui.listWidgetTextBrowser)
           
         # Create an instance of BuildDatabase
-        self.build_database_instance = BuildDatabase(self.ui, self.master_database_path, self.database_signals.create_database_textbox, self.master_database_folder, self.raster_target_folder, self.vector_target_folder)
+        self.build_database_instance = BuildDatabase(self.ui, self.master_database, self.master_database_folder, self.database_signals.create_database_textbox, self.raster_target_folder, self.vector_target_folder)
         
         # Create an instance of RunChecker
-        self.run_checker_instance = RunChecker(self.ui, self.current_database_path, self.run_checker_signals.run_checker_textbox, self.errors_signals.errors_textbox, self.database_signals.create_database_textbox, self.charts_withdrawn_signals.chart_withdrawn_textbox, self.new_charts_signals.new_charts_textbox, self.new_editions_signals.new_editions_textbox, self.master_database_folder, self.current_database_folder, self.raster_target_folder, self.vector_target_folder)
+        self.run_checker_instance = RunChecker(self.ui, self.current_database, self.current_database_folder, self.run_checker_signals.run_checker_textbox, self.errors_signals.errors_textbox, self.database_signals.create_database_textbox, self.charts_withdrawn_signals.chart_withdrawn_textbox, self.new_charts_signals.new_charts_textbox, self.new_editions_signals.new_editions_textbox, self.raster_target_folder, self.vector_target_folder)
 
         # Create an instance of CreatePDFReport
         self.create_pdf_report_instance = CreatePDFReport(self.run_checker_signals.run_checker_textbox)
@@ -131,13 +131,15 @@ class CHSDVDReaderApp(QMainWindow):
         self.main_page_signals.run_dvd_checker_button.connect(lambda: self.main_page_instance.process_selected_files())
         # Connect the finished signal to handle_build_database_result
         self.main_page_instance.finished.connect(self.handle_main_page_result)
+
         # run checker tab
-        self.run_checker_signals.data_input_path_button.connect(lambda: self.open_file_explorer(self.ui.checker_data_input_path, self.current_database_path))
+        self.run_checker_signals.data_input_path_button.connect(lambda: self.open_file_explorer(self.ui.checker_data_input_path, self.current_database))
         self.run_checker_signals.run_checker_button.connect(lambda: self.run_checker_instance.run_checker())
         # Connect the finished signal to handle_build_database_result
         self.run_checker_instance.finished.connect(self.handle_run_checker_result)
         # create_pdf_report custom signal
         self.run_checker_signals.create_pdf_report_button.connect(lambda: self.create_pdf_report_instance.create_pdf_report())
+        
         # create database tab
         self.database_signals.database_input_path_button.connect(lambda: self.open_file_explorer(self.ui.database_input_path, self.master_database_folder))
         self.database_signals.build_database_button.connect(self.build_database_instance.build_database)
@@ -174,9 +176,11 @@ class CHSDVDReaderApp(QMainWindow):
     def handle_run_checker_result(self, master_yyyymmdd, current_yyyymmdd, current_database_folder):
         self.create_pdf_report_instance.update_paths(master_yyyymmdd, current_yyyymmdd, current_database_folder)
 
-    def handle_main_page_result(self, folder_path_list):
-        print(folder_path_list) 
-
+    def handle_main_page_result(self, database_paths):
+        self.master_database_folder = database_paths[0]
+        self.current_database_folder = database_paths[1]
+        print(f'selected folders')
+        
 def main():
     app = QApplication(sys.argv)
     window = CHSDVDReaderApp()

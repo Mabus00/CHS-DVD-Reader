@@ -1,4 +1,5 @@
-import os
+from pathlib import Path
+import time
 import common_utils as utils
 from PyQt5.QtWidgets import QWidget, QFileDialog, QMessageBox, QListWidgetItem
 from PyQt5.QtCore import QObject, pyqtSignal
@@ -6,17 +7,12 @@ from PyQt5.QtCore import QObject, pyqtSignal
 class MainPage(QWidget, QObject):
     finished = pyqtSignal(list)  # used to return self.database_path
 
-    def __init__(self, ui, master_database_path, current_database_path, select_files_textbox, list_widget, clear_folders_button):
+    def __init__(self, ui, list_widget):
         super().__init__()
         self.ui = ui
 
-        self.master_database_path = master_database_path  # actual path to master database
-        self.current_database_path = current_database_path  # actual path to current database
-
         # Create custom_signals connections
-        self.select_files_textbox = select_files_textbox
         self.list_widget = list_widget  # Reference to listWidgetTextBrowser
-        self.clear_folders_button = clear_folders_button
 
         self.folder_path_list = []
 
@@ -47,9 +43,39 @@ class MainPage(QWidget, QObject):
         except Exception as e:
             QMessageBox.critical(self, 'Error', f'Error reading folder: {str(e)}')
 
+    # Function to extract the creation month of a folder
+    def get_creation_month(self, folder_path):
+        folder = Path(folder_path)
+        creation_time = folder.stat().st_ctime
+        # Convert to a time struct and extract the month (1-12)
+        creation_month = time.localtime(creation_time).tm_mon
+        return creation_month
+    
     def process_selected_files(self):
-        print('processing selected files')
-        self.finished.emit(self.folder_path_list)  # Emit the result through the signal
+        print('Processing folders')
+
+        if len(self.folder_path_list) != 2:
+            utils.show_warning_popup("Please select two folders. If you made an error, select 'Delete Selected Folders' and start again.")
+            return
+
+        # Unpack folder paths
+        folder1, folder2 = self.folder_path_list
+
+        # Get creation months for both folders
+        month1, month2 = self.get_creation_month(folder1), self.get_creation_month(folder2)
+
+        # Ensure folders are at least one month apart and assign the earlier as master
+        if month1 == month2:
+            print("Both folders were created in the same month. Selected folders must be at least one month apart. "
+                "Select 'Delete Selected Folders' and start again.")
+            return
+
+        # Use a conditional expression to determine which is master and which is current
+        master_database_path, current_database_path = (folder1, folder2) if month1 < month2 else (folder2, folder1)
+
+        # Emit the result
+        self.finished.emit([master_database_path, current_database_path])
+       
 
 # Main application loop
 if __name__ == '__main__':
