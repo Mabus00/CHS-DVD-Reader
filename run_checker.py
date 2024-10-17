@@ -27,12 +27,12 @@ class RunChecker(QObject):
     finished = pyqtSignal(str, str, str)  # used to return self.database_path
 
     # Constructor for initializing the RunChecker object
-    def __init__(self, ui, current_database, master_database, main_page_textbox, errors_textbox, chart_withdrawn_textbox, new_charts_textbox, new_editions_textbox, raster_target_folder, vector_target_folder):
+    def __init__(self, ui, main_page_textbox, errors_textbox, chart_withdrawn_textbox, new_charts_textbox, new_editions_textbox, raster_target_folder, vector_target_folder):
         super().__init__() # call __init__ of the parent class chs_dvd_reader_main
 
         self.ui = ui
-        self.master_database = master_database  # path to master database
-        self.current_database = current_database
+        self.master_database = ''  # path to master database
+        self.current_database = ''
 
         # Create custom_signals connections
         self.main_page_textbox = main_page_textbox
@@ -43,6 +43,7 @@ class RunChecker(QObject):
 
         # database data input path
         self.current_database_path = ''
+        self.master_database_path = ''
 
         self.raster_target_folder = raster_target_folder
         self.vector_target_folder = vector_target_folder
@@ -255,26 +256,26 @@ class RunChecker(QObject):
         # Send formatted_data to target_textbox.emit()
         target_textbox.emit(formatted_data)
 
-    def run_checker(self, current_database, current_database_path):
-        self.main_page_textbox.emit(f"\nBuilding {self.current_database}.")
-        QCoreApplication.processEvents() # forces the textbox to update with message
+    def run_checker(self, master_database, master_database_path, current_database, current_database_path):
+        self.master_database = master_database
+        self.master_database_path = master_database_path
+        self.current_database = current_database
+        self.current_database_path = current_database_path  # path to master database
 
-        self.current_database_path = current_database_path
-        self.current_database = os.path.join(self.current_database_path, self.current_database) # actual path to current database
         # delete existing csv files so they can be updated; these files are used to fill tabs and create the pdf report
         self.delete_existing_files(self.current_database_path, self.report_csv_files)
         self.delete_existing_files(self.current_database_path, self.csv_mod_files)
         
         # FOUR PARTS TO RUN CHECKING
-        # establish database connections; do this here because you need connections to both master and current databases
-        self.master_database_conn, self.master_database_cursor = utils.get_database_connection(self.master_database)
-
         # instantiate generate_database and create the current month's database
         self.create_db = BuildDatabase(self.ui, self.main_page_textbox, self.raster_target_folder, self.vector_target_folder)
         self.create_db.build_database(self.current_database, self.current_database_path)
 
-        # need to do this because after a database is built the connection is closed; need to open for processed that follow
-        self.current_database_conn, self.current_database_cursor = utils.get_database_connection(self.current_database)
+        master_database_complete_path = os.path.join(self.master_database_path, self.master_database) # actual path to master database
+        current_database_complete_path = os.path.join(self.current_database_path, self.current_database) # actual path to master database
+        # establish database connections; you need connections to both master and current databases
+        self.master_database_conn, self.master_database_cursor = utils.get_database_connection(master_database_complete_path)
+        self.current_database_conn, self.current_database_cursor = utils.get_database_connection(current_database_complete_path)
 
         self.main_page_textbox.emit(f"\nChecking database contents vs CSV files.")
         QCoreApplication.processEvents() # forces the textbox to update with message

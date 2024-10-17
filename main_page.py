@@ -2,17 +2,18 @@ from pathlib import Path
 import time
 import common_utils as utils
 from PyQt5.QtWidgets import QWidget, QFileDialog, QMessageBox, QListWidgetItem
-from PyQt5.QtCore import QObject, pyqtSignal
+from PyQt5.QtCore import QObject, pyqtSignal, QCoreApplication
 
 class MainPage(QWidget, QObject):
     finished = pyqtSignal(list)  # used to return self.database_path
 
-    def __init__(self, ui, list_widget):
+    def __init__(self, ui, list_widget, progress_textbox):
         super().__init__()
         self.ui = ui
 
         # Create custom_signals connections
         self.list_widget = list_widget  # Reference to listWidgetTextBrowser
+        self.progress_textbox = progress_textbox
 
         self.folder_path_list = []
 
@@ -52,6 +53,8 @@ class MainPage(QWidget, QObject):
         return creation_month
     
     def process_selected_files(self):
+        self.progress_textbox.emit(f"Beginning DVD checking process.")
+        QCoreApplication.processEvents() # forces the textbox to update with message
         if len(self.folder_path_list) != 2:
             utils.show_warning_popup("Please select two folders. If you made an error, select 'Delete Selected Folders' and start again.")
             return

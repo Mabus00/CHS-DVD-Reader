@@ -88,7 +88,6 @@ class CheckFolderContent():
         extra_files = []
 
         self.current_database_cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
-        tables_current = [row[0] for row in self.current_database_cursor.fetchall()]
 
         # Get the list of foldernames in the subject folder
         folders = [item for item in os.listdir(database_folder) if os.path.isdir(os.path.join(database_folder, item))]

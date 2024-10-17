@@ -33,9 +33,6 @@ class BuildDatabase(QObject):
         self.raster_target_folder = raster_target_folder
         self.vector_target_folder = vector_target_folder
 
-        self.database_conn = ''
-        self.database_cursor = ''
-
     # Function to detect file encoding using chardet
     def detect_encoding(self, file_path):
         with open(file_path, 'rb') as f:
@@ -216,11 +213,11 @@ class BuildDatabase(QObject):
 
     def build_database(self, database, database_path):
         self.database = database
-        self.main_page_textbox.emit(f"Building {self.database}.")
+        self.main_page_textbox.emit(f"\nBuilding {self.database}.")
         QCoreApplication.processEvents() # forces the textbox to update with message
         self.database_path = database_path
-        self.database_complete_path = os.path.join(self.database_path, self.database) # actual path to master database
-        database_conn, database_cursor = utils.get_database_connection(self.database_complete_path)
+        database_complete_path = os.path.join(self.database_path, self.database) # actual path to master database
+        database_conn, database_cursor = utils.get_database_connection(database_complete_path)
         self.generate_database(database_conn, database_cursor)
         # close the master database so it can be opened in run_checker (assumption is that create_database isn't always used)
         self.main_page_textbox.emit(f"\nSuccessfully built {self.database}!")

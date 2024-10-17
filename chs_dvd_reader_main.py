@@ -18,7 +18,7 @@ VIEW = chs_dvd_gui
 
 import sys
 import inspect
-from PyQt5.QtWidgets import QApplication, QMainWindow, QTextEdit, QFileDialog, QListWidget, QListWidgetItem
+from PyQt5.QtWidgets import QApplication, QMainWindow, QTextEdit, QFileDialog
 from PyQt5.QtGui import QFont
 
 from chs_dvd_gui import Ui_MainWindow
@@ -100,13 +100,13 @@ class CHSDVDReaderApp(QMainWindow):
         self.database_signals = CreateDatabaseSignals()
 
         # Create an instance of BuildDatabase
-        self.main_page_instance = MainPage(self.ui, self.ui.listWidgetTextBrowser)
+        self.main_page_instance = MainPage(self.ui, self.ui.listWidgetTextBrowser, self.main_page_signals.progress_textbox)
           
         # Create an instance of BuildDatabase
         self.build_database_instance = BuildDatabase(self.ui, self.main_page_signals.progress_textbox, self.raster_target_folder, self.vector_target_folder)
         
         # Create an instance of RunChecker
-        self.run_checker_instance = RunChecker(self.ui, self.current_database, self.master_database, self.main_page_signals.progress_textbox, self.errors_signals.errors_textbox, self.charts_withdrawn_signals.chart_withdrawn_textbox, self.new_charts_signals.new_charts_textbox, self.new_editions_signals.new_editions_textbox, self.raster_target_folder, self.vector_target_folder)
+        self.run_checker_instance = RunChecker(self.ui, self.main_page_signals.progress_textbox, self.errors_signals.errors_textbox, self.charts_withdrawn_signals.chart_withdrawn_textbox, self.new_charts_signals.new_charts_textbox, self.new_editions_signals.new_editions_textbox, self.raster_target_folder, self.vector_target_folder)
 
         # Create an instance of CreatePDFReport
         self.create_pdf_report_instance = CreatePDFReport(self.run_checker_signals.run_checker_textbox)
@@ -168,7 +168,7 @@ class CHSDVDReaderApp(QMainWindow):
         self.master_database_path = database_paths[0]
         self.current_database_path = database_paths[1]
         self.build_database_instance.build_database(self.master_database, self.master_database_path)
-        self.run_checker_instance.run_checker(self.current_database, self.current_database_path)
+        self.run_checker_instance.run_checker(self.master_database, self.master_database_path, self.current_database, self.current_database_path)
         print(f'selected folders')
         
 def main():
