@@ -47,7 +47,7 @@ class CompareDatabases():
         # add the yyyymmdd to match complete table name
         for i in range(len(tables_missing_in_current)):
             temp_tables_missing_in_current.append(utils.insert_text(tables_missing_in_current[i], current_yyyymmdd, pos_to_insert=1))
-        return tables_master_temp, temp_tables_missing_in_master, tables_missing_in_current, temp_tables_missing_in_current, master_yyyymmdd, current_yyyymmdd
+        return tables_master_temp, temp_tables_missing_in_master, tables_current_temp, temp_tables_missing_in_current, master_yyyymmdd, current_yyyymmdd
 
 # Main execution block (can be used for testing)
 if __name__ == "__main__":

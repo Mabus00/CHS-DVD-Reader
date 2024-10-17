@@ -20,7 +20,6 @@ class MainPage(QWidget, QObject):
     def open_folder_dialog(self):
         folder_path = QFileDialog.getExistingDirectory(self, 'Select Folder')
         self.folder_path_list.append(folder_path)
-        print(len(self.folder_path_list))
         if folder_path and len(self.folder_path_list) < 3:
             self.populate_file_list(folder_path)
         elif folder_path and len(self.folder_path_list) > 2:
