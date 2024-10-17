@@ -20,6 +20,7 @@ import sys
 import inspect
 from PyQt5.QtWidgets import QApplication, QMainWindow, QTextEdit, QFileDialog
 from PyQt5.QtGui import QFont
+from PyQt5.QtCore import Qt
 
 from chs_dvd_gui import Ui_MainWindow
 from custom_signals import MainPageSignals, CreateDatabaseSignals, RunCheckerSignals, NewChartsSignals, NewEditionsSignals, WithdrawnSignals, ErrorsSignals
@@ -127,13 +128,13 @@ class CHSDVDReaderApp(QMainWindow):
         self.main_page_signals.clear_folders_button.connect(lambda: self.main_page_instance.clear_list_widget_textbox())
         self.main_page_signals.run_dvd_checker_button.connect(lambda: self.main_page_instance.process_selected_files())
         # Connect the finished signal to handle_build_database_result
-        self.main_page_instance.finished.connect(self.handle_main_page_result)
+        self.main_page_instance.finished.connect(self.handle_main_page_result, Qt.QueuedConnection)
 
         # run checker tab
         self.run_checker_signals.data_input_path_button.connect(lambda: self.open_file_explorer(self.ui.checker_data_input_path, self.current_database))
 
         # Connect the finished signal to handle_build_database_result
-        self.run_checker_instance.finished.connect(self.handle_run_checker_result)
+        self.run_checker_instance.finished.connect(self.handle_run_checker_result, Qt.QueuedConnection)
         # create_pdf_report custom signal
         self.run_checker_signals.create_pdf_report_button.connect(lambda: self.create_pdf_report_instance.create_pdf_report())
 
@@ -162,11 +163,11 @@ class CHSDVDReaderApp(QMainWindow):
             text_browser.clear()
 
     def handle_run_checker_result(self, master_yyyymmdd, current_yyyymmdd):
-        self.create_pdf_report_instance.update_paths(master_yyyymmdd, current_yyyymmdd)
+        self.create_pdf_report_instance.update_paths(master_yyyymmdd, current_yyyymmdd, self.current_database_path)
 
-    def handle_main_page_result(self, database_paths):
-        self.master_database_path = database_paths[0]
-        self.current_database_path = database_paths[1]
+    def handle_main_page_result(self, master_database_path, current_database_path):
+        self.master_database_path = master_database_path
+        self.current_database_path = current_database_path
         self.build_database_instance.build_database(self.master_database, self.master_database_path)
         self.run_checker_instance.run_checker(self.master_database, self.master_database_path, self.current_database, self.current_database_path)
         print(f'selected folders')

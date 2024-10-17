@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import QWidget, QFileDialog, QMessageBox, QListWidgetItem
 from PyQt5.QtCore import QObject, pyqtSignal, QCoreApplication
 
 class MainPage(QWidget, QObject):
-    finished = pyqtSignal(list)  # used to return self.database_path
+    finished = pyqtSignal(str, str)  # used to return self.database_path
 
     def __init__(self, ui, list_widget, progress_textbox):
         super().__init__()
@@ -69,7 +69,7 @@ class MainPage(QWidget, QObject):
         # Use a conditional expression to determine which is master and which is current
         master_database_path, current_database_path = (folder1, folder2) if month1 < month2 else (folder2, folder1)
         # Emit the result
-        self.finished.emit([master_database_path, current_database_path])
+        self.finished.emit(master_database_path, current_database_path)
        
 
 # Main application loop

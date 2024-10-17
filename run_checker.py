@@ -24,7 +24,7 @@ from PyQt5.QtCore import QObject, pyqtSignal, QCoreApplication
 
 # Define the RunChecker class
 class RunChecker(QObject):
-    finished = pyqtSignal(str, str, str)  # used to return self.database_path
+    finished = pyqtSignal(str, str)  # used to return self.database_path
 
     # Constructor for initializing the RunChecker object
     def __init__(self, ui, main_page_textbox, errors_textbox, chart_withdrawn_textbox, new_charts_textbox, new_editions_textbox, raster_target_folder, vector_target_folder):
