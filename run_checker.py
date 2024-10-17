@@ -20,18 +20,18 @@ from compare_chart_numbers import CompareChartNumbers
 from find_data_mismatches import FindDataMismatches
 from check_folder_content import CheckFolderContent
 
-from PyQt5.QtCore import QObject, pyqtSignal
+from PyQt5.QtCore import QObject, pyqtSignal, QCoreApplication
 
 # Define the RunChecker class
 class RunChecker(QObject):
     finished = pyqtSignal(str, str, str)  # used to return self.database_path
 
     # Constructor for initializing the RunChecker object
-    def __init__(self, ui, current_database, main_page_textbox, errors_textbox, chart_withdrawn_textbox, new_charts_textbox, new_editions_textbox, raster_target_folder, vector_target_folder):
+    def __init__(self, ui, current_database, master_database, main_page_textbox, errors_textbox, chart_withdrawn_textbox, new_charts_textbox, new_editions_textbox, raster_target_folder, vector_target_folder):
         super().__init__() # call __init__ of the parent class chs_dvd_reader_main
 
         self.ui = ui
-        self.master_database = None  # path to master database
+        self.master_database = master_database  # path to master database
         self.current_database = current_database
 
         # Create custom_signals connections
@@ -49,6 +49,9 @@ class RunChecker(QObject):
 
         self.master_database_conn = ''
         self.master_database_cursor = ''
+
+        self.current_database_conn = ''
+        self.current_database_cursor = ''
 
         # create an ordered list of csv files so I can prioritize selection for the pdf report
         self.report_csv_files = [
@@ -252,107 +255,101 @@ class RunChecker(QObject):
         # Send formatted_data to target_textbox.emit()
         target_textbox.emit(formatted_data)
 
-    def run_checker(self, current_database_path, master_database):
+    def run_checker(self, current_database, current_database_path):
+        self.main_page_textbox.emit(f"\nBuilding {self.current_database}.")
+        QCoreApplication.processEvents() # forces the textbox to update with message
+
         self.current_database_path = current_database_path
-        self.master_database = master_database
         self.current_database = os.path.join(self.current_database_path, self.current_database) # actual path to current database
         # delete existing csv files so they can be updated; these files are used to fill tabs and create the pdf report
         self.delete_existing_files(self.current_database_path, self.report_csv_files)
         self.delete_existing_files(self.current_database_path, self.csv_mod_files)
         
         # FOUR PARTS TO RUN CHECKING
-        # before starting confirm pre-build checks; checking whether a valid path was provided for new current database
-        path_selected = utils.pre_build_checks(self.current_database, self.current_database_path, self.main_page_textbox)
-        if path_selected:
-            # establish database connections; operate under assumption that master_database won't be created each time widget is used
-            self.master_database_conn, self.master_database_cursor = utils.get_database_connection(self.master_database)
-            self.current_database_conn, self.current_database_cursor = utils.get_database_connection(self.current_database)
+        # establish database connections; do this here because you need connections to both master and current databases
+        self.master_database_conn, self.master_database_cursor = utils.get_database_connection(self.master_database)
 
-            # instantiate generate_database and create the current month's database
-            self.create_db = BuildDatabase(self.ui, self.current_database, self.main_page_textbox, self.raster_target_folder, self.vector_target_folder)
-            self.create_db.generate_database(self.current_database_conn, self.current_database_cursor)
+        # instantiate generate_database and create the current month's database
+        self.create_db = BuildDatabase(self.ui, self.main_page_textbox, self.raster_target_folder, self.vector_target_folder)
+        self.create_db.build_database(self.current_database, self.current_database_path)
 
-            # new process to check all .csv in vector folders to ensure they're the same
-            print('here')
+        # need to do this because after a database is built the connection is closed; need to open for processed that follow
+        self.current_database_conn, self.current_database_cursor = utils.get_database_connection(self.current_database)
 
-            # compliance = East and West tables within each database have the same date and the new current database is at least one month older than the master database
-            # required to proceed further
-            compliance = self.confirm_database_compliance(self.master_database_conn, self.current_database_conn)
-            # check compliance; databases are dated correctly and are at least one month apart
-            if not compliance:
-                utils.show_warning_popup('You have error messages that need to be addressed.  See the Progress Report window.')
-            else:
-                # PART 1 OF 4 - check the .csv in the EAST and WEST folders against "Files" listed in the dB; confirm all files listed are present
-                # e.g., for RM-ARC folder in the EAST folder, compare charts listed in the RM-ARC.csv to the database EastDVD_yyyymmdd_RM_ARC "File" list and report missing or extra
-                # note - not needed for the master database; assumption is that this was confirmed in the previous month (the master in month X was the current in month X-1)
-                self.check_folder_content = CheckFolderContent(self.current_database_cursor)
-                missing_files, extra_files = self.check_folder_content.check_folders(self.current_database_path, self.raster_target_folder, self.vector_target_folder)
-                # report charts_missing
-                if missing_files or extra_files:
-                    utils.show_warning_popup("Possible errors were noted. See the Misc. Results tab.")
-                    # Determine which list to pass: missing_files or extra_files
-                    # Process missing files if any
-                    if missing_files:
-                       self.process_report(missing_files, 'misc_findings_type2', self.errors_textbox, self.current_database_path)
-                    # Process extra files if any
-                    if extra_files:
-                       self.process_report(extra_files, 'misc_findings_type2', self.errors_textbox, self.current_database_path)
+        self.main_page_textbox.emit(f"\nChecking database contents vs CSV files.")
+        QCoreApplication.processEvents() # forces the textbox to update with message
+        # PART 1 OF 4 - check the .csv in the EAST and WEST folders against "Files" listed in the dB; confirm all files listed are present
+        # e.g., for RM-ARC folder in the EAST folder, compare charts listed in the RM-ARC.csv to the database EastDVD_yyyymmdd_RM_ARC "File" list and report missing or extra
+        # note - not needed for the master database; assumption is that this was confirmed in the previous month (the master in month X was the current in month X-1)
+        self.check_folder_content = CheckFolderContent(self.current_database_cursor)
+        missing_files, extra_files = self.check_folder_content.check_folders(self.current_database_path, self.raster_target_folder, self.vector_target_folder)
+        # report charts_missing
+        if missing_files or extra_files:
+            utils.show_warning_popup("Possible errors were noted. See the Misc. Results tab.")
+            # Determine which list to pass: missing_files or extra_files
+            # Process missing files if any
+            if missing_files:
+                self.process_report(missing_files, 'misc_findings_type2', self.errors_textbox, self.current_database_path)
+            # Process extra files if any
+            if extra_files:
+                self.process_report(extra_files, 'misc_findings_type2', self.errors_textbox, self.current_database_path)
 
-                # PART 2 OF 4 - compare the folder content of the master and current databases and report new (i.e., not in master but in current) or missing / withdrawn
-                # (i.e., in master but not in current) folders on the appropriate gui tab
-                # run this first so you can ignore missing tables in PART 2 and 3
-                self.compare_databases = CompareDatabases(self.master_database_cursor, self.current_database_cursor)
-                # temp_tables_missing_in_current represent tables that have been removed; tables_missing_in_master represent tables that have been added in current
-                # tables_master_temp and tables_current_temp have yyyymmdd removed; do this once and share with other modules
-                # self.master_yyyymmdd and self.current_yyyymmdd are the extracted yyyymmdd for each
-                tables_master_temp, temp_tables_missing_in_master, tables_current_temp, temp_tables_missing_in_current, self.master_yyyymmdd, self.current_yyyymmdd = self.compare_databases.compare_databases()
-                # report withdrawn or new folders in current_database
-                if temp_tables_missing_in_current or temp_tables_missing_in_master:
-                    utils.show_warning_popup("Possible errors were noted. See the Misc. Results tab.")
-                    error_messages = {
-                        "missing_current": "Folders Removed",
-                        "missing_master": "Folders Added",
-                    }
-                    for error_type, table_list in {"missing_current": temp_tables_missing_in_current, "missing_master": temp_tables_missing_in_master}.items():
-                        if table_list:
-                            message = error_messages[error_type]
-                            self.process_report(table_list, 'misc_findings_type2', self.errors_textbox, self.current_database_path, message)
+        # PART 2 OF 4 - compare the folder content of the master and current databases and report new (i.e., not in master but in current) or missing / withdrawn
+        # (i.e., in master but not in current) folders on the appropriate gui tab
+        self.main_page_textbox.emit(f"\nLooking for new or missing folders.")
+        QCoreApplication.processEvents() # forces the textbox to update with message
 
-                # PART 3 OF 4 - compare master and current databases and report charts withdrawn and new charts
-                # Remove tables_missing_from_current from tables_master so table content matches; no need to check tables_missing_in_master because these are newly added
-                tables_master_temp = [table for table in tables_master_temp if table not in tables_current_temp]
-                # instantiate CompareChartNumbers
-                self.compare_chart_numbers = CompareChartNumbers(self.master_database_cursor, self.current_database_cursor)
-                charts_withdrawn, new_charts = self.compare_chart_numbers.compare_chart_numbers(tables_master_temp, self.master_yyyymmdd, self.current_yyyymmdd)
-                # Report missing charts on missing charts tab; can't use same process as above because of filenames and textbox identification
-                if charts_withdrawn:
-                   self.process_report(charts_withdrawn, 'charts_withdrawn', self.chart_withdrawn_textbox, self.current_database_path)
-               # Report new charts on new charts tab
-                if new_charts:
-                   self.process_report(new_charts, 'new_charts', self.new_charts_textbox, self.current_database_path)
-                
-               # PART 4 OF 4 - find data mismatches
-                # instantiate FindDataMismatches
-                self.find_data_mismatches = FindDataMismatches(self.master_database_cursor, self.current_database_cursor)
-                new_editions, misc_findings = self.find_data_mismatches.find_mismatches(tables_master_temp, self.master_yyyymmdd, self.current_yyyymmdd)
-                # report new_editions
-                if new_editions:
-                   self.process_report(new_editions, 'new_editions', self.new_editions_textbox, self.current_database_path)
-                # Report misc. findings (findings that couldn't be categorized as New Charts, New Editions or Charts Withdrawn)
-                if misc_findings:
-                    message = "Uncategorized Findings"
-                    self.process_report(misc_findings, 'misc_findings_type1', self.errors_textbox, self.current_database_path, message)
-                    utils.show_warning_popup("Possible errors were noted. See the Misc. Results tab.")
-                
-                # Print a message to indicate that the checker has run
-                self.main_page_textbox.emit('\nThe Checker ran succesfully!')
-        else:
-            if not path_selected:
-                utils.show_warning_popup("The path selected for the current month is invalid.")
-            elif self.master_database == '':
-                utils.show_warning_popup("You need to create a master database before conducting the current month comparison.")
-            return
+        # run this first so you can ignore missing tables in PART 2 and 3
+        self.compare_databases = CompareDatabases(self.master_database_cursor, self.current_database_cursor)
+        # temp_tables_missing_in_current represent tables that have been removed; tables_missing_in_master represent tables that have been added in current
+        # tables_master_temp and tables_current_temp have yyyymmdd removed; do this once and share with other modules
+        # self.master_yyyymmdd and self.current_yyyymmdd are the extracted yyyymmdd for each
+        tables_master_temp, temp_tables_missing_in_master, tables_current_temp, temp_tables_missing_in_current, self.master_yyyymmdd, self.current_yyyymmdd = self.compare_databases.compare_databases()
+        # report withdrawn or new folders in current_database
+        if temp_tables_missing_in_current or temp_tables_missing_in_master:
+            utils.show_warning_popup("Possible errors were noted. See the Misc. Results tab.")
+            error_messages = {
+                "missing_current": "Folders Removed",
+                "missing_master": "Folders Added",
+            }
+            for error_type, table_list in {"missing_current": temp_tables_missing_in_current, "missing_master": temp_tables_missing_in_master}.items():
+                if table_list:
+                    message = error_messages[error_type]
+                    self.process_report(table_list, 'misc_findings_type2', self.errors_textbox, self.current_database_path, message)
+
+        self.main_page_textbox.emit(f"\nLooking for new charts and charts withdrawn.")
+        QCoreApplication.processEvents() # forces the textbox to update with message
+        # PART 3 OF 4 - compare master and current databases and report charts withdrawn and new charts
+        # Remove tables_missing_from_current from tables_master so table content matches; no need to check tables_missing_in_master because these are newly added
+        tables_master_temp = [table for table in tables_master_temp if table not in tables_current_temp]
+        # instantiate CompareChartNumbers
+        self.compare_chart_numbers = CompareChartNumbers(self.master_database_cursor, self.current_database_cursor)
+        charts_withdrawn, new_charts = self.compare_chart_numbers.compare_chart_numbers(tables_master_temp, self.master_yyyymmdd, self.current_yyyymmdd)
+        # Report missing charts on missing charts tab; can't use same process as above because of filenames and textbox identification
+        if charts_withdrawn:
+            self.process_report(charts_withdrawn, 'charts_withdrawn', self.chart_withdrawn_textbox, self.current_database_path)
+        # Report new charts on new charts tab
+        if new_charts:
+            self.process_report(new_charts, 'new_charts', self.new_charts_textbox, self.current_database_path)
+
+        self.main_page_textbox.emit(f"\nLooking for new editions and content errors.")
+        QCoreApplication.processEvents() # forces the textbox to update with message        
+        # PART 4 OF 4 - find data mismatches
+        # instantiate FindDataMismatches
+        self.find_data_mismatches = FindDataMismatches(self.master_database_cursor, self.current_database_cursor)
+        new_editions, misc_findings = self.find_data_mismatches.find_mismatches(tables_master_temp, self.master_yyyymmdd, self.current_yyyymmdd)
+        # report new_editions
+        if new_editions:
+            self.process_report(new_editions, 'new_editions', self.new_editions_textbox, self.current_database_path)
+        # Report misc. findings (findings that couldn't be categorized as New Charts, New Editions or Charts Withdrawn)
+        if misc_findings:
+            message = "Uncategorized Findings"
+            self.process_report(misc_findings, 'misc_findings_type1', self.errors_textbox, self.current_database_path, message)
+            utils.show_warning_popup("Possible errors were noted. See the Misc. Results tab.")
         
+        # Print a message to indicate that the checker has run
+        self.main_page_textbox.emit('\nCheck completed!')
+
         # close the databases
         utils.close_database(self.master_database_conn)
         utils.close_database(self.current_database_conn)

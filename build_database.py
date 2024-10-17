@@ -19,22 +19,22 @@ from PyQt5.QtCore import QObject, pyqtSignal, QCoreApplication
 class BuildDatabase(QObject):
     finished = pyqtSignal(str)  # used to return self.database
     
-    def __init__(self, ui, database, main_page_textbox, raster_target_folder, vector_target_folder):
+    def __init__(self, ui, main_page_textbox, raster_target_folder, vector_target_folder):
         super().__init__() # call __init__ of the parent class chs_dvd_reader_main
         self.ui = ui
 
-        self.database = database  # actual path to master database
+        self.database = ''  # database name
+        # database data input path
+        self.database_path = ''
+
         # Create custom_signals connections
         self.main_page_textbox = main_page_textbox
-
-        # database data input path
-        self.database_path = ''  # path to database folder
 
         self.raster_target_folder = raster_target_folder
         self.vector_target_folder = vector_target_folder
 
-        self.master_database_conn = ''
-        self.master_database_cursor = ''
+        self.database_conn = ''
+        self.database_cursor = ''
 
     # Function to detect file encoding using chardet
     def detect_encoding(self, file_path):
@@ -70,17 +70,17 @@ class BuildDatabase(QObject):
             print(f"Error inserting data: {e}")
         QCoreApplication.processEvents()
 
-    def generate_database(self, master_database_conn, master_database_cursor):
+    def generate_database(self, database_conn, database_cursor):
         # declare master database connection and cursor
-        self.master_database_conn = master_database_conn
-        self.master_database_cursor = master_database_cursor
+        self.database_conn = database_conn
+        self.database_cursor = database_cursor
 
         if self.database_path[:1] == "C": #  Case 1: the files are in a folder on the desktop
             self.process_desktop_folder()
         else:# Case 2: files are on a DVD reader
             self.process_dvd()
         # Commit the changes at the end
-        self.master_database_conn.commit()
+        self.database_conn.commit()
 
     # Function to list folders in the DVD path
     def list_folders(self, folder_path):
@@ -207,24 +207,25 @@ class BuildDatabase(QObject):
                                 # it's understood there's only one file; method is written so it can apply if there are >1 files
                                 for file in files:
                                     file_path = os.path.join(complete_path, file)
-                                    self.create_table(table_name, file_path, self.master_database_cursor, file_extension)  # Create the table
-                                    self.insert_data(table_name, file_path, self.master_database_cursor, file_extension)    # Insert data into the table
+                                    self.create_table(table_name, file_path, self.database_cursor, file_extension)  # Create the table
+                                    self.insert_data(table_name, file_path, self.database_cursor, file_extension)    # Insert data into the table
                             elif file_extension == "":
                                 self.main_page_textbox.emit("\nNo .txt or .csv files in this folder.")
         self.main_page_textbox.emit(f"\nFinished processing '{source_name}'.")
         QCoreApplication.processEvents()
 
-    def build_database(self, database_path):
+    def build_database(self, database, database_path):
+        self.database = database
         self.main_page_textbox.emit(f"Building {self.database}.")
         QCoreApplication.processEvents() # forces the textbox to update with message
         self.database_path = database_path
-        self.database = os.path.join(self.database_path, self.database) # actual path to master database
-        database_conn, database_cursor = utils.get_database_connection(self.database)
+        self.database_complete_path = os.path.join(self.database_path, self.database) # actual path to master database
+        database_conn, database_cursor = utils.get_database_connection(self.database_complete_path)
         self.generate_database(database_conn, database_cursor)
         # close the master database so it can be opened in run_checker (assumption is that create_database isn't always used)
-        utils.close_database(database_conn)
         self.main_page_textbox.emit(f"\nSuccessfully built {self.database}!")
         QCoreApplication.processEvents() # forces the textbox to update with message
+        utils.close_database(database_conn)
 
 if __name__ == "__mtartain__":
    pass
