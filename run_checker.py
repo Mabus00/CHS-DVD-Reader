@@ -305,7 +305,7 @@ class RunChecker(QObject):
         # temp_tables_missing_in_current represent tables that have been removed; tables_missing_in_master represent tables that have been added in current
         # tables_master_temp and tables_current_temp have yyyymmdd removed; do this once and share with other modules
         # self.master_yyyymmdd and self.current_yyyymmdd are the extracted yyyymmdd for each
-        tables_master_temp, temp_tables_missing_in_master, tables_current_temp, temp_tables_missing_in_current, self.master_yyyymmdd, self.current_yyyymmdd = self.compare_databases.compare_databases()
+        tables_master_temp, temp_tables_missing_in_master, tables_current_temp, temp_tables_missing_in_current, tables_missing_in_current, self.master_yyyymmdd, self.current_yyyymmdd = self.compare_databases.compare_databases()
         # report withdrawn or new folders in current_database
         if temp_tables_missing_in_current or temp_tables_missing_in_master:
             utils.show_warning_popup("Possible errors were noted. See the Misc. Results tab.")
@@ -321,8 +321,8 @@ class RunChecker(QObject):
         self.main_page_textbox.emit(f"\nLooking for new charts and charts withdrawn.")
         QCoreApplication.processEvents() # forces the textbox to update with message
         # PART 3 OF 4 - compare master and current databases and report charts withdrawn and new charts
-        # Remove tables_missing_from_current from tables_master so table content matches; no need to check tables_missing_in_master because these are newly added
-        tables_master_temp = [table for table in tables_master_temp if table not in tables_current_temp]
+        # Remove tables_missing_in_current from tables_master so table content matches; no need to check tables_missing_in_master because these are newly added
+        tables_master_temp = [table for table in tables_master_temp if table not in tables_missing_in_current]
         # instantiate CompareChartNumbers
         self.compare_chart_numbers = CompareChartNumbers(self.master_database_cursor, self.current_database_cursor)
         charts_withdrawn, new_charts = self.compare_chart_numbers.compare_chart_numbers(tables_master_temp, self.master_yyyymmdd, self.current_yyyymmdd)
