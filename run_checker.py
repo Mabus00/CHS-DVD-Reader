@@ -134,7 +134,6 @@ class RunChecker(QObject):
             complete_path = os.path.join(file_path, file_name)
             if os.path.exists(complete_path):
                 os.remove(complete_path)
-                print(f"Deleted existing file: {complete_path}")
 
     def process_report(self, data, csv_file_name, gui_text_box, current_database_folder, message=None):
         file_path = os.path.join(current_database_folder, csv_file_name)

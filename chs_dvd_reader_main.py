@@ -162,7 +162,7 @@ class CHSDVDReaderApp(QMainWindow):
         self.current_database_path = current_database_path
         self.build_database_instance.build_database(self.master_database, self.master_database_path)
         self.run_checker_instance.run_checker(self.master_database, self.master_database_path, self.current_database, self.current_database_path)
-        print(f'selected folders')
+        print(f'Done')
         
 def main():
     app = QApplication(sys.argv)

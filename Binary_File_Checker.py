@@ -174,10 +174,10 @@ def calculate_total_steps(dir1, dir2):
     return total_steps
 
 # Function to compare two directories and their subdirectories
-def compare_directories(dir1, dir2, status_label, progress_bar):
-    if not os.path.exists(dir1) or not os.path.exists(dir2):
-        messagebox.showerror("Error", "One or both directories do not exist")
-        return
+def compare_directories(dir1, dir2, main_page_textbox):
+    # if not os.path.exists(dir1) or not os.path.exists(dir2):
+    #     main_page_textbox.emit("\nError", "One or both directories do not exist")
+    #     return
 
     # Capture the current time and start the timer
     runtime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -196,13 +196,13 @@ def compare_directories(dir1, dir2, status_label, progress_bar):
     }
 
     # Map and compare the specific folders (EastDVD and WestDVD)
-    progress = map_and_compare_folders(dir1, dir2, comparison_data, status_label, progress_bar, 0, total_steps)
+    progress = map_and_compare_folders(dir1, dir2, comparison_data, total_steps)
 
     # Compare all .csv files within the second directory that contain 'CHS_COLLECTIONS_ENCS57'
-    progress = compare_csv_files_in_directory(dir2, comparison_data, status_label, progress_bar, progress, total_steps)
+    progress = compare_csv_files_in_directory(dir2, comparison_data, progress, total_steps)
 
     # Compare files in the second directory that have the same name and extension (excluding .031 and .TXT)
-    compare_files_with_same_name_and_extension(dir2, comparison_data, status_label, progress_bar, progress, total_steps)
+    compare_files_with_same_name_and_extension(dir2, comparison_data, progress, total_steps)
 
     # Stop the timer and calculate the execution time
     end_time = time.time()
