@@ -46,9 +46,9 @@ def confirm_data_path(text):
         return False
     return True
         
-def delete_existing_database(database_path, target_textbox):
+def delete_existing_database(database_path, database, target_textbox):
     os.remove(database_path)
-    target_textbox.emit(f"Database '{database_path}' deleted.")
+    target_textbox.emit(f"\nDatabase '{database}' deleted.")
     
 def insert_text(table_name, text, pos_to_insert):
     parts = table_name.split('_')

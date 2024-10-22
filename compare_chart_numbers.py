@@ -49,7 +49,6 @@ class CompareChartNumbers():
         new_charts_result = []
         # Iterate through table names in tables_master and find corresponding table in tables_current_temp
         for table_name in tables_master:
-            print(table_name)
             # add the yyyymmdd to match complete table name
             temp_master_table_name = utils.insert_text(table_name, master_yyyymmdd, pos_to_insert=1)
             temp_current_table_name = utils.insert_text(table_name, current_yyyymmdd, pos_to_insert=1)       
@@ -60,8 +59,6 @@ class CompareChartNumbers():
             current_data = self.current_database_cursor.fetchall()
             # Set the index of the table column (first column = chart number)
             chart_column_index = 1
-            if "RM" not in table_name:
-                chart_column_index = 2
             result = self.detect_column_changes(chart_column_index, master_data, current_data, temp_current_table_name)
             charts_withdrawn_result.extend(result for result in [result] if result)
             result = self.detect_column_changes(chart_column_index, current_data, master_data, temp_current_table_name)

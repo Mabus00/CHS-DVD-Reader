@@ -213,10 +213,11 @@ class BuildDatabase(QObject):
 
     def build_database(self, database, database_path):
         self.database = database
-        self.main_page_textbox.emit(f"\nBuilding {self.database}.")
-        QCoreApplication.processEvents() # forces the textbox to update with message
         self.database_path = database_path
         database_complete_path = os.path.join(self.database_path, self.database) # actual path to master database
+        utils.delete_existing_database(database_complete_path, self.database, self.main_page_textbox)
+        self.main_page_textbox.emit(f"\nBuilding {self.database}.")
+        QCoreApplication.processEvents() # forces the textbox to update with message
         database_conn, database_cursor = utils.get_database_connection(database_complete_path)
         self.generate_database(database_conn, database_cursor)
         # close the master database so it can be opened in run_checker (assumption is that create_database isn't always used)
