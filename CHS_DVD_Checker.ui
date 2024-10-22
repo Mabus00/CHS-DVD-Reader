@@ -66,7 +66,7 @@
      </font>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>0</number>
     </property>
     <property name="documentMode">
      <bool>false</bool>
@@ -153,116 +153,6 @@
       </property>
       <property name="text">
        <string>Delete Selected Folders</string>
-      </property>
-     </widget>
-    </widget>
-    <widget class="QWidget" name="checker">
-     <attribute name="title">
-      <string>Run Checker</string>
-     </attribute>
-     <widget class="QPushButton" name="selectCheckerDataPathButton">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>40</y>
-        <width>231</width>
-        <height>41</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Press to select input data path</string>
-      </property>
-     </widget>
-     <widget class="QLabel" name="checker_data_input_path">
-      <property name="geometry">
-       <rect>
-        <x>260</x>
-        <y>40</y>
-        <width>431</width>
-        <height>41</height>
-       </rect>
-      </property>
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="frameShape">
-       <enum>QFrame::StyledPanel</enum>
-      </property>
-      <property name="text">
-       <string/>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="runCheckerButton">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>110</y>
-        <width>301</width>
-        <height>41</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Run CHS DVD Checker Program</string>
-      </property>
-     </widget>
-     <widget class="QLabel" name="runCheckerProgressReportLabel">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>180</y>
-        <width>171</width>
-        <height>21</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Progress Report:</string>
-      </property>
-     </widget>
-     <widget class="QTextEdit" name="runCheckerTextBrowser">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>220</y>
-        <width>901</width>
-        <height>311</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <family>Arial</family>
-        <pointsize>12</pointsize>
-        <weight>50</weight>
-        <bold>false</bold>
-       </font>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="createPDFReportButton">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>580</y>
-        <width>201</width>
-        <height>41</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Create PDF Report</string>
-      </property>
-     </widget>
-     <widget class="QLabel" name="create_pdf_report_text">
-      <property name="geometry">
-       <rect>
-        <x>230</x>
-        <y>590</y>
-        <width>571</width>
-        <height>21</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Select this button to create a pdf report for the current month</string>
       </property>
      </widget>
     </widget>

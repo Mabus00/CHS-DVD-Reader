@@ -117,10 +117,6 @@ class CHSDVDReaderApp(QMainWindow):
         self.ui.selectFoldersButton.clicked.connect(self.main_page_signals.select_folders_button.emit)
         self.ui.deleteSelectedFoldersButton.clicked.connect(self.main_page_signals.clear_folders_button.emit)
         self.ui.executeCheckerButton.clicked.connect(self.main_page_signals.run_dvd_checker_button.emit)
-        # run checker tab
-        self.ui.selectCheckerDataPathButton.clicked.connect(self.run_checker_signals.data_input_path_button.emit)
-        self.ui.runCheckerButton.clicked.connect(self.run_checker_signals.run_checker_button.emit)
-        self.ui.createPDFReportButton.clicked.connect(self.run_checker_signals.create_pdf_report_button.emit)
 
         # Connect custom signals to slots
         # main page tab
@@ -130,18 +126,14 @@ class CHSDVDReaderApp(QMainWindow):
         # Connect the finished signal to handle_build_database_result
         self.main_page_instance.finished.connect(self.handle_main_page_result, Qt.QueuedConnection)
 
-        # run checker tab
-        self.run_checker_signals.data_input_path_button.connect(lambda: self.open_file_explorer(self.ui.checker_data_input_path, self.current_database))
-
         # Connect the finished signal to handle_build_database_result
         self.run_checker_instance.finished.connect(self.handle_run_checker_result, Qt.QueuedConnection)
         # create_pdf_report custom signal
-        self.run_checker_signals.create_pdf_report_button.connect(lambda: self.create_pdf_report_instance.create_pdf_report())
+        # self.run_checker_signals.create_pdf_report_button.connect(lambda: self.create_pdf_report_instance.create_pdf_report())
 
         # Using a lambda function to create an anonymous function that takes a single argument 'message'.
         # The lambda function is being used as an argument to the emit method of the custom signal.
         self.main_page_signals.progress_textbox.connect(lambda message: self.update_text_browser(self.ui.mainPageTextBrowser, message))
-        self.run_checker_signals.run_checker_textbox.connect(lambda message: self.update_text_browser(self.ui.runCheckerTextBrowser, message))
         self.errors_signals.errors_textbox.connect(lambda message: self.update_text_browser(self.ui.errorsTextBrowser, message))
         self.new_charts_signals.new_charts_textbox.connect(lambda message: self.update_text_browser(self.ui.newChartsTextBrowser, message))
         self.new_editions_signals.new_editions_textbox.connect(lambda message: self.update_text_browser(self.ui.newEditionsTextBrowser, message))
