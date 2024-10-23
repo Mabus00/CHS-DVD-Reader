@@ -1,6 +1,6 @@
 '''
 To call this function
-from folder_comparison import FolderComparison
+from Binary_File_Checker import FolderComparison
 comparison = FolderComparison(dir1, dir2)
 
 ###And comment out the bottom portion that is used for manual comparison
