@@ -7,7 +7,6 @@ comparison = FolderComparison(master_database_path, current_database_path)
 
 '''
 
-
 import filecmp
 import os
 import csv
