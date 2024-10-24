@@ -28,6 +28,7 @@ from main_page import MainPage
 from build_database import BuildDatabase
 from run_checker import RunChecker
 from create_pdf_report import CreatePDFReport
+from binary_file_checker import BinaryFileChecker
 
 class CHSDVDReaderApp(QMainWindow):
     def __init__(self):
@@ -112,6 +113,8 @@ class CHSDVDReaderApp(QMainWindow):
         # Create an instance of CreatePDFReport
         self.create_pdf_report_instance = CreatePDFReport(self.run_checker_signals.run_checker_textbox)
 
+        self.binary_file_checker = BinaryFileChecker(self.ui, self.main_page_signals.progress_textbox)
+
         # Connect UI signals to custom signals using object names
         # main page tab
         self.ui.selectFoldersButton.clicked.connect(self.main_page_signals.select_folders_button.emit)
@@ -160,8 +163,9 @@ class CHSDVDReaderApp(QMainWindow):
     def handle_main_page_result(self, master_database_path, current_database_path):
         self.master_database_path = master_database_path
         self.current_database_path = current_database_path
-        self.build_database_instance.build_database(self.master_database, self.master_database_path)
-        self.run_checker_instance.run_checker(self.master_database, self.master_database_path, self.current_database, self.current_database_path)
+        # self.build_database_instance.build_database(self.master_database, self.master_database_path)
+        # self.run_checker_instance.run_checker(self.master_database, self.master_database_path, self.current_database, self.current_database_path)
+        self.binary_file_checker.compare_directories(self.master_database_path, self.current_database_path)
         print(f'Done')
         
 def main():
