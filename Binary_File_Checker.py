@@ -110,24 +110,24 @@ class BinaryFileChecker:
         for root1, dirs1, _ in os.walk(self.master_database_path):
             for dir_name in dirs1:
                 if dir_name.startswith("EastDVD"):
-                    match_current_database_path = utils.find_folder(self.current_database_path, "EastDVD")
+                    match_current_database_path = self.find_matching_folder(self.current_database_path, "EastDVD")
                     if match_current_database_path:
                         comparison = filecmp.dircmp(os.path.join(root1, dir_name), match_current_database_path)
                         self.compare_directories_recursive(comparison)
                 elif dir_name.startswith("WestDVD"):
-                    match_current_database_path = utils.find_folder(self.current_database_path, "WestDVD")
+                    match_current_database_path = self.find_matching_folder(self.current_database_path, "WestDVD")
                     if match_current_database_path:
                         comparison = filecmp.dircmp(os.path.join(root1, dir_name), match_current_database_path)
                         self.compare_directories_recursive(comparison)
 
     # Function to find the matching EastDVD or WestDVD folder in the second directory
-    # @staticmethod
-    # def find_matching_folder(base_dir, prefix):
-    #     for root, dirs, _ in os.walk(base_dir):
-    #         for dir_name in dirs:
-    #             if dir_name.startswith(prefix):
-    #                 return os.path.join(root, dir_name)
-    #     return None
+    @staticmethod
+    def find_matching_folder(base_dir, prefix):
+        for root, dirs, _ in os.walk(base_dir):
+            for dir_name in dirs:
+                if dir_name.startswith(prefix):
+                    return os.path.join(root, dir_name)
+        return None
 
     # Function to compare files in the second directory that have the same name and extension
     def compare_files_with_same_name_and_extension(self):
