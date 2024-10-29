@@ -2,11 +2,7 @@
 To call this function
 from Binary_File_Checker import FolderComparison
 comparison = FolderComparison(master_database_path, current_database_path)
-
-###And comment out the bottom portion that is used for manual comparison
-
 '''
-
 import filecmp
 import os
 import csv
@@ -18,7 +14,7 @@ from PyQt5.QtCore import QCoreApplication
 
 class BinaryFileChecker:
     def __init__(self, ui, main_page_textbox):
-        super().__init__() # call __init__ of the parent class chs_dvd_reader_main
+        super().__init__()  # call __init__ of the parent class chs_dvd_reader_main
 
         self.ui = ui
         # Create custom_signals connections
@@ -28,24 +24,22 @@ class BinaryFileChecker:
         self.current_database_path = ''
 
         self.comparison_data = {
-            "New Editions": [], #Files that have changed from the last CD to current Watch for files that dont have new edition released
-            "Files that cannot be compared": [], # files 
-            "Updates and New Charts": [], # Only on the second CD
+            "New Editions": [],  # Files that have changed from the last CD to current. Watch for files that don't have new editions released
+            "Files that cannot be compared": [],  # files
+            "Updates and New Charts": [],  # Only on the second CD
             "Withdrawn": [],  # Only on the first CD
-            "Differing files with same name and extension": [] # Checks for ENC's in multiple collections that they have all recieve the new edition.
+            "Differing files with same name and extension": []  # Checks for ENCs in multiple collections to see if they all receive the new edition.
         }
         self.runtime = None
-        self.execution_time = None     
+        self.execution_time = None
 
     # Function to split a path into multiple columns
-    @staticmethod
-    def split_path_to_columns(path):
+    def split_path_to_columns(self, path):
         return path.split(os.sep)
 
     # Function to get only the final part of a file or folder path
-    # @staticmethod
-    # def get_end_of_path(path):
-    #     return os.path.basename(path)
+    def get_end_of_path(self, path):
+        return os.path.basename(path)
 
     # Function to export the comparison results to a CSV file
     def export_to_csv(self):
@@ -73,8 +67,7 @@ class BinaryFileChecker:
                     writer.writerow([category, "None"])
 
     # Function to compare file contents (using filecmp.cmp with shallow=False)
-    @staticmethod
-    def compare_file_contents(file1, file2):
+    def compare_file_contents(self, file1, file2):
         return filecmp.cmp(file1, file2, shallow=False)
 
     # Recursive function to compare directories and subdirectories
@@ -109,7 +102,7 @@ class BinaryFileChecker:
         for root1, dirs1, _ in os.walk(self.master_database_path):
             for dir_name in dirs1:
                 if dir_name.startswith("EastDVD"):
-                    match_current_database_path = self.find_matching_folder(self.current_database_path, "EastDVD")
+                    match_current_database_path = self.find_matching_folder(self.current_database_path, "EastDVD")  
                     if match_current_database_path:
                         comparison = filecmp.dircmp(os.path.join(root1, dir_name), match_current_database_path)
                         self.compare_directories_recursive(comparison)
@@ -120,8 +113,7 @@ class BinaryFileChecker:
                         self.compare_directories_recursive(comparison)
 
     # Function to find the matching EastDVD or WestDVD folder in the second directory
-    @staticmethod
-    def find_matching_folder(base_dir, prefix):
+    def find_matching_folder(self, base_dir, prefix):
         for root, dirs, _ in os.walk(base_dir):
             for dir_name in dirs:
                 if dir_name.startswith(prefix):
@@ -152,7 +144,7 @@ class BinaryFileChecker:
     # Function to start the comparison process
     def compare_directories(self, master_database_path, current_database_path):
         self.main_page_textbox.emit(f"\nStarting bit checker process.")
-        QCoreApplication.processEvents() # forces the textbox to update with message
+        QCoreApplication.processEvents()  # forces the textbox to update with message
 
         self.master_database_path = master_database_path
         self.current_database_path = current_database_path
@@ -161,28 +153,21 @@ class BinaryFileChecker:
         start_time = time.time()
 
         self.main_page_textbox.emit(f"\nComparing folders.")
-        QCoreApplication.processEvents() # forces the textbox to update with message
+        QCoreApplication.processEvents()  # forces the textbox to update with message
         self.map_and_compare_folders()
 
         self.main_page_textbox.emit(f"\nComparing files.")
-        QCoreApplication.processEvents() # forces the textbox to update with message
+        QCoreApplication.processEvents()  # forces the textbox to update with message
         self.compare_files_with_same_name_and_extension()
 
         end_time = time.time()
         self.execution_time = end_time - start_time
 
         self.main_page_textbox.emit(f"\nExporting results.")
-        QCoreApplication.processEvents() # forces the textbox to update with message
+        QCoreApplication.processEvents()  # forces the textbox to update with message
         self.export_to_csv()
 
-'''
-# Comment this out to add it to the code
-master_database_path = "C:/Users/lysak.bew/Desktop/CHSDVDReader/East_West_DVD_Sep24"
-current_database_path = "C:/Users/lysak.bew/Desktop/CHSDVDReader/East_West_DVD_Oct24"
 
-# Automatically starts comparison when the object is created
-comparator = FolderComparison(master_database_path, current_database_path)'''
 
-# Main execution block (can be used for testing)
 if __name__ == "__main__":
     pass
