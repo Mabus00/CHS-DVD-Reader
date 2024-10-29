@@ -175,14 +175,6 @@ class BinaryFileChecker:
         QCoreApplication.processEvents() # forces the textbox to update with message
         self.export_to_csv()
 
-'''
-# Comment this out to add it to the code
-master_database_path = "C:/Users/lysak.bew/Desktop/CHSDVDReader/East_West_DVD_Sep24"
-current_database_path = "C:/Users/lysak.bew/Desktop/CHSDVDReader/East_West_DVD_Oct24"
-
-# Automatically starts comparison when the object is created
-comparator = FolderComparison(master_database_path, current_database_path)'''
-
 # Main execution block (can be used for testing)
 if __name__ == "__main__":
     pass
