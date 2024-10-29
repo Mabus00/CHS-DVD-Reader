@@ -20,7 +20,7 @@ import sys
 import inspect
 from PyQt5.QtWidgets import QApplication, QMainWindow, QTextEdit, QFileDialog
 from PyQt5.QtGui import QFont
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QCoreApplication
 
 from chs_dvd_gui import Ui_MainWindow
 from custom_signals import MainPageSignals, CreateDatabaseSignals, RunCheckerSignals, NewChartsSignals, NewEditionsSignals, WithdrawnSignals, ErrorsSignals
@@ -166,7 +166,8 @@ class CHSDVDReaderApp(QMainWindow):
         # self.build_database_instance.build_database(self.master_database, self.master_database_path)
         # self.run_checker_instance.run_checker(self.master_database, self.master_database_path, self.current_database, self.current_database_path)
         self.binary_file_checker.compare_directories(self.master_database_path, self.current_database_path)
-        print(f'Done')
+        self.main_page_signals.progress_textbox.emit(f"\Done!")
+        QCoreApplication.processEvents()  # forces the textbox to update with message
         
 def main():
     app = QApplication(sys.argv)

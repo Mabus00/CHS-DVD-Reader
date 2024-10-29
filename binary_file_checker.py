@@ -2,7 +2,6 @@
 To call this function
 from Binary_File_Checker import FolderComparison
 comparison = FolderComparison(master_database_path, current_database_path)
-
 '''
 import filecmp
 import os
@@ -74,29 +73,34 @@ class BinaryFileChecker:
     # Recursive function to compare directories and subdirectories
     def compare_directories_recursive(self, comparison):
         # Compare files in both directories
-        for file in comparison.common_files:
-            file1 = os.path.join(comparison.left, file)
-            file2 = os.path.join(comparison.right, file)
-            if not file1.endswith((".csv", ".031", ".TXT")) and not self.compare_file_contents(file1, file2):
-                self.comparison_data["New Editions"].append(file1)
+        if comparison.common_files:
+            for file in comparison.common_files:
+                file1 = os.path.join(comparison.left, file)
+                file2 = os.path.join(comparison.right, file)
+                if not file1.endswith((".csv", ".031", ".TXT")) and not self.compare_file_contents(file1, file2):
+                    self.comparison_data["New Editions"].append(file1)
 
         # Files that cannot be compared
-        for file in comparison.funny_files:
-            self.comparison_data["Files that cannot be compared"].append(os.path.join(comparison.left, file))
+        if comparison.funny_files:
+            for file in comparison.funny_files:
+                self.comparison_data["Files that cannot be compared"].append(os.path.join(comparison.left, file))
 
         # Files only in the second directory (excluding .csv files)
-        for file in comparison.right_only:
-            if not file.endswith(".csv"):  # Exclude .csv files
-                self.comparison_data["Updates and New Charts"].append(os.path.join(comparison.right, file))
+        if comparison.right_only:
+            for file in comparison.right_only:
+                if not file.endswith(".csv"):  # Exclude .csv files
+                    self.comparison_data["Updates and New Charts"].append(os.path.join(comparison.right, file))
 
         # Files only in the first directory (excluding .csv files)
-        for file in comparison.left_only:
-            if not file.endswith(".csv"):  # Exclude .csv files
-                self.comparison_data["Withdrawn"].append(os.path.join(comparison.left, file))
+        if comparison.left_only:
+            for file in comparison.left_only:
+                if not file.endswith(".csv"):  # Exclude .csv files
+                    self.comparison_data["Withdrawn"].append(os.path.join(comparison.left, file))
 
         # Recursively compare subdirectories
-        for subdir_name, subdir_cmp in comparison.subdirs.items():
-            self.compare_directories_recursive(subdir_cmp)
+        if comparison.subdirs.items():
+            for subdir_name, subdir_cmp in comparison.subdirs.items():
+                self.compare_directories_recursive(subdir_cmp)
 
     # Function to map and compare specific folders like EastDVD and WestDVD
     def map_and_compare_folders(self):
