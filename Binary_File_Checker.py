@@ -2,6 +2,7 @@
 To call this function
 from Binary_File_Checker import FolderComparison
 comparison = FolderComparison(master_database_path, current_database_path)
+
 '''
 import filecmp
 import os
@@ -167,11 +168,6 @@ class BinaryFileChecker:
         QCoreApplication.processEvents()  # forces the textbox to update with message
         self.export_to_csv()
 
-<<<<<<< HEAD
 
-
-=======
-# Main execution block (can be used for testing)
->>>>>>> bc199a1d55bf99118df499c16cf726841cd7e6b6
 if __name__ == "__main__":
     pass
