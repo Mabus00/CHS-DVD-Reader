@@ -1,5 +1,6 @@
 from pathlib import Path
 import time
+import os
 import common_utils as utils
 from PyQt5.QtWidgets import QWidget, QFileDialog, QMessageBox, QListWidgetItem
 from PyQt5.QtCore import QObject, pyqtSignal, QCoreApplication
@@ -17,14 +18,27 @@ class MainPage(QWidget, QObject):
 
         self.folder_path_list = []
 
+        self.options = QFileDialog.Options()
+        self.options |= QFileDialog.ShowDirsOnly
+
     def open_folder_dialog(self):
         folder_path = QFileDialog.getExistingDirectory(self, 'Select Folder')
-        self.folder_path_list.append(folder_path)
-        if folder_path and len(self.folder_path_list) < 3:
-            self.populate_file_list(folder_path)
-        elif folder_path and len(self.folder_path_list) > 2:
-            utils.show_warning_popup("Only two folders are allowed. If you made an error select 'Delete Selected Folders' and start again.")
-            self.folder_path_list.pop()
+        # Check if the selected folder is valid and not the current working directory
+        if folder_path and os.path.abspath(folder_path) != os.path.abspath(os.getcwd()):
+            # Check if the folder is already in the list
+            if folder_path not in self.folder_path_list:
+                # Check if less than 2 folders are already selected
+                if len(self.folder_path_list) < 2:
+                    self.folder_path_list.append(folder_path)
+                    self.populate_file_list(folder_path)
+                else:
+                    # If more than 2 folders are selected, show a warning
+                    utils.show_warning_popup("Only two folders are allowed. If you made an error select 'Delete Selected Folders' and start again.")
+            else:
+                # If the folder is already in the list, show a warning
+                utils.show_warning_popup("You've already selected that folder. If you made an error select 'Delete Selected Folders' and start again.")
+        else:
+            utils.show_warning_popup("Invalid folder selection. Please select a valid folder.")
 
     def populate_file_list(self, folder_path):
         # Get the list of files in the folder
@@ -52,11 +66,11 @@ class MainPage(QWidget, QObject):
         return creation_month
     
     def process_selected_files(self):
-        self.progress_textbox.emit(f"Beginning DVD checking process.")
-        QCoreApplication.processEvents() # forces the textbox to update with message
-        if len(self.folder_path_list) != 2:
+        if len(self.folder_path_list) != 2 or '' in self.folder_path_list:
             utils.show_warning_popup("Please select two folders. If you made an error, select 'Delete Selected Folders' and start again.")
             return
+        self.progress_textbox.emit(f"Beginning DVD checking process.")
+        QCoreApplication.processEvents() # forces the textbox to update with message
         # Unpack folder paths
         folder1, folder2 = self.folder_path_list
         # Get creation months for both folders

@@ -20,7 +20,7 @@ import sys
 import inspect
 from PyQt5.QtWidgets import QApplication, QMainWindow, QTextEdit, QFileDialog
 from PyQt5.QtGui import QFont
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QCoreApplication
 
 from chs_dvd_gui import Ui_MainWindow
 from custom_signals import MainPageSignals, CreateDatabaseSignals, RunCheckerSignals, NewChartsSignals, NewEditionsSignals, WithdrawnSignals, ErrorsSignals
@@ -28,6 +28,7 @@ from main_page import MainPage
 from build_database import BuildDatabase
 from run_checker import RunChecker
 from create_pdf_report import CreatePDFReport
+from binary_file_checker import BinaryFileChecker
 
 class CHSDVDReaderApp(QMainWindow):
     def __init__(self):
@@ -112,15 +113,13 @@ class CHSDVDReaderApp(QMainWindow):
         # Create an instance of CreatePDFReport
         self.create_pdf_report_instance = CreatePDFReport(self.run_checker_signals.run_checker_textbox)
 
+        self.binary_file_checker = BinaryFileChecker(self.ui, self.main_page_signals.progress_textbox)
+
         # Connect UI signals to custom signals using object names
         # main page tab
         self.ui.selectFoldersButton.clicked.connect(self.main_page_signals.select_folders_button.emit)
         self.ui.deleteSelectedFoldersButton.clicked.connect(self.main_page_signals.clear_folders_button.emit)
         self.ui.executeCheckerButton.clicked.connect(self.main_page_signals.run_dvd_checker_button.emit)
-        # run checker tab
-        self.ui.selectCheckerDataPathButton.clicked.connect(self.run_checker_signals.data_input_path_button.emit)
-        self.ui.runCheckerButton.clicked.connect(self.run_checker_signals.run_checker_button.emit)
-        self.ui.createPDFReportButton.clicked.connect(self.run_checker_signals.create_pdf_report_button.emit)
 
         # Connect custom signals to slots
         # main page tab
@@ -130,18 +129,14 @@ class CHSDVDReaderApp(QMainWindow):
         # Connect the finished signal to handle_build_database_result
         self.main_page_instance.finished.connect(self.handle_main_page_result, Qt.QueuedConnection)
 
-        # run checker tab
-        self.run_checker_signals.data_input_path_button.connect(lambda: self.open_file_explorer(self.ui.checker_data_input_path, self.current_database))
-
         # Connect the finished signal to handle_build_database_result
         self.run_checker_instance.finished.connect(self.handle_run_checker_result, Qt.QueuedConnection)
         # create_pdf_report custom signal
-        self.run_checker_signals.create_pdf_report_button.connect(lambda: self.create_pdf_report_instance.create_pdf_report())
+        # self.run_checker_signals.create_pdf_report_button.connect(lambda: self.create_pdf_report_instance.create_pdf_report())
 
         # Using a lambda function to create an anonymous function that takes a single argument 'message'.
         # The lambda function is being used as an argument to the emit method of the custom signal.
         self.main_page_signals.progress_textbox.connect(lambda message: self.update_text_browser(self.ui.mainPageTextBrowser, message))
-        self.run_checker_signals.run_checker_textbox.connect(lambda message: self.update_text_browser(self.ui.runCheckerTextBrowser, message))
         self.errors_signals.errors_textbox.connect(lambda message: self.update_text_browser(self.ui.errorsTextBrowser, message))
         self.new_charts_signals.new_charts_textbox.connect(lambda message: self.update_text_browser(self.ui.newChartsTextBrowser, message))
         self.new_editions_signals.new_editions_textbox.connect(lambda message: self.update_text_browser(self.ui.newEditionsTextBrowser, message))
@@ -168,9 +163,11 @@ class CHSDVDReaderApp(QMainWindow):
     def handle_main_page_result(self, master_database_path, current_database_path):
         self.master_database_path = master_database_path
         self.current_database_path = current_database_path
-        self.build_database_instance.build_database(self.master_database, self.master_database_path)
-        self.run_checker_instance.run_checker(self.master_database, self.master_database_path, self.current_database, self.current_database_path)
-        print(f'selected folders')
+        # self.build_database_instance.build_database(self.master_database, self.master_database_path)
+        # self.run_checker_instance.run_checker(self.master_database, self.master_database_path, self.current_database, self.current_database_path)
+        self.binary_file_checker.compare_directories(self.master_database_path, self.current_database_path)
+        self.main_page_signals.progress_textbox.emit(f"\nDone!")
+        QCoreApplication.processEvents()  # forces the textbox to update with message
         
 def main():
     app = QApplication(sys.argv)
